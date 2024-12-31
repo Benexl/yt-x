@@ -41,21 +41,56 @@ Inspired by [magic-tape](https://gitlab.com/christosangel/magic-tape)
   - Shell completions for `bash`, `zsh`, and `fish`.
   - Desktop entry generation for easy access.
 
-## Installation
+## 📥 Installation
 
 ![Linux/BSD](https://img.shields.io/badge/-Linux/BSD-red.svg?style=for-the-badge&logo=linux)
 ![Arch Linux](https://img.shields.io/badge/-Arch_Linux-black.svg?style=for-the-badge&logo=archlinux)
 ![MacOS](https://img.shields.io/badge/-MacOS-lightblue.svg?style=for-the-badge&logo=apple)
 ![Android](https://img.shields.io/badge/-Android-green.svg?style=for-the-badge&logo=android)
 
-```bash
-# NixOS
-nix profile install github:Benexl/yt-x
+### ❄️ NixOS or Home Manager
 
-# cross-platform
+### <samp>On NixOS, you can install packages using two main methods:</samp>
+
+1. **Imperative/Direct installation**:
+```bash
+nix profile install github:Benexl/yt-x
+```
+#
+2. **Declarative/Config-based**:
+
+    2.1 Add the following to your `flake.nix`:
+
+    ```nix
+    inputs = {
+      yt-x.url = "github:Benexl/yt-x";
+      ...
+    }
+    ```
+
+    2.2 Then, add Yt-x to your packages:
+    > For system wide installation in *configuration.nix*
+    ```nix
+    environment.systemPackages = with pkgs; [
+      inputs.yt-x.packages."${system}".default
+    ];
+    ```
+
+    > For user level installation in *home.nix*
+    ```nix
+    home.packages = with pkgs; [
+      inputs.yt-x.packages."${system}".default
+    ];
+    ```
+
+### Cross-platform
+
+
+```bash
 # NOTE: ~/.local/bin should exist and be in path for this to work
 curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" -o ~/.local/bin/yt-x && chmod +x ~/.local/bin/yt-x
 ```
+
 
 ## Dependencies
 
