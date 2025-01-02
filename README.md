@@ -226,7 +226,7 @@ Define custom playlists by editing `~/.config/yt-x/custom_playlists.json` (or us
 ## Theming
 To change the default colorscheme, set `YT_X_FZF_OPTS` env var and give it custom fzf opts.
 
-eg. (config.fish)
+eg. (.bashrc)
 
 ```
 #yt-x
