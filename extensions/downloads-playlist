@@ -1,0 +1,10 @@
+main(){
+  while true; do
+    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
+    command cd "$DOWNLOAD_DIRECTORY/$type"
+    playlist=$(command ls "$DOWNLOAD_DIRECTORY/$type" |launcher "Select the playlist to play")
+    mpv "$DOWNLOAD_DIRECTORY/$type/$playlist"
+    confirm "Do you want to play another playlist?"||break
+    done
+  }
+

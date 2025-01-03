@@ -17,7 +17,7 @@ CLI_VERSION="0.4.0"
 CLI_AUTHOR="Benexl"
 CLI_DIR="$(dirname "$(realpath "$0")")"
 CLI_CONFIG_DIR="$HOME/.config/$CLI_NAME"
-CLI_EXTENSION_DIR="$CLI_CONFIG_DIR/extentions"
+CLI_EXTENSION_DIR="$CLI_CONFIG_DIR/extensions"
 CLI_CACHE_DIR="$HOME/.cache/$CLI_NAME"
 CLI_PREVIEW_IMAGES_CACHE_DIR="$CLI_CACHE_DIR/preview_images"
 CLI_PREVIEW_SCRIPTS_DIR="$CLI_CACHE_DIR/preview_text"
@@ -43,6 +43,12 @@ print_config() {
 #    ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗  ╚█████╔╝╚█████╔╝██║░╚███║██║░░░░░██║╚██████╔╝
 #    ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝╚═╝░░░░░╚═╝░╚═════╝░
 #
+
+# loads the extension always
+# useful for defining changes and overides to the default behaviour
+# eg env,ui,functions
+# all file names in the extensions folder
+AUTO_LOADED_EXTENSIONS: $AUTO_LOADED_EXTENSIONS
 
 # whether to show colors when printing ouput
 PRETTY_PRINT: $PRETTY_PRINT
@@ -140,8 +146,6 @@ load_config() {
 	[ -z "$DOWNLOAD_DIRECTORY" ] && DOWNLOAD_DIRECTORY="$HOME/Videos/$CLI_NAME"
 	[ -d "$DOWNLOAD_DIRECTORY" ] || mkdir -p "$DOWNLOAD_DIRECTORY"
 
-	! [ -s "$CLI_CONFIG_DIR/${CLI_NAME}.conf" ] && print_config >"$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-
 	ROFI_THEME="$(awk -F': ' '/^ROFI_THEME:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
 	CUSTOM_PLAYLISTS="$CLI_CONFIG_DIR/custom_playlists.json"
 	F_CUSTOM_CMDS="$CLI_CONFIG_DIR/custom_cmds.json"
@@ -158,6 +162,13 @@ load_config() {
     --marker=">" --pointer="◆" --separator="─" --scrollbar="│"
   '}
 	init_pretty_print
+	AUTO_LOADED_EXTENSIONS="$(awk -F': ' '/^AUTO_LOADED_EXTENSIONS:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+	if [ -n "$AUTO_LOADED_EXTENSIONS" ]; then
+		for ext in $(echo "$AUTO_LOADED_EXTENSIONS" | tr ',' '\n'); do
+			[ -s "$CLI_EXTENSION_DIR/$ext" ] && . "$CLI_EXTENSION_DIR/$ext"
+		done
+	fi
+	! [ -s "$CLI_CONFIG_DIR/${CLI_NAME}.conf" ] && print_config >"$CLI_CONFIG_DIR/${CLI_NAME}.conf"
 	export FZF_DEFAULT_OPTS PRETTY_PRINT PLATFORM IMAGE_RENDERER
 }
 send_notification() {
@@ -756,17 +767,17 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
 			"Download All")
 				playlist_name=$(prompt "Name of the playlist" "$playlist_title")
 				if [ -n "$urlForAll" ]; then
-					yt-dlp "$urlForAll" --output "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+					yt-dlp "$urlForAll" --output "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/%(playlist_index)s - %(title)s.%(ext)s" $PREFERRED_BROWSER
 				else
-					yt-dlp "$url" --output "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+					yt-dlp "$url" --output "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/%(playlist_index)s - %(title)s.%(ext)s" $PREFERRED_BROWSER
 				fi
 				;;
 			"Download All (Audio Only)")
 				playlist_name=$(prompt "Name of the playlist" "$playlist_title")
 				if [ -n "$urlForAll" ]; then
-					yt-dlp "$urlForAll" -x -f 'bestaudio/best' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+					yt-dlp "$urlForAll" -x -f 'bestaudio/best' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/%(playlist_index)s - %(title)s.%(ext)s" $PREFERRED_BROWSER
 				else
-					yt-dlp "$url" -x -f 'bestaudio/best' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+					yt-dlp "$url" -x -f 'bestaudio/best' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/%(playlist_index)s - %(title)s.%(ext)s" $PREFERRED_BROWSER
 				fi
 				;;
 			Listen)
@@ -1176,7 +1187,7 @@ ${RED}󰈆${RESET}  Exit
 	Custom\ Playlists)
 		! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You dont have any custom playlists create them here <$CUSTOM_PLAYLISTS>" && sleep "$NOTIFICATION_DURATION" && main
 		while true; do
-			playlist_title=$(printf "%s\nBack" "$(jq -r '.[].name' "$CUSTOM_PLAYLISTS")" | launcher "Select Custom Playlist To Play")
+			playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | launcher "Select Custom Playlist To Play")
 			[ "$playlist_title" = "Back" ] && break
 			url=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistWatchUrl" "$CUSTOM_PLAYLISTS")
 			urlForAll=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistUrl" "$CUSTOM_PLAYLISTS")
@@ -1269,11 +1280,14 @@ ${RED}󰈆${RESET}  Exit
 				;;
 			Search\ History)
 				clear
-				! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$NOTIFICATION_DURATION" && main
-				search_term="$(tac "$CLI_CACHE_DIR/search_history.txt" | launcher "Search for" | jq -Rr '@uri')"
-				url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAQ%253D%253D"
-				search_results=$(run_yt_dlp "$url")
-				playlist_explorer
+				while true; do
+					! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$NOTIFICATION_DURATION" && main
+					search_term="$(printf "$(tac "$CLI_CACHE_DIR/search_history.txt")\nBack" | launcher "Search for" | jq -Rr '@uri')"
+					[ "$search_term" = "Back" ] && break
+					url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAQ%253D%253D"
+					search_results=$(run_yt_dlp "$url")
+					playlist_explorer
+				done
 				;;
 			New\ Custom\ Command)
 				clear
@@ -1558,7 +1572,7 @@ complete -c $CLI_NAME --no-files --short-option v --long-option version --descri
 complete -c $CLI_NAME --no-files --short-option e --long-option edit-config --description 'Edit $CLI_NAME config file' --condition 'not __fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option U --long-option update --description 'update the script' --condition 'not __fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option p --long-option player --description 'the video player to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'mpv vlc'
-complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments (command ls $CLI_EXTENSION_DIR)
+complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments \"(command ls $CLI_EXTENSION_DIR)\"
 complete -c $CLI_NAME --no-files --short-option s --long-option preferred-selector --description 'your preferred selector' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'fzf rofi'
 complete -c $CLI_NAME --no-files --short-option E --long-option generate-desktop-entry --description 'generate desktop entry info' --condition 'not __fish_seen_subcommand_from completions' 
 
@@ -1634,7 +1648,18 @@ Example:
 done
 
 # setup for ui
+timestamp_file="$CLI_CACHE_DIR/last_update_check"
 
-check_update "A new version of $CLI_NAME has been found would you like to upgrade(y/n)"
+# Time interval in seconds (6 hours = 21600 seconds)
+interval=$((6 * 60 * 60))
+
+# Determine whether to run the update check
+current_time=$(date +%s)
+last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
+
+if ((current_time - last_check_time >= interval)); then
+	check_update "A new version of $CLI_NAME has been found would you like to upgrade(y/n)"
+	echo "$current_time" >"$timestamp_file"
+fi
 core_dep_ch
 main

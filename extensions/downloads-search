@@ -1,0 +1,10 @@
+main(){
+  while true; do
+    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
+    command cd "$DOWNLOAD_DIRECTORY/$type"
+    video=$(fzf)
+    mpv "$DOWNLOAD_DIRECTORY/$type/$video"
+    confirm "Do you want to play another video?"||break
+    done
+  }
+

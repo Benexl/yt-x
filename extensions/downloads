@@ -1,0 +1,25 @@
+_handle_action(){
+  action=$(printf "Media\nPlaylist\nChannel"|launcher "Select what to view")
+  case $action in
+    Media)
+      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel/$video"
+      ;;
+    Channel)
+      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel"
+      ;;
+    Playlist)
+      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist"
+      ;;
+  esac
+
+}
+main(){
+  while true; do
+    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
+    playlist=$(command ls "$DOWNLOAD_DIRECTORY/$type"|launcher "Select the playlist")
+    channel=$(command ls "$DOWNLOAD_DIRECTORY/$type/$playlist"|launcher "Select the channel")
+    media=$(command ls "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel"|launcher "Select the video")
+    _handle_action
+    confirm "Do you want to play another video?"||break
+    done
+  }

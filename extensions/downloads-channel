@@ -1,0 +1,13 @@
+main(){
+  while true; do
+    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
+    command cd "$DOWNLOAD_DIRECTORY/$type"
+    channel=$(fd --exact-depth 2|cut -d / -f 2|sort|uniq |launcher "Select the playlist to play")
+    paths=()
+    while IFS= read -r -d '' path; do
+      paths+=("$path")
+    done < <(fd --exact-depth 2 -0 "$channel")
+    mpv "${paths[@]}"
+    confirm "Do you want to play another channel?"||break
+    done
+  }
