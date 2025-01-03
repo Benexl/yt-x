@@ -43,10 +43,7 @@ Inspired by [magic-tape](https://gitlab.com/christosangel/magic-tape)
 
 ## 📥 Installation
 
-![Linux/BSD](https://img.shields.io/badge/-Linux/BSD-red.svg?style=for-the-badge&logo=linux)
-![Arch Linux](https://img.shields.io/badge/-Arch_Linux-black.svg?style=for-the-badge&logo=archlinux)
-![MacOS](https://img.shields.io/badge/-MacOS-lightblue.svg?style=for-the-badge&logo=apple)
-![Android](https://img.shields.io/badge/-Android-green.svg?style=for-the-badge&logo=android)
+![Linux/BSD](https://img.shields.io/badge/-Linux/BSD-red.svg?style=for-the-badge&logo=linux) <a href="#arch-linux" target="_blank"></a> <img src="https://img.shields.io/badge/-Arch_Linux-black.svg?style=for-the-badge&logo=archlinux" alt="Arch Linux"> ![MacOS](https://img.shields.io/badge/-MacOS-lightblue.svg?style=for-the-badge&logo=apple) ![Android](https://img.shields.io/badge/-Android-green.svg?style=for-the-badge&logo=android)
 
 ### ❄️ NixOS or Home Manager
 
@@ -82,6 +79,22 @@ nix profile install github:Benexl/yt-x
       inputs.yt-x.packages."${system}".default
     ];
     ```
+
+### Arch Linux
+
+![AUR Version](https://img.shields.io/aur/version/yt-x-git?style=for-the-badge&color=e64553&logo=arch-linux&label=%5BAUR%5D%20yt-x-git&logocolor=85e185&labelColor=000000)
+
+**You can install [`yt-x`](https://aur.archlinux.org/packages/yt-x-git) from the Arch Linux [AUR](https://aur.archlinux.org/) repository.**
+
+**To install, use your preferred package manager [`paru`](https://aur.archlinux.org/packages/paru-bin) or [`yay`](https://aur.archlinux.org/packages/yay-bin):**
+
+```bash
+# for paru users
+paru -S yt-x-git
+
+# for yay users
+yay -S yt-x-git
+```
 
 ### Cross-platform
 
