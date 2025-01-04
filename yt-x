@@ -994,22 +994,21 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
       Shell)
         video_url=$(echo "$video" | jq '.url' -r)
         export url urlForAll search_results video video_url playlist_title CLI_HEADER CLI_NAME DOWNLOAD_DIRECTORY
-        bash --rcfile <(
-          cat <<'EOF'
-[ -f ~/.bashrc ] && . ~/.bashrc
-clear
-echo "$CLI_HEADER"
-echo "Welcome to the $CLI_NAME shell."
-echo "You can use the following variables:"
-echo "  - url"
-echo "  - urlForAll"
-echo "  - search_results"
-echo "  - video"
-echo "  - video_url"
-echo "  - playlist_title"
-echo "  - DOWNLOAD_DIRECTORY"
-EOF
-        )
+        local init_text="
+$CLI_HEADER
+Welcome to the $CLI_NAME shell.
+You can use the following variables:
+  - url
+  - urlForAll
+  - search_results
+  - video
+  - video_url
+  - playlist_title
+  - DOWNLOAD_DIRECTORY
+"
+
+        user_shell="$(getent passwd "$USER" | cut -d ':' -f 7)"
+        bash -c "echo -e \"$init_text\"; \"$user_shell\""
         ;;
       Exit)
         byebye
