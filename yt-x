@@ -1319,24 +1319,32 @@ ${RED}󰈆${RESET}  Exit
 main() {
   SHELL="bash"
   clear
-  action="$(printf "\
-${CYAN}${RESET}  Your Feed
-${CYAN}${RESET}  Trending
-${CYAN}󰐑${RESET}  Playlists
-${CYAN}${RESET}  Search
-${CYAN}${RESET}  Watch Later
-${CYAN}󰵀${RESET}  Subscription Feed
-${CYAN}󰑈${RESET}  Channels
-${CYAN}${RESET}  Custom Playlists
-${CYAN}${RESET}  Liked Videos
-${CYAN}${RESET}  Saved Videos
-${CYAN}${RESET}  Watch History
-${CYAN}${RESET}  Recent
-${CYAN}${RESET}  Clips
-${CYAN}${RESET}  Edit Config
-${CYAN}${RESET}  Miscellaneous
-${RED}󰈆${RESET}  Exit
-" | launcher "Select Action" | sed 's/.*  //g')"
+  case "${CMD_ACTION}" in
+    Search)
+      unset CMD_ACTION
+      action="Search"
+      ;;
+    *)
+      action="$(printf "\
+    ${CYAN}${RESET}  Your Feed
+    ${CYAN}${RESET}  Trending
+    ${CYAN}󰐑${RESET}  Playlists
+    ${CYAN}${RESET}  Search
+    ${CYAN}${RESET}  Watch Later
+    ${CYAN}󰵀${RESET}  Subscription Feed
+    ${CYAN}󰑈${RESET}  Channels
+    ${CYAN}${RESET}  Custom Playlists
+    ${CYAN}${RESET}  Liked Videos
+    ${CYAN}${RESET}  Saved Videos
+    ${CYAN}${RESET}  Watch History
+    ${CYAN}${RESET}  Recent
+    ${CYAN}${RESET}  Clips
+    ${CYAN}${RESET}  Edit Config
+    ${CYAN}${RESET}  Miscellaneous
+    ${RED}󰈆${RESET}  Exit
+    " | launcher "Select Action" | sed 's/.*  //g')"
+  ;;
+  esac
   [ "$action" = "Exit" ] && byebye
 
   unset urlForAll
@@ -1353,7 +1361,12 @@ ${RED}󰈆${RESET}  Exit
     ;;
   Search)
     clear
-    search_term="$(prompt "Enter term to search for")"
+    if [ -z "$CMD_SEARCH_TERMS" ]; then
+      search_term="$(prompt "Enter term to search for")"
+    else
+      search_term="$CMD_SEARCH_TERMS"
+      unset CMD_SEARCH_TERMS
+    fi
     [ "$SEARCH_HISTORY" = "true" ] && [ -s "$CLI_CACHE_DIR/search_history.txt" ] && history=$(grep --invert-match "^$search_term\$" "$CLI_CACHE_DIR/search_history.txt")
     [ "$SEARCH_HISTORY" = "true" ] && [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "$history" >$CLI_CACHE_DIR/search_history.txt
     [ "$SEARCH_HISTORY" = "true" ] && echo "$search_term" >>"$CLI_CACHE_DIR/search_history.txt"
@@ -1645,7 +1658,7 @@ Usage: %s [arguments] [options]
 Commandline options override the config
 
 Options:
-  -s, --search
+  -S, --search [Search Terms]
     search for a video
   -e, --edit-config
     edit $CLI_NAME config file
@@ -1719,6 +1732,11 @@ while [ $# -gt 0 ]; do
   -U | --update)
     check_update "A new version of $CLI_NAME has been found would you like to upgrade(y/n)"
     exit 0
+    ;;
+  -S | --search)
+    CMD_ACTION="Search"
+    CMD_SEARCH_TERMS="$2"
+    shift
     ;;
   -s | --preferred-selector)
     [ -n "$2" ] || usage 1
