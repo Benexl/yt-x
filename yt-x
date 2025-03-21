@@ -105,58 +105,65 @@ DOWNLOAD_DIRECTORY: $DOWNLOAD_DIRECTORY
 UPDATE_CHECK: $UPDATE_CHECK
 "
 }
+
+find_config_option () {
+    local option=$1
+    awk -F': ' "/^$option:/ && !/#/ {print \$2}" "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
+}
+
 load_config() {
   ! [ -f "$CLI_CONFIG_DIR/${CLI_NAME}.conf" ] && touch "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  PRETTY_PRINT="$(awk -F': ' '/^PRETTY_PRINT:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+
+  PRETTY_PRINT="$(find_config_option "PRETTY_PRINT")"
   [ -z "$PRETTY_PRINT" ] && PRETTY_PRINT="true"
 
-  IMAGE_RENDERER="$(awk -F': ' '/^IMAGE_RENDERER:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  IMAGE_RENDERER="$(find_config_option "IMAGE_RENDERER")"
   [ -z "$IMAGE_RENDERER" ] && IMAGE_RENDERER=$([ -n "$KITTY_WINDOW_ID" ] && echo "icat" || echo "chafa")
 
-  DISOWN_STREAMING_PROCESS="$(awk -F': ' '/^DISOWN_STREAMING_PROCESS:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  DISOWN_STREAMING_PROCESS="$(find_config_option "DISOWN_STREAMING_PROCESS")"
   [ -z "$DISOWN_STREAMING_PROCESS" ] && DISOWN_STREAMING_PROCESS="true"
 
-  PREFERRED_EDITOR="$(awk -F': ' '/^EDITOR:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  PREFERRED_EDITOR="$(find_config_option "EDITOR")"
   [ -z "$PREFERRED_EDITOR" ] && PREFERRED_EDITOR=${EDITOR:-open}
 
-  PREFERRED_SELECTOR="$(awk -F': ' '/^PREFERRED_SELECTOR:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  PREFERRED_SELECTOR="$(find_config_option "PREFERRED_SELECTOR")"
   [ -z "$PREFERRED_SELECTOR" ] && PREFERRED_SELECTOR="fzf"
 
-  VIDEO_QUALITY="$(awk -F': ' '/^VIDEO_QUALITY:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  VIDEO_QUALITY="$(find_config_option "VIDEO_QUALITY")"
   [ -z "$VIDEO_QUALITY" ] && VIDEO_QUALITY=1080
 
-  ENABLE_PREVIEW="$(awk -F': ' '/^ENABLE_PREVIEW:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  ENABLE_PREVIEW="$(find_config_option "ENABLE_PREVIEW")"
   [ -z "$ENABLE_PREVIEW" ] && ENABLE_PREVIEW="false"
 
-  UPDATE_RECENT="$(awk -F': ' '/^UPDATE_RECENT:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  UPDATE_RECENT="$(find_config_option "UPDATE_RECENT")"
   [ -z "$UPDATE_RECENT" ] && UPDATE_RECENT="true"
 
-  NO_OF_RECENT="$(awk -F': ' '/^NO_OF_RECENT:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  NO_OF_RECENT="$(find_config_option "NO_OF_RECENT")"
   [ -z "$NO_OF_RECENT" ] && NO_OF_RECENT=30
 
-  PLAYER="$(awk -F': ' '/^PLAYER:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  PLAYER="$(find_config_option "PLAYER")"
   [ -z "$PLAYER" ] && PLAYER='mpv'
 
-  PREFERRED_BROWSER="$(awk -F': ' '/^PREFERRED_BROWSER:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  PREFERRED_BROWSER="$(find_config_option "PREFERRED_BROWSER")"
   [ -n "$PREFERRED_BROWSER" ] && PREFERRED_BROWSER="--cookies-from-browser $PREFERRED_BROWSER"
 
-  NO_OF_SEARCH_RESULTS="$(awk -F': ' '/^NUMBER_OF_SEARCH_RESULTS:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  NO_OF_SEARCH_RESULTS="$(find_config_option "NUMBER_OF_SEARCH_RESULTS")"
   [ -z "$NO_OF_SEARCH_RESULTS" ] && NO_OF_SEARCH_RESULTS=30
 
-  NOTIFICATION_DURATION="$(awk -F': ' '/^NOTIFICATION_DURATION:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  NOTIFICATION_DURATION="$(find_config_option "NOTIFICATION_DURATION")"
   [ -z "$NOTIFICATION_DURATION" ] && NOTIFICATION_DURATION=5
 
-  SEARCH_HISTORY="$(awk -F': ' '/^SEARCH_HISTORY:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  SEARCH_HISTORY="$(find_config_option "SEARCH_HISTORY")"
   [ -z "$SEARCH_HISTORY" ] && SEARCH_HISTORY="true"
 
-  DOWNLOAD_DIRECTORY="$(awk -F': ' '/^DOWNLOAD_DIRECTORY:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  DOWNLOAD_DIRECTORY="$(find_config_option "DOWNLOAD_DIRECTORY")"
   [ -z "$DOWNLOAD_DIRECTORY" ] && DOWNLOAD_DIRECTORY="$HOME/Videos/$CLI_NAME"
   [ -d "$DOWNLOAD_DIRECTORY" ] || mkdir -p "$DOWNLOAD_DIRECTORY"
 
-  UPDATE_CHECK="$(awk -F': ' '/^UPDATE_CHECK:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  UPDATE_CHECK="$(find_config_option "UPDATE_CHECK")"
   [ -z "$UPDATE_CHECK" ] && UPDATE_CHECK="true"
 
-  ROFI_THEME="$(awk -F': ' '/^ROFI_THEME:/ && !/#/ {print $2}' "$CLI_CONFIG_DIR/${CLI_NAME}.conf")"
+  ROFI_THEME="$(find_config_option "ROFI_THEME")"
   CUSTOM_PLAYLISTS="$CLI_CONFIG_DIR/custom_playlists.json"
   F_CUSTOM_CMDS="$CLI_CONFIG_DIR/custom_cmds.json"
   F_SUBSCRIPTIONS="$CLI_CONFIG_DIR/subscriptions.json"
