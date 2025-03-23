@@ -288,7 +288,7 @@ confirm() {
     gum confirm "$1"
   else
     echo "$CLI_HEADER" >/dev/stderr
-    printf 'Are you sure you want to proceed [y/N]?: ' >/dev/stderr
+    printf "%s [y/N]: " "$1" > /dev/stderr
     read -r CONFIRMED
     case "$CONFIRMED" in
     y | Y)
