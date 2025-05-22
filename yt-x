@@ -16,9 +16,9 @@ CLI_NAME="yt-x"
 CLI_VERSION="0.4.5"
 CLI_AUTHOR="Benexl"
 CLI_DIR="$(dirname "$(realpath "$0")")"
-CLI_CONFIG_DIR="$HOME/.config/$CLI_NAME"
+CLI_CONFIG_DIR="${XDG_CONFIG_HOME:-"$HOME"/.config}/$CLI_NAME"
 CLI_EXTENSION_DIR="$CLI_CONFIG_DIR/extensions"
-CLI_CACHE_DIR="$HOME/.cache/$CLI_NAME"
+CLI_CACHE_DIR="${XDG_CACHE_HOME:-"$HOME"/.cache}/$CLI_NAME"
 CLI_PREVIEW_IMAGES_CACHE_DIR="$CLI_CACHE_DIR/preview_images"
 CLI_YT_DLP_ARCHIVE="$CLI_CACHE_DIR/yt-dlp-archive"
 CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/playlists"
@@ -157,7 +157,7 @@ load_config() {
   [ -z "$SEARCH_HISTORY" ] && SEARCH_HISTORY="true"
 
   DOWNLOAD_DIRECTORY="$(find_config_option "DOWNLOAD_DIRECTORY")"
-  [ -z "$DOWNLOAD_DIRECTORY" ] && DOWNLOAD_DIRECTORY="$HOME/Videos/$CLI_NAME"
+  [ -z "$DOWNLOAD_DIRECTORY" ] && DOWNLOAD_DIRECTORY="${XDG_VIDEOS_DIR:-"$HOME"/Videos}/$CLI_NAME"
   [ -d "$DOWNLOAD_DIRECTORY" ] || mkdir -p "$DOWNLOAD_DIRECTORY"
 
   UPDATE_CHECK="$(find_config_option "UPDATE_CHECK")"
@@ -1613,22 +1613,22 @@ ${RED}󰈆${RESET}  Exit
 
       Edit\ MPV\ Config)
         if command -v "$EDITOR" >/dev/null 2>&1; then
-          $EDITOR "$HOME/.config/mpv/mpv.conf"
+          $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         elif command -v "open" >/dev/null 2>&1; then
-          open "$HOME/.config/mpv/mpv.conf"
+          open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         elif command -v "xdg-open" >/dev/null 2>&1; then
-          xdg-open "$HOME/.config/mpv/mpv.conf"
+          xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         else
           send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
       "Edit yt-dlp Config")
         if command -v "$EDITOR" >/dev/null 2>&1; then
-          $EDITOR "$HOME/.config/yt-dlp/config"
+          $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         elif command -v "open" >/dev/null 2>&1; then
-          open "$HOME/.config/yt-dlp/config"
+          open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         elif command -v "xdg-open" >/dev/null 2>&1; then
-          xdg-open "$HOME/.config/yt-dlp/config"
+          xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         else
           send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
         fi
