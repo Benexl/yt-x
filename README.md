@@ -60,7 +60,11 @@ nix profile install github:Benexl/yt-x
 
     ```nix
     inputs = {
-      yt-x.url = "github:Benexl/yt-x";
+      nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+      yt-x = {
+        url = "github:Benexl/yt-x";
+        inputs.nixpkgs.follows = "nixpkgs";
+      };
       ...
     }
     ```
