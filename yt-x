@@ -406,7 +406,7 @@ generate_text_preview() {
 
     # some date calculations
     timestamp=$(echo "$video" | jq '.timestamp' -r)
-    relative_timestamp=$(("$CURRENT_TIME" - "$timestamp"))
+    relative_timestamp=$(($CURRENT_TIME - $timestamp))
     if [ "$relative_timestamp" -lt 60 ]; then
       timestamp="just now"
     elif [ "$relative_timestamp" -lt 3600 ]; then
