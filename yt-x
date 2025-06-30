@@ -1401,7 +1401,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     PROMPT_CONTEXT="Search"
     if [ -z "$CMD_SEARCH_TERMS" ]; then
          search_term="$(prompt "Enter term to search for")"
-        if [[ "$search_term" =~ ^![0-9] ]]; then
+        if [[ "$search_term" =~ ^![0-9]{1,2}$ ]]; then
           index="${search_term:1}"  # remove the leading "!"
           history_item=$(tail -n 10 "$CLI_CACHE_DIR/search_history.txt" | tac | sed -n "${index}p")
           if [[ -n "$history_item" ]]; then
