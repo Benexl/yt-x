@@ -550,12 +550,33 @@ byebye() {
   exit "${1:-0}"
 }
 prompt() {
+  HISTORY=$(tail -n 10 "$CLI_CACHE_DIR/search_history.txt" | grep -v '^\s*$' | tac | nl -w2 -s'. ')
+  HISTORY_TEXT="\nSearch history:\n$HISTORY\n-----------------------------\n(Enter !<n> for selecting from history. Example: !1)\n "
   if [ "$PREFERRED_SELECTOR" = "rofi" ]; then
-    rofi -dmenu -p "$1: "
+    if [ "$PROMPT_CONTEXT" = "Search" ] && [ "$SEARCH_HISTORY" = "true" ] && [ -n "$HISTORY" ]; then
+      rofi -dmenu \
+        -p "$1" \
+        -mesg "$(printf "\nSearch history:\n%s\n(Enter !&lt;n&gt; for selecting from history. Example: !1)\n" "$HISTORY")" \
+        <<< "" 
+      PROMPT_CONTEXT=""
+    else
+      rofi -dmenu -p "$1: "
+    fi
   elif command -v "gum" >/dev/null 2>&1; then
-    gum input --header "$CLI_HEADER" --prompt "$1: " --value "$2"
+    if [ "$PROMPT_CONTEXT" = "Search" ] && [ "$SEARCH_HISTORY" = "true" ] && [ -n "$HISTORY" ]; then
+      #Combine the YT-X header with the search history
+      HEADER_WITH_HISTORY=$(echo -e "$CLI_HEADER\n$HISTORY_TEXT")
+      gum input --header "$HEADER_WITH_HISTORY" --prompt "$1: " --value "$2"
+      PROMPT_CONTEXT=""
+    else
+      gum input --header "$CLI_HEADER" --prompt "$1: " --value "$2"
+    fi
   else
     echo "$CLI_HEADER" >/dev/stderr
+    if [ "$PROMPT_CONTEXT" = "Search" ] && [ "$SEARCH_HISTORY" = "true" ] && [ -n "$HISTORY" ]; then
+      echo -e "$HISTORY_TEXT" >/dev/stderr
+      PROMPT_CONTEXT=""
+    fi
     printf "%s: " "$1" >/dev/stderr
     read -r VAL
     echo "$VAL"
@@ -1377,8 +1398,19 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     ;;
   Search)
     clear
+    PROMPT_CONTEXT="Search"
     if [ -z "$CMD_SEARCH_TERMS" ]; then
-           search_term="$(prompt "Enter term to search for")"
+         search_term="$(prompt "Enter term to search for")"
+        if [[ "$search_term" =~ ^![0-9] ]]; then
+          index="${search_term:1}"  # remove the leading "!"
+          history_item=$(tail -n 10 "$CLI_CACHE_DIR/search_history.txt" | tac | sed -n "${index}p")
+          if [[ -n "$history_item" ]]; then
+            echo "Using history item #$index: $history_item"
+            search_term="$history_item"
+          else
+            echo "No such history item: $index"
+          fi
+        fi
       # Exit if user presses ESC or leaves search empty in rofi
       if [ "$PREFERRED_SELECTOR" = "rofi" ] && [ -z "$search_term" ]; then
         echo "Search canceled. No search term provided."
