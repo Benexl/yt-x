@@ -897,7 +897,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist" --no-video
+            mpv "$cached_playlist" --no-video --force-window=no
           else
             cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$url").m3u8"
             if ! [ -s "$cached_playlist" ]; then
@@ -923,13 +923,13 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist" --no-video
+            mpv "$cached_playlist" --no-video --force-window=no
           fi
         else
           if [ -n "$urlForAll" ]; then
-            mpv "$urlForAll" --no-video
+            mpv "$urlForAll" --no-video --force-window=no
           else
-            mpv "$url" --no-video
+            mpv "$url" --no-video --force-window=no
           fi
         fi
         ;;
@@ -992,7 +992,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
               echo "" >>"$cached_playlist"
             done
           fi
-          mpv "$cached_playlist" --no-video
+          mpv "$cached_playlist" --no-video --force-window=no
         else
           if ! [ "$PLAYER" = mpv ] || [ "$PLATFORM" = android ]; then
             video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "bestaudio/best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
@@ -1012,7 +1012,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           *)
             case "$PLAYER" in
             mpv)
-              mpv "$video_url" --no-video
+              mpv "$video_url" --no-video --force-window=no
               ;;
             vlc) vlc "$video_url" --video-title "$title" ;;
             esac
