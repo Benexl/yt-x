@@ -1496,14 +1496,16 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     playlist_explorer
     ;;
   "Edit Config")
-    if command -v "$EDITOR" >/dev/null 2>&1; then
+    if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+      $PREFERRED_EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
+    elif command -v "$EDITOR" >/dev/null 2>&1; then
       $EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     elif command -v "open" >/dev/null 2>&1; then
       open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     elif command -v "xdg-open" >/dev/null 2>&1; then
       xdg-open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     else
-      send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+      send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
     fi
     load_config
     ;;
@@ -1614,59 +1616,69 @@ ${RED}󰈆${RESET}  Exit
         done
         ;;
       Edit\ Search\ History)
-        if command -v "$EDITOR" >/dev/null 2>&1; then
+        if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+          $PREFERRED_EDITOR "$CLI_CACHE_DIR/search_history.txt"
+        elif command -v "$EDITOR" >/dev/null 2>&1; then
           $EDITOR "$CLI_CACHE_DIR/search_history.txt"
         elif command -v "open" >/dev/null 2>&1; then
           open "$CLI_CACHE_DIR/search_history.txt"
         elif command -v "xdg-open" >/dev/null 2>&1; then
           xdg-open "$CLI_CACHE_DIR/search_history.txt"
         else
-          send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+          send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
       Edit\ Custom\ Playlists)
-        if command -v "$EDITOR" >/dev/null 2>&1; then
+        if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+          $PREFERRED_EDITOR "$CLI_CACHE_DIR/custom_playlists.txt"
+        elif command -v "$EDITOR" >/dev/null 2>&1; then
           $EDITOR "$CLI_CONFIG_DIR/custom_playlists.json"
         elif command -v "open" >/dev/null 2>&1; then
           open "$CLI_CONFIG_DIR/custom_playlists.json"
         elif command -v "xdg-open" >/dev/null 2>&1; then
           xdg-open "$CLI_CONFIG_DIR/custom_playlists.json"
         else
-          send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+          send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
       Edit\ Custom\ Commands)
-        if command -v "$EDITOR" >/dev/null 2>&1; then
+        if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+          $PREFERRED_EDITOR "$F_CUSTOM_CMDS"
+        elif command -v "$EDITOR" >/dev/null 2>&1; then
           $EDITOR "$F_CUSTOM_CMDS"
         elif command -v "open" >/dev/null 2>&1; then
           open "$F_CUSTOM_CMDS"
         elif command -v "xdg-open" >/dev/null 2>&1; then
           xdg-open "$F_CUSTOM_CMDS"
         else
-          send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+          send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
 
       Edit\ MPV\ Config)
-        if command -v "$EDITOR" >/dev/null 2>&1; then
+        if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+          $PREFERRED_EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
+        elif command -v "$EDITOR" >/dev/null 2>&1; then
           $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         elif command -v "open" >/dev/null 2>&1; then
           open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         elif command -v "xdg-open" >/dev/null 2>&1; then
           xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
         else
-          send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+          send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
       "Edit yt-dlp Config")
-        if command -v "$EDITOR" >/dev/null 2>&1; then
+        if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+          $PREFERRED_EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
+        elif command -v "$EDITOR" >/dev/null 2>&1; then
           $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         elif command -v "open" >/dev/null 2>&1; then
           open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         elif command -v "xdg-open" >/dev/null 2>&1; then
           xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
         else
-          send_notification "Could not find editor env ($EDITOR) or xdg-open or open"
+          send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
         fi
         ;;
       Clear\ Search\ History)
