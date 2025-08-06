@@ -1772,16 +1772,16 @@ while [ $# -gt 0 ]; do
     exit 0
     ;;
   -e | --edit-config)
-    if command -v "$EDITOR" >/dev/null 2>&1; then
+    if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+      $PREFERRED_EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
+    elif command -v "$EDITOR" >/dev/null 2>&1; then
       $EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-    elif command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-      open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     elif command -v "open" >/dev/null 2>&1; then
       open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     elif command -v "xdg-open" >/dev/null 2>&1; then
       xdg-open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
     else
-      send_notification "Could not find editor env ($EDITOR) or xdg-open or open" && exit 1
+      send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open" && exit 1
     fi
 
     byebye
