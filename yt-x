@@ -229,7 +229,7 @@ check_update() {
   update=$(curl -s "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x")
   update="$(printf '%s\n' "$update" | diff -u "$(command -v yt-x)" - 2>/dev/null)"
   if [ -n "$update" ]; then
-    confirm "An update has been found would you like to see the changes before deciding whether to update" && echo "$update" | less
+    confirm "An update has been found would you like to see the changes before deciding whether to update?" && echo "$update" | less
     if [ "$PREFERRED_SELECTOR" = "fzf" ]; then
       answer=$(prompt "$1")
     else
@@ -953,7 +953,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           yt_dlp_cmd=("yt-dlp" "$url" "--output" "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
           "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
         fi
-        send_notification "Completed downloading $playlist_name"
+        send_notification "Completed downloading of $playlist_name"
         ;;
       "Download All (Audio Only)")
         playlist_name=$(prompt "Name of the playlist" "$playlist_title")
@@ -965,7 +965,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           yt_dlp_cmd=("yt-dlp" "$url" "--audio-format" "mp3" '-x' '-f' 'bestaudio/best' "--output" "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
           "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
         fi
-        send_notification "Completed downloading $playlist_name"
+        send_notification "Completed downloading of $playlist_name"
         ;;
       Listen)
         printf "${MAGENTA}Now Listening to:${RESET} $title\n"
@@ -1150,12 +1150,13 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
         ;;
       "Subscribe To Channel")
         # TODO: use youtube api to enable video subscriptions
-        echo contribute to the project by adding this feature
+        send_notification "contribute to the project by adding this feature"
         sleep "$NOTIFICATION_DURATION"
         ;;
       "Visit Channel")
         # TODO: use youtube api to enable video subscriptions
         send_notification "contribute to the project by adding this feature"
+        sleep "$NOTIFICATION_DURATION"
         ;;
       "Open in Browser")
         if command -v "open" >/dev/null 2>&1; then
@@ -1169,12 +1170,12 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
       Download)
         video_url=$(echo "$video" | jq '.url' -r)
         yt-dlp "$video_url" --output "$DOWNLOAD_DIRECTORY/videos/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-        send_notification "Completed downloading $title"
+        send_notification "Completed downloading of $title"
         ;;
       "Download (Audio Only)")
         video_url=$(echo "$video" | jq '.url' -r)
         yt-dlp "$video_url" -x -f 'bestaudio' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-        send_notification "Completed downloading $title"
+        send_notification "Completed downloading of $title"
         ;;
       Back|"")
         break
@@ -1228,7 +1229,7 @@ get_channels_data() {
     channels_data=$(cat "$CLI_CONFIG_DIR/subscriptions.json")
   else
     echo Loading subscriptions...
-    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config"
+    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config)"
     ! [ "$FORCE_CHANNEL_THUMBNAILS_DOWNLOAD" = "0" ] && [ "$ENABLE_PREVIEW" = "true" ] && download_preview_images "$channels_data" "https:"
     [ -n "$channels_data" ] && ! [ "$channels_data" = "null" ] && echo "$channels_data" >"$CLI_CONFIG_DIR/subscriptions.json" || send_notification "Failed to fetch subscriptions"
     clear
@@ -1332,7 +1333,7 @@ ${RED}󰈆${RESET}  Exit
       ;;
     Subscribe)
       if ! [ -s "$CLI_CONFIG_DIR/subscriptions.json" ]; then
-        if confirm "Would you like to import your youtube subscriptions first; you wont be able to do so again unless you delete the subscribtiofile"; then
+        if confirm "Would you like to import your youtube subscriptions first? You wont be able to do so again unless you delete subscriptions.json"; then
           _channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J)
           echo "$_channels_data" >"$CLI_CONFIG_DIR/subscriptions.json"
         else
@@ -1465,7 +1466,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     done
     ;;
   Custom\ Playlists)
-    ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You dont have any custom playlists create them here <$CUSTOM_PLAYLISTS>" && sleep "$NOTIFICATION_DURATION" && main
+    ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You don't have any custom playlists. Create them here: <$CUSTOM_PLAYLISTS>" && sleep "$NOTIFICATION_DURATION" && main
     while true; do
       playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | launcher "Select Custom Playlist To Play")
       [ "$playlist_title" = "Back" ] || [ "$playlist_title" = "" ] && break
@@ -1532,7 +1533,7 @@ ${RED}󰈆${RESET}  Exit
         unset search_term
         while true; do
           clear
-          [ -z "$search_term" ] && search_term=$(prompt "What channel would you like to explore") && url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAg%253D%253D" && channels_data=$(
+          [ -z "$search_term" ] && search_term=$(prompt "What channel would you like to explore?") && url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAg%253D%253D" && channels_data=$(
             if command -v "gum" >/dev/null 2>&1; then
               gum spin --show-output -- yt-dlp "$url" -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER --playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS
             else
@@ -1554,7 +1555,7 @@ ${RED}󰈆${RESET}  Exit
         ;;
       Explore\ Playlists)
         clear
-        search_term=$(prompt "What playlist would you like to explore")
+        search_term=$(prompt "What playlist would you like to explore?")
         url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAw%253D%253D"
         PLAYLISTS_EXTRA_ARGS="--playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS"
         playlists_explorer
@@ -1598,7 +1599,7 @@ ${RED}󰈆${RESET}  Exit
         playlist_explorer
         ;;
       Custom\ Commands)
-        ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds create them here <$F_CUSTOM_CMDS>"
+        ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds. Create them here: <$F_CUSTOM_CMDS>"
         while true; do
           custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | launcher "Select Custom Data Loader Command To Run")
           [ "$custom_cmd_name" = "Back" ] || [ "$custom_cmd_name" = "" ] && break
@@ -1682,10 +1683,10 @@ ${RED}󰈆${RESET}  Exit
         fi
         ;;
       Clear\ Search\ History)
-        confirm "Are you sure you want to clear your search history ($CLI_CACHE_DIR/search_history.txt)" && rm "$CLI_CACHE_DIR/search_history.txt"
+        confirm "Are you sure you want to clear your search history ($CLI_CACHE_DIR/search_history.txt)?" && rm "$CLI_CACHE_DIR/search_history.txt"
         ;;
       Sync\ YouTube\ Subscriptions)
-        if confirm "This will erase your local subs, are you sure you wish to proceed"; then
+        if confirm "This will erase your local subs, proceed?"; then
           echo "Syncing subscriptions..."
           [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config"
           download_preview_images "$channels_data" "https:"
@@ -1799,7 +1800,7 @@ while [ $# -gt 0 ]; do
     byebye
     ;;
   -U | --update)
-    check_update "A new version of $CLI_NAME has been found would you like to upgrade(y/n)"
+    check_update "A new version of $CLI_NAME has been found would you like to upgrade? (y/n)"
     exit 0
     ;;
   -S | --search)
@@ -1959,7 +1960,7 @@ if [ "$UPDATE_CHECK" = "true" ]; then
   last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
 
   if ((current_time - last_check_time >= interval)); then
-    check_update "A new version of $CLI_NAME has been found would you like to upgrade(y/n)"
+    check_update "A new version of $CLI_NAME has been found would you like to upgrade? (y/n)"
     echo "$current_time" >"$timestamp_file"
   fi
 fi
