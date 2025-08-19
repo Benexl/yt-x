@@ -377,7 +377,9 @@ generate_text_preview() {
     )
 
     live_status=$(echo "$video" | jq '.live_status' -r)
-    [ "$live_status" = "null" ] && live_status='false'
+    [ "$live_status" = "is_live" ] && live_status='Online'
+    [ "$live_status" = "was_live" ] && live_status='Offline'
+    [ "$live_status" = "null" ] && live_status='False'
 
     description=$(echo "$video" | jq '.description' -r | sed "s/\"//g;s/%//g")
     channel=$(echo "$video" | jq '.channel' -r)
