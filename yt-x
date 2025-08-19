@@ -1466,7 +1466,6 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     [ "$SEARCH_HISTORY" = "true" ] && echo "$search_term" >>"$CLI_CACHE_DIR/search_history.txt"
     search_term=$(echo "$search_term" | jq -Rr '@uri')
     url="https://www.youtube.com/results?search_query=$search_term&sp=$sp"
-    echo $url
     search_results=$(run_yt_dlp "$url")
     playlist_explorer
     ;;
