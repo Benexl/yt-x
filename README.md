@@ -268,44 +268,36 @@ export YT_X_FZF_OPTS=$FZF_DEFAULT_OPTS'
 ```
 
 ## Extended search
- While searching, you can prefix your query with a `!command` to filter your search request: `!<command> your_query`. Only one command can be used per query.
+ While searching, you can prefix your query with a `:command` to filter your search request: `:<command> your_query`. Only one command can be used per query.
 
 ### List of commands
 
 | Command        | Description                                |
 |----------------|--------------------------------------------|
-| `!live`        | Show only live streams                     |
-| `!today`       | Videos uploaded today                      |
-| `!week`        | Videos uploaded this week                  |
-| `!month`       | Videos uploaded this month                 |
-| `!year`        | Videos uploaded this year                  |
-| `!short`       | Short videos (< 4 minutes)                 |
-| `!long`        | Long videos (> 4 minutes)                  |
-| `!playlist`    | Show playlists only                        |
-| `!movie`       | Movies                                     |
-| `!hd`          | HD videos                                  |
-| `!4k`          | 4K videos                                  |
-| `!hdr`         | HDR videos                                 |
-| `!subtitles`   | Videos with subtitles/CC                   |
-| `!360`         | 360° videos                                |
-| `!vr`          | VR180 videos                               |
-| `!3d`          | 3D videos                                  |
-| `!local`       | Videos filtered by location                |
+| `:live`        | Show only live streams                     |
+| `:today`       | Videos uploaded today                      |
+| `:week`        | Videos uploaded this week                  |
+| `:month`       | Videos uploaded this month                 |
+| `:year`        | Videos uploaded this year                  |
+| `:short`       | Short videos (< 4 minutes)                 |
+| `:long`        | Long videos (> 4 minutes)                  |
+| `:playlist`    | Show playlists only                        |
+| `:movie`       | Movies                                     |
+| `:hd`          | HD videos                                  |
+| `:4k`          | 4K videos                                  |
+| `:hdr`         | HDR videos                                 |
+| `:subtitles`   | Videos with subtitles/CC                   |
+| `:360`         | 360° videos                                |
+| `:vr`          | VR180 videos                               |
+| `:3d`          | 3D videos                                  |
+| `:local`       | Videos filtered by location                |
 
 ### Sorting Options
 | Command        | Description                                |
 |----------------|--------------------------------------------|
-| `!views`       | Sort results by view count                 |
-| `!rating`      | Sort results by rating                     |
-| `!newest`      | Sort results by upload date                |
-
-### Combined Options
-| Command         | Description                                |
-|-----------------|--------------------------------------------|
-| `!todaybest`  | Today’s videos sorted by view count        |
-| `!weekbest`   | This week’s videos sorted by view count    |
-| `!monthbest`  | This month’s videos sorted by view count   |
-| `!yearbest`   | This year’s videos sorted by view count    |
+| `:views`       | Sort results by view count                 |
+| `:rating`      | Sort results by rating                     |
+| `:newest`      | Sort results by upload date                |
 
 ## Other Terminal Browsers I Made
 [lib-x](https://github.com/Benexl/lib-x) - browse your calibre library from the terminal

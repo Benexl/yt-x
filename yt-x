@@ -557,7 +557,7 @@ byebye() {
 }
 prompt() {
   HISTORY=$(tail -n 10 "$CLI_CACHE_DIR/search_history.txt" | grep -v '^\s*$' | tac | nl -w2 -s'. ')
-  HISTORY_TEXT="Enter !<command> <query> for extended search\nFilter by upload date (add best at the end to sort by view count): !hour[best], !today[best], !week[best], !month[best], !year[best]\nFilter by content: !video, !movie, !live\n Filter by features: !hd, !4k, !hdr, !subtitles, !360, !vr, !3d, !local\nSort videos by !newest, !views, !rating\n-----------------------------\nSearch history:\n$HISTORY\n-----------------------------\n(Enter !<n> to select from history. Example: !1)\n"
+  HISTORY_TEXT="Enter :<command> <query> for extended search\nFilter by upload date - :hour, :today, :week, :month, :year\nFilter by content - :video, :movie, :live\n Filter by features - :hd, :4k, :hdr, :subtitles, :360, :vr, :3d, :local\nSort videos by - :newest, :views, :rating\n-----------------------------\nSearch history:\n$HISTORY\n-----------------------------\n(Enter !<n> to select from history. Example: !1)\n"
   if [ "$PREFERRED_SELECTOR" = "rofi" ]; then
     if [ "$PROMPT_CONTEXT" = "Search" ] && [ "$SEARCH_HISTORY" = "true" ] && [ -n "$HISTORY" ]; then
       rofi -dmenu \
@@ -1418,38 +1418,6 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
             echo "No such history item: $index"
           fi
         fi
-        if [[ "$search_term" =~ ^(![a-z]+)[[:space:]]+(.+) ]]; then
-          search_filter="${BASH_REMATCH[1]}"
-          search_term="${BASH_REMATCH[2]}"
-          case "$search_filter" in
-            "!hour")        sp="EgIIAQ%253D%253D" ;;
-            "!today")       sp="EgIIAg%253D%253D" ;;
-            "!week")        sp="EgIIAw%253D%253D" ;;
-            "!month")       sp="EgIIBA%253D%253D" ;;
-            "!year")        sp="EgIIBQ%253D%253D" ;;
-            "!todaybest")   sp="EgQIARAB%252C%252CCAM%253D" ;;
-            "!weekbest")    sp="EgQIAhAB%252C%252CCAM%253D" ;;
-            "!monthbest")   sp="EgQIAxAB%252C%252CCAM%253D" ;;
-            "!yearbest")    sp="EgQIBBAB%252C%252CCAM%253D" ;;
-            "!video")       sp="EgIQAQ%253D%253D" ;;
-            "!movie")       sp="EgIQBA%253D%253D" ;;
-            "!live")        sp="EgJAAQ%253D%253D" ;;
-            "!short")       sp="EgQQARgB" ;;
-            "!long")        sp="EgQQARgC" ;;
-            "!4k")          sp="EgJwAQ%253D%253D" ;;
-            "!hd")          sp="EgIgAQ%253D%253D" ;;
-            "!subtitles")   sp="EgIoAQ%253D%253D" ;;
-            "!360")         sp="EgJ4AQ%253D%253D" ;;
-            "!vr")          sp="EgLIAQ%253D%253D" ;;
-            "!3d")          sp="EgI4AQ%253D%253D" ;;
-            "!hdr")         sp="EgPIAQ%253D%253D" ;;
-            "!local")       sp="EgO4AQ%253D%253D" ;;
-            "!newest")      sp="CAISAhAB" ;;
-            "!views")       sp="CAMSAhAB" ;;
-            "!rating")      sp="CAESAhAB" ;;
-            *)              sp="EgIQAQ%253D%253D" ;;
-          esac
-        fi
       # Exit if user presses ESC or leaves search empty in rofi
       if [ "$PREFERRED_SELECTOR" = "rofi" ] && [ -z "$search_term" ]; then
         echo "Search cancelled. No search term provided."
@@ -1458,6 +1426,34 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Action" | sed 's/.*  //g')"
     else
       search_term="$CMD_SEARCH_TERMS"
       unset CMD_SEARCH_TERMS
+    fi
+    if [[ "$search_term" =~ ^(:[a-z]+)[[:space:]]+(.+) ]]; then
+      search_filter="${BASH_REMATCH[1]}"
+      search_term="${BASH_REMATCH[2]}"
+      case "$search_filter" in
+        ":hour")        sp="EgIIAQ%253D%253D" ;;
+        ":today")       sp="EgIIAg%253D%253D" ;;
+        ":week")        sp="EgIIAw%253D%253D" ;;
+        ":month")       sp="EgIIBA%253D%253D" ;;
+        ":year")        sp="EgIIBQ%253D%253D" ;;
+        ":video")       sp="EgIQAQ%253D%253D" ;;
+        ":movie")       sp="EgIQBA%253D%253D" ;;
+        ":live")        sp="EgJAAQ%253D%253D" ;;
+        ":short")       sp="EgQQARgB" ;;
+        ":long")        sp="EgQQARgC" ;;
+        ":4k")          sp="EgJwAQ%253D%253D" ;;
+        ":hd")          sp="EgIgAQ%253D%253D" ;;
+        ":subtitles")   sp="EgIoAQ%253D%253D" ;;
+        ":360")         sp="EgJ4AQ%253D%253D" ;;
+        ":vr")          sp="EgLIAQ%253D%253D" ;;
+        ":3d")          sp="EgI4AQ%253D%253D" ;;
+        ":hdr")         sp="EgPIAQ%253D%253D" ;;
+        ":local")       sp="EgO4AQ%253D%253D" ;;
+        ":newest")      sp="CAISAhAB" ;;
+        ":views")       sp="CAMSAhAB" ;;
+        ":rating")      sp="CAESAhAB" ;;
+        *)              sp="EgIQAQ%253D%253D" ;;
+      esac
     fi
     [ "$SEARCH_HISTORY" = "true" ] && [ -s "$CLI_CACHE_DIR/search_history.txt" ] && history=$(grep --invert-match "^$search_term\$" "$CLI_CACHE_DIR/search_history.txt")
     [ "$SEARCH_HISTORY" = "true" ] && [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "$history" >$CLI_CACHE_DIR/search_history.txt
