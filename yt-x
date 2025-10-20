@@ -94,6 +94,7 @@ fi
 # ---------------------------------------------
 # DEFAULT CONFIGURATION VALUES
 # ---------------------------------------------
+_CONFIG_ASCII_ART="$CLI_ASCII_ART
 _CONFIG_AUTO_LOADED_EXTENSIONS=""
 _CONFIG_PRETTY_PRINT="true"
 _CONFIG_SELECTOR="fzf"
@@ -109,14 +110,7 @@ _CONFIG_NO_OF_SEARCH_RESULTS=5
 _CONFIG_NOTIFICATION_DURATION=5
 _CONFIG_DOWNLOADS_DIR="${XDG_VIDEOS_DIR:-"$HOME/Videos"}/$CLI_NAME"
 _CONFIG_UPDATE_CHECK="true"
-_CONFIG_FZF_OPTS='
-    --color=fg:#d0d0d0,fg+:#d0d0d0,bg:#121212,bg+:#262626
-    --color=hl:#5f87af,hl+:#5fd7ff,info:#afaf87,marker:#87ff00
-    --color=prompt:#d7005f,spinner:#af5fff,pointer:#af5fff,header:#87afaf
-    --color=border:#262626,label:#aeaeae,query:#d9d9d9
-    --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
-    --marker=">" --pointer="◆" --separator="─" --scrollbar="│"
-'
+_CONFIG_FZF_OPTS="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/fzf-opts"
 _CONFIG_ROFI_THEME_MAIN="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/main.rasi"
 _CONFIG_ROFI_THEME_PREVIEW="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/preview.rasi"
 _CONFIG_ROFI_THEME_PROMPT="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/prompt.rasi"
