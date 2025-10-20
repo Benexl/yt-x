@@ -117,10 +117,10 @@ _CONFIG_FZF_OPTS='
     --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
     --marker=">" --pointer="◆" --separator="─" --scrollbar="│"
 '
-_CONFIG_ROFI_THEME_MAIN=""
-_CONFIG_ROFI_THEME_PREVIEW=""
-_CONFIG_ROFI_THEME_PROMPT=""
-_CONFIG_ROFI_THEME_CONFIRM=""
+_CONFIG_ROFI_THEME_MAIN="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/main.rasi"
+_CONFIG_ROFI_THEME_PREVIEW="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/preview.rasi"
+_CONFIG_ROFI_THEME_PROMPT="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/prompt.rasi"
+_CONFIG_ROFI_THEME_CONFIRM="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/v1.0.0/assets/defaults/rofi-themes/confirm.rasi"
 
 # environment dependant
 _CONFIG_EDITOR="${EDITOR:-"vim"}"
