@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # A script written by Benexl in September 2024 under MIT LICENSE
 
+CLI_ASCII_ART="\
+██╗░░░██╗████████╗░░░░░░██╗░░██╗
+╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝
+░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░
+░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░
+░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗
+░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝
+"
 # ---------------------------------------------
 # CLI: General Information
 # ---------------------------------------------
@@ -61,14 +69,6 @@ CLI_UPDATE_CHECK_FILE="$CLI_CACHE_DIR/.last-update-check"
 # ---------------------------------------------
 # CLI: Other Constants
 # ---------------------------------------------
-CLI_ASCII_ART="\
-██╗░░░██╗████████╗░░░░░░██╗░░██╗
-╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝
-░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░
-░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░
-░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗
-░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝
-"
 CLI_INFO="info"
 CLI_SUCCESS="success"
 CLI_WARNING="warning"
@@ -94,7 +94,7 @@ fi
 # ---------------------------------------------
 # DEFAULT CONFIGURATION VALUES
 # ---------------------------------------------
-_CONFIG_ASCII_ART="$CLI_ASCII_ART
+_CONFIG_ASCII_ART="$CLI_ASCII_ART"
 _CONFIG_AUTO_LOADED_EXTENSIONS=""
 _CONFIG_PRETTY_PRINT="true"
 _CONFIG_SELECTOR="fzf"
