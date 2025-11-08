@@ -12,7 +12,7 @@ CLI_ASCII_ART="\
 # ---------------------------------------------
 # CLI: General Information
 # ---------------------------------------------
-CLI_NAME="yt-x"
+CLI_NAME="${YT_X_APP_NAME:-yt-x}"
 CLI_VERSION="1.0.0"
 CLI_DESCRIPTION="A command-line tool for browsing and streaming YouTube videos using yt-dlp and mpv."
 CLI_AUTHOR="Benexl"
@@ -78,17 +78,17 @@ CLI_ERROR="error"
 # COLORS
 # ---------------------------------------------
 if [ $COLOR_TERM = "truecolor" ] || [ $COLORTERM = "24bit" ]; then
-	COLOR_RED="\e[38;2;255;0;0m"
-	COLOR_GREEN="\e[38;2;0;255;0m"
-	COLOR_YELLOW="\e[38;2;255;255;0m"
-	COLOR_BLUE="\e[38;2;0;0;255m"
-	COLOR_RESET="\e[0m"
+  COLOR_RED="\e[38;2;255;0;0m"
+  COLOR_GREEN="\e[38;2;0;255;0m"
+  COLOR_YELLOW="\e[38;2;255;255;0m"
+  COLOR_BLUE="\e[38;2;0;0;255m"
+  COLOR_RESET="\e[0m"
 else
-	COLOR_RED="\e[31m"
-	COLOR_GREEN="\e[32m"
-	COLOR_YELLOW="\e[33m"
-	COLOR_BLUE="\e[34m"
-	COLOR_RESET="\e[0m"
+  COLOR_RED="\e[31m"
+  COLOR_GREEN="\e[32m"
+  COLOR_YELLOW="\e[33m"
+  COLOR_BLUE="\e[34m"
+  COLOR_RESET="\e[0m"
 fi
 
 # ---------------------------------------------
@@ -123,21 +123,201 @@ command -v viu >/dev/null 2>&1 && _CONFIG_IMAGE_RENDERER="viu"
 command -v chafa >/dev/null 2>&1 && _CONFIG_IMAGE_RENDERER="chafa"
 command -v icat >/dev/null 2>&1 && _CONFIG_IMAGE_RENDERER="icat"
 
+_prompt() {
+  #TODO: Reintergrate history support
+  if command -v gum; then
+    gum input --header "${CONFIG_ASCII_ART:-$CLI_ASCII_ART}" --prompt "$1"
+  else
+    echo "$CLI_HEADER" >/dev/stderr
+    printf "%s: " "$1" >/dev/stderr
+    read -r VAL
+    echo "$VAL"
+  fi
+}
+
+_print_config() {
+
+  echo "\
+# ===================================================================================
+$(echo "$CLI_ASCII_ART" | sed 's/^/# /')
+# ===================================================================================
+
+# loads the extension always
+# useful for defining changes and overides to the default behaviour
+# eg env,ui,functions
+# all file names in the extensions folder
+AUTO_LOADED_EXTENSIONS='$AUTO_LOADED_EXTENSIONS'
+
+# whether to show colors when printing ouput
+PRETTY_PRINT='$PRETTY_PRINT'
+
+# your preferred editor for editing your config
+EDITOR='$PREFERRED_EDITOR'
+
+# your preferred selector for the tui [fzf/rofi]
+PREFERRED_SELECTOR='$PREFERRED_SELECTOR'
+
+# the quality of the video when streaming with a player other than mpv
+VIDEO_QUALITY='$VIDEO_QUALITY'
+
+# whether to show previews [true/false]
+# its cool so enable it
+ENABLE_PREVIEW='$ENABLE_PREVIEW'
+
+# what to use for rendering images in the terminal [chafa/icat]
+IMAGE_RENDERER='$IMAGE_RENDERER'
+
+# whether to run mpv as a background process and prevent it from closing even if you terminate the program or terminal session
+DISOWN_STREAMING_PROCESS='$DISOWN_STREAMING_PROCESS'
+
+# whether to update the recent list kept locally [true/false]
+UPDATE_RECENT='$UPDATE_RECENT'
+
+# whether to update the recent list kept locally [true/false]
+SEARCH_HISTORY='$SEARCH_HISTORY'
+
+# the number of recent videos to keep
+NO_OF_RECENT='$NO_OF_RECENT'
+
+# the player to use for streaming [mpv/vlc]
+PLAYER='$PLAYER'
+
+# the browser to use to extract cookies from
+# this is used to by yt-dlp to access content that would require login
+PREFERRED_BROWSER='$PREFERRED_BROWSER'
+
+# the number of results to get from yt-dlp
+NO_OF_SEARCH_RESULTS='$NO_OF_SEARCH_RESULTS'
+
+# the duration notifications stay on the screen
+NOTIFICATION_DURATION='$NOTIFICATION_DURATION'
+
+# where your downloads will be stored
+DOWNLOAD_DIRECTORY='$DOWNLOAD_DIRECTORY'
+
+# whether to check for updates [true/false]
+UPDATE_CHECK='$UPDATE_CHECK'
+"
+}
+
+_setup_config() {
+  # TODO: setup interactive config
+
+  # use defaults
+  _print_config
+
+}
+_load_config() {
+  local config_file="$CLI_CONFIG_DIR/${CLI_NAME}.conf"
+
+  # Ensure the config file exists before trying to read it
+  [ -f "$config_file" ] || _setup_config
+
+  # Read the config file once and export its variables
+  while IFS='=' read -r key value; do
+    # Skip comments and empty lines
+    case "$key" in
+    '' | '#'*) continue ;;
+    esac
+
+    # Ensure the key is a valid shell variable name to avoid arbitrary code execution
+    # This regex allows for names like 'PRETTY_PRINT', 'NO_OF_RESULTS_2', etc.
+    if ! [[ $key =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+      # Optionally, print a warning for invalid keys
+      # echo "Warning: Invalid key in config file: $key" >&2
+      continue
+    fi
+
+    # Trim leading/trailing whitespace from the value and remove quotes
+    # This is a robust way to clean the value without multiple external calls
+    value_cleaned=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e "s/^'//" -e "s/'$//" -e 's/^"//' -e 's/"$//')
+
+    # Export the variable so it's set in the current shell's environment
+    export "$key"="$value_cleaned"
+
+  done <"$config_file"
+
+  # --- Set configuration variables with defaults ---
+  # Use POSIX parameter expansion: ${VAR:-default}
+  # This assigns the default value only if the variable is unset or null.
+  PRETTY_PRINT="${PRETTY_PRINT:-true}"
+  IMAGE_RENDERER="${IMAGE_RENDERER:-$([ -n "$KITTY_WINDOW_ID" ] && echo "icat" || echo "chafa")}"
+  DISOWN_STREAMING_PROCESS="${DISOWN_STREAMING_PROCESS:-true}"
+  PREFERRED_EDITOR="${EDITOR:-${PREFERRED_EDITOR:-open}}" # Note: Prioritizes existing EDITOR env var
+  PREFERRED_SELECTOR="${PREFERRED_SELECTOR:-fzf}"
+  VIDEO_QUALITY="${VIDEO_QUALITY:-1080}"
+  ENABLE_PREVIEW="${ENABLE_PREVIEW:-false}"
+  UPDATE_RECENT="${UPDATE_RECENT:-true}"
+  NO_OF_RECENT="${NO_OF_RECENT:-30}"
+  PLAYER="${PLAYER:-mpv}"
+
+  # Special handling for PREFERRED_BROWSER
+  [ -n "$PREFERRED_BROWSER" ] && PREFERRED_BROWSER="--cookies-from-browser $PREFERRED_BROWSER"
+
+  NO_OF_SEARCH_RESULTS="${NO_OF_SEARCH_RESULTS:-30}"
+  NOTIFICATION_DURATION="${NOTIFICATION_DURATION:-5}"
+  SEARCH_HISTORY="${SEARCH_HISTORY:-true}"
+
+  # Special handling for DOWNLOAD_DIRECTORY
+  DOWNLOAD_DIRECTORY=${DOWNLOAD_DIRECTORY/#\~/${HOME}}     # expand ~
+  DOWNLOAD_DIRECTORY=${DOWNLOAD_DIRECTORY/#\$HOME/${HOME}} # expand $HOME
+  [ -z "$DOWNLOAD_DIRECTORY" ] && DOWNLOAD_DIRECTORY="${XDG_VIDEOS_DIR:-"$HOME"/Videos}/$CLI_NAME"
+  [ ! -d "$DOWNLOAD_DIRECTORY" ] && mkdir -p "$DOWNLOAD_DIRECTORY"
+
+  UPDATE_CHECK="${UPDATE_CHECK:-true}"
+  # ROFI_THEME has no default, so it will be empty if not in the config
+  ROFI_THEME="${ROFI_THEME:-}"
+
+  # --- The rest of your script remains the same ---
+  CUSTOM_PLAYLISTS="$CLI_CONFIG_DIR/custom_playlists.json"
+  F_CUSTOM_CMDS="$CLI_CONFIG_DIR/custom_cmds.json"
+  F_SUBSCRIPTIONS="$CLI_CONFIG_DIR/subscriptions.json"
+  PLAYLIST_START="1"
+  PLAYLIST_END="$NO_OF_SEARCH_RESULTS"
+
+  FZF_DEFAULT_OPTS=${YT_X_FZF_OPTS:-'
+    --color=fg:#d0d0d0,fg+:#d0d0d0,bg:#121212,bg+:#262626
+    --color=hl:#5f87af,hl+:#5fd7ff,info:#afaf87,marker:#87ff00
+    --color=prompt:#d7005f,spinner:#af5fff,pointer:#af5fff,header:#87afaf
+    --color=border:#262626,label:#aeaeae,query:#d9d9d9
+    --border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
+    --marker=">" --pointer="◆" --separator="─" --scrollbar="│"
+  '}
+  init_pretty_print
+
+  if [ -n "$AUTO_LOADED_EXTENSIONS" ]; then
+    for ext in $(echo "$AUTO_LOADED_EXTENSIONS" | tr ',' '\n'); do
+      [ -s "$CLI_EXTENSION_DIR/$ext" ] && . "$CLI_EXTENSION_DIR/$ext"
+    done
+  fi
+
+  if ! [ -s "$config_file" ]; then
+    print_config >"$config_file"
+  fi
+
+  # You may not need to export again here if you already did in the loop,
+  # but it doesn't hurt to be explicit for clarity.
+  export FZF_DEFAULT_OPTS PRETTY_PRINT PLATFORM IMAGE_RENDERER
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main
+fi
 
 # MIT License
-# 
+#
 # Copyright (c) 2024 Benexl
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
