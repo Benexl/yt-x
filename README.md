@@ -10,8 +10,6 @@
 Browse YouTube from your terminal.
 Plus other sites yt-dlp supports.
 
-Inspired by [magic-tape](https://gitlab.com/christosangel/magic-tape)
-
 [yt-x-github-demo.webm](https://github.com/user-attachments/assets/08e491cc-fc91-4f13-849b-6ce8e78bf6f0)
 
 <details>
