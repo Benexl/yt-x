@@ -814,6 +814,9 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
       "Play All")
         if echo "$url" | grep -q "list=RD" || echo "$urlForAll" | grep -q "list=RD" || [ "$(echo "$search_results" | jq 'has("uploader_url") | not')" = "true" ]; then
           if [ -n "$urlForAll" ]; then
+            # Fix YouTube Mix URLs FIRST
+            url="${url/&start_radio=0/}"
+            urlForAll="${urlForAll/&start_radio=1/}"
             cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$urlForAll").m3u8"
             if ! [ -s "$cached_playlist" ]; then
               _mix_data=$(yt-dlp "$urlForAll" --flat-playlist -J)
