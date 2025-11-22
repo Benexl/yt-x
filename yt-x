@@ -561,7 +561,7 @@ init_pretty_print() {
 welcome() {
   printf "${CYAN}How are you ${USERNAME:-${USER:-User} 🙂?
 If you like the project and are able to support it please consider buying me a coffee at $CLI_SUPPORT_PROJECT_URL}.
-If you would like to proceed to $CLI_SUPPORT_PROJECT_URL select yes, otherwise enjoy your browser youtube experience 😁.${RESET}
+If you would like to proceed to $CLI_SUPPORT_PROJECT_URL select yes, otherwise enjoy your browser youtube experience from the terminal😁.${RESET}
 This messages can be disabled by switching off the WELCOME_SCREEN option in the config and is only shown once every 24hrs.\n"
   confirm && xdg-open "$CLI_SUPPORT_PROJECT_URL" || open "$CLI_SUPPORT_PROJECT_URL"
 }
