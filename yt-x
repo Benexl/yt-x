@@ -562,7 +562,7 @@ welcome() {
   printf "${CYAN}How are you ${USERNAME:-${USER:-User}} 🙂?
 If you enjoy the project and want to support it, you can buy me a coffee at $CLI_SUPPORT_PROJECT_URL.
 Would you like to open the support page? Select yes to continue — otherwise, enjoy your YouTube-from-the-terminal experience 😁.
-You can disable this message by turning off the WELCOME_SCREEN option in the config. It only appears once every 24 hours.${RESET}\n"
+You can disable this message by turning off the WELCOME_SCREEN option in the config. It only appears once a month.${RESET}\n"
   confirm && xdg-open "$CLI_SUPPORT_PROJECT_URL" || open "$CLI_SUPPORT_PROJECT_URL"
 }
 
@@ -2017,8 +2017,8 @@ if [ "$WELCOME_SCREEN" = "true" ]; then
   # setup for ui
   timestamp_file="$CLI_CACHE_DIR/.last_welcome"
 
-  # Time interval in seconds (6 hours = 21600 seconds)
-  interval=$((24 * 60 * 60))
+  # Time interval in seconds (30dys)
+  interval=$((30 * 24 * 60 * 60))
 
   # Determine whether to run the update check
   current_time=$(date +%s)
