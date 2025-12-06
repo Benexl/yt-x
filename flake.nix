@@ -25,7 +25,7 @@
         yt-x = pkgs.callPackage ./default.nix { };
       };
 
-      devShells.${system}.default = pkgs.mkShellNoCC {
+      devShells.default = pkgs.mkShellNoCC {
         packages = deps;
       };
     });
