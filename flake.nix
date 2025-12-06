@@ -7,9 +7,8 @@
   };
 
   outputs =
-    { nixpkgs, flake-utils, ... }:
+    { nixpkgs, flake-utils, self, ... }:
     flake-utils.lib.eachDefaultSystem (system: let
-      inherit (nixpkgs) lib;
       pkgs = nixpkgs.legacyPackages.${system};
       deps = with pkgs; [
         yt-dlp
@@ -21,20 +20,9 @@
       ];
     in
     {
-      packages.default = pkgs.stdenvNoCC.mkDerivation {
-        pname = "yt-x";
-        version = "git";
-        src = ./.;
-
-        nativeBuildInputs = [ pkgs.makeWrapper ];
-
-        installPhase = ''
-          install -Dm755 yt-x -t $out/bin
-          wrapProgram $out/bin/yt-x \
-            --prefix PATH : ${lib.makeBinPath deps}
-        '';
-
-        meta.mainProgram = "yt-x";
+      packages = {
+        default = self.packages.${system}.yt-x;
+        yt-x = pkgs.callPackage ./default.nix { };
       };
 
       devShells.${system}.default = pkgs.mkShellNoCC {
