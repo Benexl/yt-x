@@ -255,7 +255,7 @@ You can fix it by setting the [yt-dlp](https://github.com/yt-dlp/yt-dlp?tab=read
 PREFERRED_BROWSER: brave+gnomekeyring:Default
 ```
 
-To find the correct `PREFERRED_BROWSER`value for your browser and profile, use the yt-dlp `--cookies-from-browser` option in terminal. In the previous example, with Brave and GNOME Keyring, the following command should correctly extract your Brave browsers cookies:
+To find the correct `PREFERRED_BROWSER` value for your browser and profile, use the yt-dlp `--cookies-from-browser` option in terminal. In the previous example, with Brave and GNOME Keyring, the following command should correctly extract your Brave browsers cookies:
 
 ```bash
 yt-dlp \
