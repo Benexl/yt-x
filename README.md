@@ -241,6 +241,35 @@ For additional enhancements, consider:
 - [uosc](https://github.com/tomasklaen/uosc) for a modern `mpv` UI.
 - [thumbfast](https://github.com/po5/thumbfast) for thumbnail timeline previews.
 
+### Fixing "cannot decrypt cookies" error synchronizing subscriptions
+
+If you find this error while trying to synchronize your YouTube subscriptions ("Miscellaneous" > "Sync YouTube Subscriptions" option in yt-x):
+
+```bash
+Syncing subscriptions... WARNING: cannot decrypt v11 cookies: no key found WARNING: [youtube:tab] unable to extract yt initial data; please report this issue on https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using yt-dlp -U WARNING: [youtube:tab] Incomplete yt initial data received. Retrying (1/3)...
+```
+
+You can fix it by setting the [yt-dlp](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options) `--cookies-from-browser` option in your `yt-x.conf` file ("Edit Config." option in yt-x) to match your browser and profile. For example, if you use Brave's default profile with GNOME Keyring, configure this `PREFERRED_BROWSER` value in your `yt-x.conf` file:
+
+```bash
+PREFERRED_BROWSER: brave+gnomekeyring:Default
+```
+
+To find the correct `PREFERRED_BROWSER`value for your browser and profile, use the yt-dlp `--cookies-from-browser` option in terminal. In the previous example, with Brave and GNOME Keyring, the following command should correctly extract your Brave browsers cookies:
+
+```bash
+yt-dlp \
+  --cookies-from-browser "brave+gnomekeyring:Default" \
+  --skip-download \
+  --flat-playlist \
+  "https://www.youtube.com/feed/channels" \
+```
+
+In your tests, replace `brave+gnomekeyring:Default` with your browser and profile. For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options)
+
+> [!NOTE]
+> This is not an issue with yt-x itself, but rather with yt-dlp's ability to access browser cookies.
+
 ## Custom Playlists
 
 Define custom playlists by editing `~/.config/yt-x/custom_playlists.json` (or use the UI):
