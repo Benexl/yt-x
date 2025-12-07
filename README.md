@@ -302,13 +302,6 @@ export YT_X_FZF_OPTS=$FZF_DEFAULT_OPTS'
 | `:rating`      | Sort results by rating                     |
 | `:newest`      | Sort results by upload date                |
 
-## Other Terminal Browsers I Made
-[lib-x](https://github.com/Benexl/lib-x) - browse your calibre library from the terminal
-
-[fastanime](https://github.com/Benexl/FastAnime) - browse anime from the terminal
-
-
-
 ## Contribution
 
 Pull requests are highly welcome!
