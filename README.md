@@ -265,7 +265,7 @@ yt-dlp \
   "https://www.youtube.com/feed/channels" \
 ```
 
-In your tests, replace `brave+gnomekeyring:Default` with your browser and profile. For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options)
+In your tests, replace `brave+gnomekeyring:Default` with your browser and profile. For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options).
 
 > [!NOTE]
 > This is not an issue with yt-x itself, but rather with yt-dlp's ability to access browser cookies.
