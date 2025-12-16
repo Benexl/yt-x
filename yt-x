@@ -148,6 +148,15 @@ load_config() {
   PLAYER="$(find_config_option "PLAYER")"
   [ -z "$PLAYER" ] && PLAYER='mpv'
 
+  # Detect correct mpv command (mpv or mpv.exe)
+  if command -v mpv >/dev/null 2>&1; then
+    MPV_CMD="mpv"
+  elif command -v mpv.exe >/dev/null 2>&1; then
+    MPV_CMD="mpv.exe"
+  else
+    MPV_CMD="mpv"  # fallback
+  fi
+
   PREFERRED_BROWSER="$(find_config_option "PREFERRED_BROWSER")"
   [ -n "$PREFERRED_BROWSER" ] && PREFERRED_BROWSER="--cookies-from-browser $PREFERRED_BROWSER"
 
@@ -857,7 +866,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist"
+            "$MPV_CMD" "$cached_playlist"
           else
             cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$url").m3u8"
 
@@ -884,13 +893,13 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist"
+            "$MPV_CMD" "$cached_playlist"
           fi
         else
           if [ -n "$urlForAll" ]; then
-            mpv "$urlForAll"
+            "$MPV_CMD" "$urlForAll"
           else
-            mpv "$url"
+            "$MPV_CMD" "$url"
           fi
         fi
         ;;
@@ -922,7 +931,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist" --no-video --force-window=no
+            "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
           else
             cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$url").m3u8"
             if ! [ -s "$cached_playlist" ]; then
@@ -948,13 +957,13 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
                 echo "" >>"$cached_playlist"
               done
             fi
-            mpv "$cached_playlist" --no-video --force-window=no
+            "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
           fi
         else
           if [ -n "$urlForAll" ]; then
-            mpv "$urlForAll" --no-video --force-window=no
+            "$MPV_CMD" "$urlForAll" --no-video --force-window=no
           else
-            mpv "$url" --no-video --force-window=no
+            "$MPV_CMD" "$url" --no-video --force-window=no
           fi
         fi
         ;;
@@ -1017,7 +1026,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
               echo "" >>"$cached_playlist"
             done
           fi
-          mpv "$cached_playlist" --no-video --force-window=no
+          "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
         else
           if ! [ "$PLAYER" = mpv ] || [ "$PLATFORM" = android ]; then
             video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "bestaudio/best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
@@ -1037,7 +1046,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           *)
             case "$PLAYER" in
             mpv)
-              mpv "$video_url" --no-video --force-window=no
+              "$MPV_CMD" "$video_url" --no-video --force-window=no
               ;;
             vlc) vlc "$video_url" --video-title "$title" ;;
             esac
@@ -1103,7 +1112,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
               echo "" >>"$cached_playlist"
             done
           fi
-          mpv "$cached_playlist"
+          "$MPV_CMD" "$cached_playlist"
         else
           if ! [ "$PLAYER" = mpv ] || [ "$PLATFORM" = android ]; then
             video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
@@ -1123,7 +1132,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           *)
             case "$PLAYER" in
             mpv)
-              mpv "$video_url"
+              "$MPV_CMD" "$video_url"
               ;;
             vlc) vlc "$video_url" --video-title "$title" ;;
             esac
