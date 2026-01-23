@@ -1804,8 +1804,8 @@ Options:
     set the preferred selector for $CLI_NAME to use
   -p <player>,--player <player> [mpv/vlc]
     set the video player for $CLI_NAME to use
-  -x <extension>,--extension <extension> [name of extension file at $CLI_EXTENSION_DIR]
-    set the extension for $CLI_NAME to use
+  -x <extension>,--extension <extension> [name of extension file at $CLI_EXTENSION_DIR or full path]
+    set the extension for $CLI_NAME to use (accepts full path starting with /)
   --preview
     enable the preview window
   --no-preview
@@ -1995,7 +1995,11 @@ Example:
     ;;
   -x | --extension)
     [ -n "$2" ] || usage 1
-    . "$CLI_EXTENSION_DIR/$2"
+    if [ "${2#/}" != "$2" ]; then
+      . "$2"
+    else
+      . "$CLI_EXTENSION_DIR/$2"
+    fi
     shift
     ;;
   *)
