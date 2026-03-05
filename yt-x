@@ -1900,18 +1900,15 @@ while [ $# -gt 0 ]; do
     shift
     ;;
   -E | --generate-desktop-entry)
-    echo "
-[Desktop Entry]
+    echo "[Desktop Entry]
 Name=$CLI_NAME
 Type=Application
-version=$CLI_VERSION
+X-Version=$CLI_VERSION
 Path=$HOME
 Comment=Browse Youtube from the terminal
-Terminal=false
-Icon=$CLI_DIR/assets/logo.png
-Exec=$0 --preferred-selector rofi
-Categories=Education
-    "
+Terminal=true
+Exec=$0
+Categories=Education"
     exit 0
     ;;
   completions)
