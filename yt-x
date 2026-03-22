@@ -998,7 +998,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
         send_notification "Completed downloading of $playlist_name"
         ;;
       Listen)
-        printf "${MAGENTA}Now Listening to:${RESET} $title\n"
+        printf "${MAGENTA}Now Listening to:${RESET} %s\n" "$title"
         video_url=$(echo "$video" | jq '.url' -r)
         if echo "$video_url" | grep -q "list=RD"; then
           video_id=$(echo "$video" | jq '.id' -r | sed 's/RD//g')
@@ -1080,7 +1080,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
         search_results="$_search_results"
         ;;
       Watch)
-        printf "${MAGENTA}Now watching:${RESET} $title\n"
+        printf "${MAGENTA}Now watching:${RESET} %s\n" "$title"
 
         video_url=$(echo "$video" | jq '.url' -r)
         if echo "$video_url" | grep -q "list=RD"; then
