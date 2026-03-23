@@ -427,8 +427,17 @@ generate_text_preview() {
     ' -r)
 
     # some date calculations
-    timestamp=$(echo "$video" | jq '.timestamp' -r)
-    relative_timestamp=$(("$CURRENT_TIME" - "$timestamp"))
+    iso_timestamp=$(echo "$video" | jq '.timestamp' -r)
+    # convert ISO 8601 timestamp to Unix timestamp
+    case "$PLATFORM" in
+    mac)
+      timestamp=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$iso_timestamp" +%s 2>/dev/null || echo "$CURRENT_TIME")
+      ;;
+    *)
+      timestamp=$(date --date="$iso_timestamp" +%s 2>/dev/null || echo "$CURRENT_TIME")
+      ;;
+    esac
+    relative_timestamp=$((CURRENT_TIME - timestamp))
     if [ "$relative_timestamp" -lt 60 ]; then
       timestamp="just now"
     elif [ "$relative_timestamp" -lt 3600 ]; then
