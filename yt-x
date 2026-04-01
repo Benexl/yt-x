@@ -86,7 +86,7 @@ SEARCH_HISTORY: $SEARCH_HISTORY
 # the number of recent videos to keep
 NO_OF_RECENT: $NO_OF_RECENT
 
-# the player to use for streaming [mpv/vlc]
+# the player to use for streaming [mpv/vlc/tplay]
 PLAYER: $PLAYER
 
 # the browser to use to extract cookies from
@@ -428,7 +428,7 @@ generate_text_preview() {
 
     # some date calculations
     timestamp=$(echo "$video" | jq '.timestamp' -r)
-    relative_timestamp=$(("$CURRENT_TIME" - "$timestamp"))
+    relative_timestamp=$((CURRENT_TIME - timestamp))
     if [ "$relative_timestamp" -lt 60 ]; then
       timestamp="just now"
     elif [ "$relative_timestamp" -lt 3600 ]; then
@@ -1028,7 +1028,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           fi
           "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
         else
-          if ! [ "$PLAYER" = mpv ] || [ "$PLATFORM" = android ]; then
+          if ! [ "$PLAYER" = mpv ] && ! [ "$PLAYER" = tplay ] || [ "$PLATFORM" = android ]; then
             video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "bestaudio/best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
             if ! [ "$?" = 0 ] || [ -z "$video_url" ]; then
               echo No video format found
@@ -1049,6 +1049,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
               "$MPV_CMD" "$video_url" --no-video --force-window=no
               ;;
             vlc) vlc "$video_url" --video-title "$title" ;;
+            tplay) tplay "$video_url" ;;
             esac
             ;;
           esac
@@ -1114,7 +1115,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
           fi
           "$MPV_CMD" "$cached_playlist"
         else
-          if ! [ "$PLAYER" = mpv ] || [ "$PLATFORM" = android ]; then
+          if ! [ "$PLAYER" = mpv ] && ! [ "$PLAYER" = tplay ] || [ "$PLATFORM" = android ]; then
             video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
             if ! [ "$?" = 0 ] || [ -z "$video_url" ]; then
               echo No video format found
@@ -1135,6 +1136,7 @@ ${RED}󰈆${RESET}  Exit" | launcher "Select Media Action" | sed 's/.  //g')"
               "$MPV_CMD" "$video_url"
               ;;
             vlc) vlc "$video_url" --video-title "$title" ;;
+            tplay) tplay "$video_url" ;;
             esac
             ;;
           esac
@@ -1802,7 +1804,7 @@ Options:
     don't disown the downloading process
   -s <selector>,--preferred-selector <selector> [fzf/rofi]
     set the preferred selector for $CLI_NAME to use
-  -p <player>,--player <player> [mpv/vlc]
+  -p <player>,--player <player> [mpv/vlc/tplay]
     set the video player for $CLI_NAME to use
   -x <extension>,--extension <extension> [name of extension file at $CLI_EXTENSION_DIR or full path]
     set the extension for $CLI_NAME to use (accepts full path starting with /)
@@ -1927,7 +1929,7 @@ complete -c $CLI_NAME --no-files --short-option v --long-option version --descri
 
 complete -c $CLI_NAME --no-files --short-option e --long-option edit-config --description 'Edit $CLI_NAME config file' --condition 'not __fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option U --long-option update --description 'update the script' --condition 'not __fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option p --long-option player --description 'the video player to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'mpv vlc'
+complete -c $CLI_NAME --no-files --short-option p --long-option player --description 'the video player to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'mpv vlc tplay'
 complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments \"(command ls $CLI_EXTENSION_DIR)\"
 complete -c $CLI_NAME --no-files --short-option s --long-option preferred-selector --description 'your preferred selector' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'fzf rofi'
 complete -c $CLI_NAME --no-files --short-option E --long-option generate-desktop-entry --description 'generate desktop entry info' --condition 'not __fish_seen_subcommand_from completions' 
