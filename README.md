@@ -130,7 +130,7 @@ rm ~/.local/bin/yt-x
 
 - [gum](https://github.com/charmbracelet/gum) - Enhanced UI (highly recommended).
 - [rofi](https://github.com/davatorium/rofi) - Alternate UI.
-- [tplay](https://github.com/maxcurzi/tplay) - Terminal-based video player (alternative to mpv).
+- [tplay](https://github.com/maxcurzi/tplay) - Terminal-based ASCII video player (optional, for individual video playback).
 - **terminal image viewer:**
   - [chafa](https://github.com/hpjansson/chafa) - Cross-terminal image rendering (recommended).
   - [icat](https://sw.kovidgoyal.net/kitty/kittens/icat/) - recommended for kitty terminal and ghostty
