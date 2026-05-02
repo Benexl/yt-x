@@ -23,7 +23,7 @@ Plus other sites yt-dlp supports.
 
 - **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless navigation.
 - **YouTube-Specific Menus**: Access your feed, trending videos, playlists, watch later, subscriptions feed, liked videos, clips.
-- **Playback Support**: Play videos and audio via `mpv` or `vlc`.
+- **Playback Support**: Play videos and audio via `mpv`, `vlc`, or `tplay`.
 - **Search Functionality**: Search for videos, channels and playlists directly.
 - **Channel Exploration**: Explore channels, including their videos, streams, podcasts, shorts, and playlists.
 - **Saved Channels**: Bookmark your favorite channels for quick access, with support for importing existing subscriptions.
@@ -130,6 +130,7 @@ rm ~/.local/bin/yt-x
 
 - [gum](https://github.com/charmbracelet/gum) - Enhanced UI (highly recommended).
 - [rofi](https://github.com/davatorium/rofi) - Alternate UI.
+- [tplay](https://github.com/maxcurzi/tplay) - Terminal-based ASCII video player (optional, for individual video playback).
 - **terminal image viewer:**
   - [chafa](https://github.com/hpjansson/chafa) - Cross-terminal image rendering (recommended).
   - [icat](https://sw.kovidgoyal.net/kitty/kittens/icat/) - recommended for kitty terminal and ghostty
@@ -156,7 +157,7 @@ yt-x -e
 yt-x -x <extension-name>
 
 # Specify player at runtime
-yt-x --player <mpv/vlc>
+yt-x --player <mpv/vlc/tplay>
 
 # Set selector at runtime
 yt-x -s <fzf/rofi>
