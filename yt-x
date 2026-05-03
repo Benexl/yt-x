@@ -131,71 +131,7 @@ _init_env() {
 # ==============================================================================
 # CONFIGURATION & ENVIRONMENT
 # ==============================================================================
-_load_default_config() {
-  : "${CONFIG_AUTOLOADED_EXTENSIONS:=}"
-  : "${CONFIG_PRETTY_PRINT:=true}"
-  : "${CONFIG_SELECTOR:=fzf}"
-  : "${CONFIG_ENABLE_PREVIEW:=false}"
-  : "${CONFIG_IMAGE_RENDERER:=chafa}"
-  : "${CONFIG_CHAFA_ARGS:=}"
-  : "${CONFIG_ICAT_ARGS:=}"
-  : "${CONFIG_IMGCAT_ARGS:=}"
-  : "${CONFIG_PLAYER:=mpv}"
-  : "${CONFIG_MPV_ARGS:=}"
-  : "${CONFIG_VLC_ARGS:=}"
-  : "${CONFIG_TPLAY_ARGS:=}"
-  : "${CONFIG_VIDEO_QUALITY:=1080}"
-  : "${CONFIG_PER_PAGE:=30}"
-  : "${CONFIG_BROWSER:=}"
-  : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
-  : "${CONFIG_NOTIFICATION_DURATION:=5}"
-  : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
-  : "${CONFIG_CHECK_FOR_UPDATES:=true}"
-  : "${CONFIG_NO_OF_RECENT:=10}"
-  : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
-  : "${CONFIG_ROFI_THEME:=}"
-  : "${CONFIG_FZF_OPTS:="
-  --ansi
-  --border
-  --scheme=history
-  --style=full
-  --color=bg+:#283457
-  --color=bg:#16161e
-  --color=border:#27a1b9
-  --color=fg:#c0caf5
-  --color=gutter:#16161e
-  --color=header:#ff9e64
-  --color=hl+:#2ac3de
-  --color=hl:#2ac3de
-  --color=info:#545c7e
-  --color=marker:#ff007c
-  --color=pointer:#ff007c
-  --color=prompt:#2ac3de
-  --color=query:#c0caf5:regular
-  --color=scrollbar:#27a1b9
-  --color=separator:#ff9e64
-  --color=spinner:#ff007c
-  --border=rounded
-  --border-label=''
-  --prompt=' >'
-  --marker=' >'
-  --pointer='◆'
-  --layout=reverse
-  --cycle
-  --ghost='こんにちは...'
-  --height=100%
-  --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
-  --no-margin
-  +m
-  -i
-  --exact
-  --tabstop=1
-  --preview-window=border-rounded,left,35%,wrap
-  --wrap
-"}"
-}
-
-_load_default_theme() {
+__load_default_theme() {
   if $CLI_SUPPORTS_TRUE_COLOR; then
     THEME_FZF_ICON_COLOR_PRIMARY=""
     THEME_FZF_ICON_COLOR_SECONDARY=""
@@ -291,6 +227,70 @@ __load_default_lang() {
 
 }
 
+__load_default_config() {
+  : "${CONFIG_AUTOLOADED_EXTENSIONS:=}"
+  : "${CONFIG_PRETTY_PRINT:=true}"
+  : "${CONFIG_SELECTOR:=fzf}"
+  : "${CONFIG_ENABLE_PREVIEW:=false}"
+  : "${CONFIG_IMAGE_RENDERER:=chafa}"
+  : "${CONFIG_CHAFA_ARGS:=}"
+  : "${CONFIG_ICAT_ARGS:=}"
+  : "${CONFIG_IMGCAT_ARGS:=}"
+  : "${CONFIG_PLAYER:=mpv}"
+  : "${CONFIG_MPV_ARGS:=}"
+  : "${CONFIG_VLC_ARGS:=}"
+  : "${CONFIG_TPLAY_ARGS:=}"
+  : "${CONFIG_VIDEO_QUALITY:=1080}"
+  : "${CONFIG_PER_PAGE:=30}"
+  : "${CONFIG_BROWSER:=}"
+  : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
+  : "${CONFIG_NOTIFICATION_DURATION:=5}"
+  : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
+  : "${CONFIG_CHECK_FOR_UPDATES:=true}"
+  : "${CONFIG_NO_OF_RECENT:=10}"
+  : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
+  : "${CONFIG_ROFI_THEME:=}"
+  : "${CONFIG_FZF_OPTS:="
+  --ansi
+  --border
+  --scheme=history
+  --style=full
+  --color=bg+:#283457
+  --color=bg:#16161e
+  --color=border:#27a1b9
+  --color=fg:#c0caf5
+  --color=gutter:#16161e
+  --color=header:#ff9e64
+  --color=hl+:#2ac3de
+  --color=hl:#2ac3de
+  --color=info:#545c7e
+  --color=marker:#ff007c
+  --color=pointer:#ff007c
+  --color=prompt:#2ac3de
+  --color=query:#c0caf5:regular
+  --color=scrollbar:#27a1b9
+  --color=separator:#ff9e64
+  --color=spinner:#ff007c
+  --border=rounded
+  --border-label=''
+  --prompt=' >'
+  --marker=' >'
+  --pointer='◆'
+  --layout=reverse
+  --cycle
+  --ghost='こんにちは...'
+  --height=100%
+  --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+  --no-margin
+  +m
+  -i
+  --exact
+  --tabstop=1
+  --preview-window=border-rounded,left,35%,wrap
+  --wrap
+"}"
+}
+
 _load_env_config() {
   CONFIG_AUTOLOADED_EXTENSIONS="${YT_X_AUTOLOADED_EXTENSIONS:-$CONFIG_AUTOLOADED_EXTENSIONS}"
   CONFIG_PRETTY_PRINT="${YT_X_PRETTY_PRINT:-$CONFIG_PRETTY_PRINT}"
@@ -328,6 +328,19 @@ _load_env_config() {
   CONFIG_ROFI_THEME_PREVIEW="${YT_X_ROFI_THEME_PREVIEW:-$CONFIG_ROFI_THEME_PREVIEW}"
   CONFIG_ROFI_THEME_PROMPT="${YT_X_ROFI_THEME_PROMPT:-$CONFIG_ROFI_THEME_PROMPT}"
   CONFIG_ROFI_THEME_CONFIRM="${CONFIG_ROFI_THEME_CONFIRM:-$CONFIG_ROFI_THEME_CONFIRM}"
+}
+
+_post_config_load() {
+  if $CONFIG_PRETTY_PRINT; then
+    _load_theme
+  fi
+  if [ -n "$CONFIG_AUTOLOADED_EXTENSIONS" ]; then
+    for ext in $(echo "$CONFIG_AUTOLOADED_EXTENSIONS" | tr ',' '\n'); do
+      [ -s "$CLI_EXTENSIONS_DIR/$ext" ] && . "$CLI_EXTENSIONS_DIR/$ext"
+    done
+  fi
+
+  export FZF_DEFAULT_OPTS="$CONFIG_FZF_OPTS"
 }
 
 _print_config() {
@@ -429,19 +442,6 @@ CONFIG_ROFI_THEME_PREVIEW="$CONFIG_ROFI_THEME_PREVIEW"
 CONFIG_ROFI_THEME_PROMPT="$CONFIG_ROFI_THEME_PROMPT"
 CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
 EOF
-}
-
-_post_config_load() {
-  if $CONFIG_PRETTY_PRINT; then
-    _load_theme
-  fi
-  if [ -n "$CONFIG_AUTOLOADED_EXTENSIONS" ]; then
-    for ext in $(echo "$CONFIG_AUTOLOADED_EXTENSIONS" | tr ',' '\n'); do
-      [ -s "$CLI_EXTENSIONS_DIR/$ext" ] && . "$CLI_EXTENSIONS_DIR/$ext"
-    done
-  fi
-
-  export FZF_DEFAULT_OPTS="$CONFIG_FZF_OPTS"
 }
 
 _load_config() {
