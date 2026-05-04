@@ -734,6 +734,41 @@ ui_confirm() {
 }
 
 # ==============================================================================
+# CORE UI: pager
+# ==============================================================================
+__ui_default_pager() {
+  if _dep_ch bat; then
+    bat --paging=always --theme=TwoDark --color=always
+  elif _dep_ch gum; then
+    gum pager
+  elif _dep_ch less; then
+    less -R
+  else
+    more
+  fi
+}
+
+__ui_rofi_pager() {
+  local theme
+
+  [ -s "$CONFIG_ROFI_THEME_MAIN" ] && theme="-theme $CONFIG_ROFI_THEME_MAIN"
+
+  # shellcheck disable=SC2086
+  rofi -no-config $theme -sort -matching fuzzy -dmenu -i -width 1500 -p "" -mesg "Preview" -matching fuzzy -sorting-method fzf
+}
+
+_ui_pager() {
+  case "$CONFIG_LAUNCHER" in
+  rofi) __ui_rofi_pager ;;
+  *) __ui_default_pager ;;
+  esac
+}
+
+ui_pager() {
+  _ui_pager
+}
+
+# ==============================================================================
 # Previews
 # ==============================================================================
 generate_text_preview() {
