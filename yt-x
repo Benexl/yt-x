@@ -278,6 +278,7 @@ __load_default_lang() {
 
   # core: others
   TXT_MENU_INVALID_ACTION="Invalid Action"
+  TXT_EDITOR_NOT_FOUND="No suitable editor found. Please set CONFIG_EDITOR to a valid text editor command or ensure \$EDITOR is set."
 
   # main
   TXT_MENU_MAIN="Main Menu"
@@ -525,6 +526,22 @@ _util_generate_hash() {
   else
     # fallback
     printf "%s" "$input" | base64 | tr '/+' '_-' | tr -d '\n'
+  fi
+}
+
+_util_file_edit() {
+  local file_path="$1"
+
+  if _dep_ch "$CONFIG_EDITOR"; then
+    "$CONFIG_EDITOR" "$file_path"
+  elif _dep_ch "$EDITOR"; then
+    $EDITOR "$file_path"
+  elif _dep_ch open; then
+    open "$file_path"
+  elif _dep_ch xdg-open; then
+    xdg-open "$file_path"
+  else
+    ui_notify_warning "Failed to edit $file_path: $TXT_EDITOR_NOT_FOUND"
   fi
 }
 
