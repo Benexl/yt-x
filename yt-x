@@ -6,7 +6,8 @@
 # ==============================================================================
 # META
 # ==============================================================================
-CLI_NAME="${YT_X_APP_NAME:-yt-x}"
+CLI_NAME="${YT_X_NAME:-yt-x}"
+CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
 CLI_VERSION="0.5.0"
 CLI_AUTHOR="Benexl"
 CLI_REPO_URL="https://github.com/Benexl/yt-x"
@@ -81,14 +82,14 @@ __init_env_paths() {
   XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
   # Directories
-  CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_NAME"
+  CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_APP_NAME"
   CLI_EXTENSIONS_DIR="$CLI_CONFIG_DIR/extensions"
   CLI_EXTENSIONS_SITES_DIR="$CLI_EXTENSIONS_DIR/sites"
   CLI_EXTENSIONS_THEMES_DIR="$CLI_EXTENSIONS_DIR/themes"
   CLI_EXTENSIONS_LANGS_DIR="$CLI_EXTENSIONS_DIR/langs"
   CLI_EXTENSIONS_CMDS_DIR="$CLI_EXTENSIONS_DIR/cmds"
 
-  CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_NAME"
+  CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
   CLI_STATE_DIR="$CLI_CACHE_DIR/state"
   CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
   CLI_PLAYLIST_DIR="$CLI_CACHE_DIR/playlists"
