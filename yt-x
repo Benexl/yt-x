@@ -2327,6 +2327,7 @@ _app_cmd_line_parser() {
 main() {
   trap _util_byebye INT TERM
   _init_env
+  _load_config
   _app_cmd_line_parser "$@"
   _app_update_check
   _app_core_dep_ch
