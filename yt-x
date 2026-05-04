@@ -479,7 +479,7 @@ CONFIG_ROFI_THEME_PREVIEW="$CONFIG_ROFI_THEME_PREVIEW"
 CONFIG_ROFI_THEME_PROMPT="$CONFIG_ROFI_THEME_PROMPT"
 CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
 CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
-  
+
 # ==============================================================================
 # 楽しんでね
 # ==============================================================================
@@ -505,7 +505,7 @@ _load_config() {
 # CORE: utilities
 # ==============================================================================
 _util_byebye() {
-  _ui_notify "Have a good day $USER"
+  echo "Have a good day $USER"
   exit "${1:-0}"
 }
 
