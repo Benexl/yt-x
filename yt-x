@@ -676,7 +676,7 @@ __ui_fzf_launcher_with_preview() {
   # shellcheck disable=SC2086
   fzf $custom_opts \
     --prompt="${1}: " \
-    --preview="preview_txt='$CLI_PREVIEW_TXT_DIR/{3}' && [ -s \"$preview_txt\" ] && exec sh \"$preview_txt\""
+    --preview="preview_txt='$CLI_PREVIEW_TXT_DIR/{3}' && [ -s \"\$preview_txt\" ] && exec sh \"\$preview_txt\""
 }
 
 __ui_rofi_launcher_with_preview() {
