@@ -16,6 +16,10 @@ CLI_SUPPORT_PROJECT_URL="https://buymeacoffee.com/benexl"
 # ==============================================================================
 # SETUP
 # ==============================================================================
+_dep_ch() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 __init_env_platform() {
   CLI_DIR="$(dirname "$(realpath "$0")")"
   CLI_PATH="$CLI_DIR/$CLI_NAME"
@@ -26,7 +30,7 @@ __init_env_platform() {
   fi
 
   # check if supports local
-  if ! command -v local >/dev/null 2>&1; then
+  if ! _dep_ch local; then
     # shellcheck disable=SC02329
     __local() {
       unset "$1"
@@ -60,9 +64,9 @@ __init_env_platform() {
   fi
 
   # Detect correct mpv command (mpv or mpv.exe)
-  if command -v mpv >/dev/null 2>&1; then
+  if _dep_ch mpv; then
     MPV_CMD="mpv"
-  elif command -v mpv.exe >/dev/null 2>&1; then
+  elif _dep_ch "mpv.exe"; then
     MPV_CMD="mpv.exe"
   else
     MPV_CMD="mpv" # fallback
@@ -478,7 +482,7 @@ _util_byebye() {
   exit "${1:-0}"
 }
 
-_util_generate_sha256() {
+_util_generate_hash() {
   local input
 
   # Check if input is passed as an argument or piped
@@ -488,13 +492,13 @@ _util_generate_sha256() {
     input=$(cat)
   fi
 
-  if command -v sha256sum >/dev/null 2>&1; then
+  if _dep_ch sha256sum; then
     printf "%s" "$input" | sha256sum | awk '{print $1}'
-  elif command -v shasum >/dev/null 2>&1; then
+  elif _dep_ch shasum; then
     printf "%s" "$input" | shasum -a 256 | awk '{print $1}'
-  elif command -v sha256 >/dev/null 2>&1; then
+  elif _dep_ch sha256; then
     printf "%s" "$input" | sha256 | awk '{print $1}'
-  elif command -v openssl >/dev/null 2>&1; then
+  elif _dep_ch openssl; then
     printf "%s" "$input" | openssl dgst -sha256 | awk '{print $2}'
   else
     # fallback
@@ -511,7 +515,7 @@ __ui_notify_terminal() {
   info) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
   warning) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
   error) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
-  critical) echo "$2" >&2 && _util_byebye 1 ;;
+  critical) echo "$2" >&2 && exit 1 ;;
   *) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
   esac
 
@@ -523,7 +527,7 @@ __ui_notify_non_terminal() {
   info) notify-send "$2" ;;
   warning) notify-send "$2" ;;
   error) notify-send "$2" ;;
-  critical) notify-send "$2" && _util_byebye 1 ;;
+  critical) notify-send "$2" && exit 1 ;;
   esac
 }
 
@@ -652,7 +656,7 @@ ui_launcher_with_preview() {
 # CORE UI: prompt
 # ==============================================================================
 __ui_default_prompt() {
-  if command -v "gum" >/dev/null 2>&1; then
+  if _dep_ch gum; then
     gum input --header "$CLI_HEADER" --prompt "$1: " --value "$2"
   else
     printf "%s\n" "$CLI_HEADER" >/dev/stderr
@@ -687,7 +691,7 @@ ui_prompt() {
 # CORE UI: confirm
 # ==============================================================================
 _ui_default_confirm() {
-  if command -v "gum" >/dev/null 2>&1; then
+  if _dep_ch gum; then
     gum confirm "$1"
   else
     printf "%s\n" "$CLI_HEADER" >/dev/stderr
@@ -1047,7 +1051,7 @@ get_channels_data() {
 }
 
 run_yt_dlp() {
-  if command -v "gum" >/dev/null 2>&1; then
+  if _dep_ch gum; then
     gum spin --show-output -- yt-dlp "$1" -J --flat-playlist --extractor-args youtubetab:approximate_date --playlist-start "$PLAYLIST_START" --playlist-end "$PLAYLIST_END" $PREFERRED_BROWSER || send_notification "Failed to fetch data : ("
   else
     echo "Loading..." >/dev/stderr
@@ -1306,7 +1310,7 @@ __menu_playlist_actions_mix() {
 
   _search_results="$search_results"
   search_results=$(
-    if command -v "gum" >/dev/null 2>&1; then
+    if _dep_ch gum; then
       gum spin --show-output -- yt-dlp "$urlForAll" -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER $PLAYLISTS_EXTRA_ARGS --playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS
     else
       echo "Loading..." >/dev/stderr
@@ -1436,9 +1440,9 @@ __menu_playlist_actions_visit_channel() {
 }
 
 __menu_playlist_actions_open_in_browser() {
-  if command -v "open" >/dev/null 2>&1; then
+  if _dep_ch open; then
     open "$(echo "$video" | jq '.url' -r)"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
+  elif _dep_ch xdg-open; then
     xdg-open "$(echo "$video" | jq '.url' -r)"
   else
     send_notification "Could not find xdg-open or open"
@@ -1787,7 +1791,7 @@ __menu_miscellaneous_custom_commands() {
     custom_yt_dlp_cmd=$(jq -r ". | map(select(.name == \"$custom_cmd_name\" )) | .[0].cmd" "$F_CUSTOM_CMDS")
     echo Running custom command...
     search_results=$(
-      if command -v "gum" >/dev/null 2>&1; then
+      if _dep_ch gum; then
         gum spin --show-output --show-error -- $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
       else
         echo "Loading..." >/dev/stderr
@@ -1800,13 +1804,13 @@ __menu_miscellaneous_custom_commands() {
 }
 
 __menu_miscellaneous_edit_search_history() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
+  if _dep_ch "$PREFERRED_EDITOR"; then
     $PREFERRED_EDITOR "$CLI_CACHE_DIR/search_history.txt"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
+  elif _dep_ch "$EDITOR"; then
     $EDITOR "$CLI_CACHE_DIR/search_history.txt"
-  elif command -v "open" >/dev/null 2>&1; then
+  elif _dep_ch "open"; then
     open "$CLI_CACHE_DIR/search_history.txt"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
+  elif _dep_ch "xdg-open"; then
     xdg-open "$CLI_CACHE_DIR/search_history.txt"
   else
     send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
@@ -2137,9 +2141,9 @@ _app_update_check() {
 }
 
 _app_core_dep_ch() {
-  ! command -v "yt-dlp" >/dev/null 2>&1 && _ui_notify_error yt-dlp is not installed and is a core dep please install it to proceed && _util_byebye 1
-  ! command -v "jq" >/dev/null 2>&1 && _ui_notify_error jq is not installed and is a core dep please install it to proceed && _util_byebye 1
-  ! command -v "fzf" >/dev/null 2>&1 && _ui_notify_error fzf is not installed and is a core dep please install it to proceed && _util_byebye 1
+  ! _dep_ch "yt-dlp" >/dev/null 2>&1 && ui_notify_critical "yt-dlp is not installed and is a core dep please install it to proceed"
+  ! _dep_ch "jq" && ui_notify_critical "jq is not installed and is a core dep please install it to proceed"
+  ! _dep_ch "fzf" && ui_notify_critical "fzf is not installed and is a core dep please install it to proceed"
 }
 
 _app_util_update_script() {
