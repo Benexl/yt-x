@@ -92,6 +92,8 @@ __init_env_paths() {
   CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
   CLI_STATE_DIR="$CLI_CACHE_DIR/state"
   CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
+  CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
+  CLI_PREVIEW_TXT_DIR="$CLI_CACHE_DIR/previews/text"
   CLI_PLAYLIST_DIR="$CLI_CACHE_DIR/playlists"
   CLI_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
   CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
@@ -118,7 +120,8 @@ __init_env_paths() {
     "$CLI_EXTENSIONS_LANGS_DIR" \
     "$CLI_EXTENSIONS_CMDS_DIR" \
     "$CLI_STATE_DIR" \
-    "$CLI_PREVIEW_DIR" \
+    "$CLI_PREVIEW_IMGS_DIR" \
+    "$CLI_PREVIEW_TXT_DIR" \
     "$CLI_PLAYLIST_DIR" \
     "$CLI_ARCHIVE_DIR" \
     "$CLI_LOG_DIR"
