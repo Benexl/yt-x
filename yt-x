@@ -2098,7 +2098,7 @@ __menu_main_clips() {
 
 __menu_main_edit_config() {
   _util_file_edit "$CLI_CONFIG_FILE"
-  load_config
+  _load_config
 }
 
 _menu_main() {
