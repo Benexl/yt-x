@@ -1711,7 +1711,7 @@ _menu_playlist_explorer() {
           |map(.value))
           ")
     titles=$(echo "$search_results" | jq '.entries[].title' -r 2>/dev/null)
-    title="$(printf "%s\n%s" "$titles" "$choices" | launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" "playlist" | tr -d '\n' | sed 's/^[^0-9]  //g' | sed 's/"/\\"/g')"
+    title="$(printf "%s\n%s" "$titles" "$choices" | ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" "playlist" | tr -d '\n' | sed 's/^[^0-9]  //g' | sed 's/"/\\"/g')"
     clear
 
     case "$title" in
@@ -1823,7 +1823,7 @@ _menu_channels_explorer() {
   while true; do
     channels=$(echo "$channels_data" | jq '.entries[].channel' -r)
     export SHELL CLI_CONFIG_DIR
-    channel_name=$(printf "%s\nMain Menu\nExit" "$channels" | launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS")
+    channel_name=$(printf "%s\nMain Menu\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS")
     channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
     [ "$channel_name" = "Exit" ] && byebye
     [ "$channel_name" = "Main Menu" ] && break
@@ -1850,7 +1850,7 @@ __menu_miscellaneous_explore_channels() {
     clear
     channels=$(echo "$channels_data" | jq '.entries[].channel' -r)
     export channels_data SHELL
-    channel_name=$(printf "%s\nBack\nExit" "$channels" | launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS_EXPLORER")
+    channel_name=$(printf "%s\nBack\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS_EXPLORER")
     channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
     [ "$channel_name" = "Exit" ] && byebye
     [ "$channel_name" = "Back" ] || [ "$channel_name" = "" ] && break
