@@ -1928,77 +1928,23 @@ __menu_miscellaneous_custom_commands() {
 }
 
 __menu_miscellaneous_edit_search_history() {
-  if _dep_ch "$PREFERRED_EDITOR"; then
-    $PREFERRED_EDITOR "$CLI_CACHE_DIR/search_history.txt"
-  elif _dep_ch "$EDITOR"; then
-    $EDITOR "$CLI_CACHE_DIR/search_history.txt"
-  elif _dep_ch "open"; then
-    open "$CLI_CACHE_DIR/search_history.txt"
-  elif _dep_ch "xdg-open"; then
-    xdg-open "$CLI_CACHE_DIR/search_history.txt"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
-
+  _util_file_edit "$CLI_SEARCH_HISTORY_FILE"
 }
 
 __menu_miscellaneous_edit_custom_playlists() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "$CLI_CACHE_DIR/custom_playlists.txt"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "$CLI_CONFIG_DIR/custom_playlists.json"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "$CLI_CONFIG_DIR/custom_playlists.json"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "$CLI_CONFIG_DIR/custom_playlists.json"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
-
+  _util_file_edit "$CLI_CUSTOM_PLAYLISTS_FILE"
 }
 
 __menu_miscellaneous_edit_custom_commands() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "$F_CUSTOM_CMDS"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "$F_CUSTOM_CMDS"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "$F_CUSTOM_CMDS"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "$F_CUSTOM_CMDS"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
-
+  _util_file_edit "$CLI_CUSTOM_CMDS_FILE"
 }
 
 __menu_miscellaneous_edit_mpv_config() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/mpv/mpv.conf"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
+  _util_file_edit "$XDG_CONFIG_HOME/mpv/mpv.conf"
 }
 
 __menu_miscellaneous_edit_yt_dlp_config() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "${XDG_CONFIG_HOME:-"$HOME"/.config}/yt-dlp/config"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
-
+  _util_file_edit "$XDG_CONFIG_HOME/yt-dlp/config"
 }
 
 __menu_miscellaneous_clear_search_history() {
@@ -2151,17 +2097,7 @@ __menu_main_clips() {
 }
 
 __menu_main_edit_config() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open"
-  fi
+  _util_file_edit "$CLI_CONFIG_FILE"
   load_config
 }
 
@@ -2259,17 +2195,8 @@ _app_util_check_update() {
 }
 
 _app_edit_config() {
-  if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
-    $PREFERRED_EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "$EDITOR" >/dev/null 2>&1; then
-    $EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "open" >/dev/null 2>&1; then
-    open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  elif command -v "xdg-open" >/dev/null 2>&1; then
-    xdg-open "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
-  else
-    send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open" && exit 1
-  fi
+  _util_file_edit "$CLI_CONFIG_FILE"
+  _util_byebye
 }
 
 _app_generate_desktop_entry() {
