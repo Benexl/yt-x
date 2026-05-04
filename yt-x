@@ -500,7 +500,6 @@ _load_config() {
 # CORE: utilities
 # ==============================================================================
 _util_byebye() {
-  clear
   _ui_notify "Have a good day $USER"
   exit "${1:-0}"
 }
