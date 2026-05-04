@@ -1641,7 +1641,7 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_B
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_EXIT}"
 
   while true; do
-    media_action="$(printf "%s" "$actions" | launcher "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT" | sed 's/.  //g')"
+    media_action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT" | sed 's/.  //g')"
     clear
     case "$media_action" in
     "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_playlist_actions_watch ;;
@@ -1764,7 +1764,7 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
-    action="$(printf "%s" "$actions" | launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" | sed 's/.  //g')"
+    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" | sed 's/.  //g')"
     uploader_url_base="$(echo "$channel" | jq '.uploader_url' -r)"
     clear
 
@@ -1871,7 +1871,7 @@ __menu_miscellaneous_explore_playlists() {
 __menu_miscellaneous_search_history() {
   while true; do
     ! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
-    search_term="$(printf "$(tac "$CLI_CACHE_DIR/search_history.txt")\nBack" | launcher "Search for" | jq -Rr '@uri')"
+    search_term="$(printf "$(tac "$CLI_CACHE_DIR/search_history.txt")\nBack" | ui_launcher "Search for" | jq -Rr '@uri')"
     [ "$search_term" = "Back" ] || [ "$search_term" = "" ] && break
     url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAQ%253D%253D"
     search_results=$(run_yt_dlp "$url")
@@ -1910,7 +1910,7 @@ __menu_miscellaneous_new_custom_command() {
 __menu_miscellaneous_custom_commands() {
   ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds. Create them here: <$F_CUSTOM_CMDS>"
   while true; do
-    custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | launcher "Select Custom Data Loader Command To Run")
+    custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | ui_launcher "Select Custom Data Loader Command To Run")
     [ "$custom_cmd_name" = "Back" ] || [ "$custom_cmd_name" = "" ] && break
     custom_yt_dlp_cmd=$(jq -r ". | map(select(.name == \"$custom_cmd_name\" )) | .[0].cmd" "$F_CUSTOM_CMDS")
     echo Running custom command...
@@ -1982,7 +1982,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰆴${THEME_RESET}  ${TXT_MENU_MISC_CLEAR_SEARCH_HI
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   while true; do
-    action="$(printf "%s" "$actions" | launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
+    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
     clear
 
     case "$action" in
@@ -2056,7 +2056,7 @@ __menu_main_subscription_feed() {
 __menu_main_custom_playlists() {
   ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You don't have any custom playlists. Create them here: <$CUSTOM_PLAYLISTS>" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
   while true; do
-    playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | launcher "Select Custom Playlist To Play")
+    playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | ui_launcher "Select Custom Playlist To Play")
     [ "$playlist_title" = "Back" ] || [ "$playlist_title" = "" ] && break
     url=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistWatchUrl" "$CUSTOM_PLAYLISTS")
     urlForAll=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistUrl" "$CUSTOM_PLAYLISTS")
@@ -2121,7 +2121,7 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
-  action="$(printf "%s" "$actions" | launcher "Select Action" | sed 's/.*  //g')"
+  action="$(printf "%s" "$actions" | ui_launcher "Select Action" | sed 's/.*  //g')"
   case "$action" in
   "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
   "$TXT_MENU_MAIN_TRENDING") __menu_main_trending ;;
