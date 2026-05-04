@@ -26,11 +26,13 @@ __init_env_platform() {
   fi
 
   # check if supports local
-  __local() {
-    unset "$1"
-    eval "$1=''"
-  }
   if ! command -v local >/dev/null 2>&1; then
+    # shellcheck disable=SC02329
+    __local() {
+      unset "$1"
+      eval "$1=''"
+    }
+    # shellcheck disable=SC02329
     local() {
       __local "$1"
     }
