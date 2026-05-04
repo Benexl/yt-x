@@ -551,11 +551,11 @@ _util_file_edit() {
 __ui_notify_terminal() {
   #TODO: finish implementation
   case "$1" in
-  info) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
-  warning) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
-  error) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
+  info) echo "$2" >&2 && sleep "$CONFIG_NOTIFICATION_DURATION" ;;
+  warning) echo "$2" >&2 && sleep "$CONFIG_NOTIFICATION_DURATION" ;;
+  error) echo "$2" >&2 && sleep "$CONFIG_NOTIFICATION_DURATION" ;;
   critical) echo "$2" >&2 && exit 1 ;;
-  *) echo "$2" >&2 && sleep "$NOTIFICATION_DURATION" ;;
+  *) echo "$2" >&2 && sleep "$CONFIG_NOTIFICATION_DURATION" ;;
   esac
 
 }
@@ -1554,13 +1554,13 @@ __menu_playlist_actions_unsave() {
 __menu_playlist_actions_subscribe_to_channel() {
   # TODO: use youtube api to enable video subscriptions
   send_notification "contribute to the project by adding this feature"
-  sleep "$NOTIFICATION_DURATION"
+  sleep "$CONFIG_NOTIFICATION_DURATION"
 }
 
 __menu_playlist_actions_visit_channel() {
   # TODO: use youtube api to enable video subscriptions
   send_notification "contribute to the project by adding this feature"
-  sleep "$NOTIFICATION_DURATION"
+  sleep "$CONFIG_NOTIFICATION_DURATION"
 }
 
 __menu_playlist_actions_open_in_browser() {
@@ -1870,7 +1870,7 @@ __menu_miscellaneous_explore_playlists() {
 
 __menu_miscellaneous_search_history() {
   while true; do
-    ! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$NOTIFICATION_DURATION" && main
+    ! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
     search_term="$(printf "$(tac "$CLI_CACHE_DIR/search_history.txt")\nBack" | launcher "Search for" | jq -Rr '@uri')"
     [ "$search_term" = "Back" ] || [ "$search_term" = "" ] && break
     url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAQ%253D%253D"
@@ -2054,7 +2054,7 @@ __menu_main_subscription_feed() {
 }
 
 __menu_main_custom_playlists() {
-  ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You don't have any custom playlists. Create them here: <$CUSTOM_PLAYLISTS>" && sleep "$NOTIFICATION_DURATION" && main
+  ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You don't have any custom playlists. Create them here: <$CUSTOM_PLAYLISTS>" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
   while true; do
     playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | launcher "Select Custom Playlist To Play")
     [ "$playlist_title" = "Back" ] || [ "$playlist_title" = "" ] && break
@@ -2072,7 +2072,7 @@ __menu_main_liked_videos() {
 }
 
 __menu_main_saved_videos() {
-  ! [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && echo No saved videos && sleep "$NOTIFICATION_DURATION" && main
+  ! [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && echo No saved videos && sleep "$CONFIG_NOTIFICATION_DURATION" && main
   search_results=$(jq '{"entries":.entries|reverse}' "$CLI_CONFIG_DIR/saved_videos.json")
   playlist_explorer
 }
