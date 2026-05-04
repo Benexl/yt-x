@@ -252,7 +252,8 @@ __load_env_config() {
   CONFIG_ROFI_THEME_MAIN="${YT_X_ROFI_THEME_MAIN:-$CONFIG_ROFI_THEME_MAIN}"
   CONFIG_ROFI_THEME_PREVIEW="${YT_X_ROFI_THEME_PREVIEW:-$CONFIG_ROFI_THEME_PREVIEW}"
   CONFIG_ROFI_THEME_PROMPT="${YT_X_ROFI_THEME_PROMPT:-$CONFIG_ROFI_THEME_PROMPT}"
-  CONFIG_ROFI_THEME_CONFIRM="${CONFIG_ROFI_THEME_CONFIRM:-$CONFIG_ROFI_THEME_CONFIRM}"
+  CONFIG_ROFI_THEME_CONFIRM="${YT_X_ROFI_THEME_CONFIRM:-$CONFIG_ROFI_THEME_CONFIRM}"
+  CONFIG_ROFI_THEME_PAGER="${YT_X_ROFI_THEME_PAGER:-$CONFIG_ROFI_THEME_PAGER}"
 }
 
 __load_default_lang() {
@@ -266,6 +267,14 @@ __load_default_lang() {
   TXT_MENU_PREVIOUS="Previous"
   TXT_MENU_BACK="Back"
   TXT_MENU_EXIT="Exit"
+
+  # core: launcher
+  TXT_LAUNCHER_UNKNOWN="Unknown launcher"
+
+  # core: rofi
+  TXT_ROFI_NOT_CONFIGURED="Rofi is not configured. Please set to a valid rofi config file path in your config.sh"
+  TXT_ROFI_PAGER_MESSAGE="Press [Esc] to exit pager"
+  TXT_ROFI_PAGER_PROMPT="Filter lines by typing..."
 
   # core: others
   TXT_MENU_INVALID_ACTION="Invalid Action"
@@ -461,11 +470,13 @@ CONFIG_ENABLE_SEARCH_HISTORY="$CONFIG_ENABLE_SEARCH_HISTORY"
 # Custom options passed directly to fzf
 CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS"
 
-# Rofi config
+# Rofi config all are required to run rofi as a launcher
+# get the official ones from $CLI_REPO_URL
 CONFIG_ROFI_THEME_MAIN="$CONFIG_ROFI_THEME_MAIN"
 CONFIG_ROFI_THEME_PREVIEW="$CONFIG_ROFI_THEME_PREVIEW"
 CONFIG_ROFI_THEME_PROMPT="$CONFIG_ROFI_THEME_PROMPT"
 CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
+CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 EOF
 }
 
@@ -594,30 +605,40 @@ ui_notify_critical() {
 # CORE UI: launcher
 # ==============================================================================
 __ui_fzf_launcher() {
+  local custom_opts
+  local multi_select
+  multi_select="$2"
+  [ "$multi_select" = "multi" ] && custom_opts="--multi"
 
-  fzf \
-    --info=hidden \
-    --layout=reverse \
-    --height=100% \
-    --prompt="${1}: " \
-    --header-first --header="$CLI_HEADER" \
-    --exact --cycle --ansi
+  # shellcheck disable=SC2086
+  fzf $custom_opts --prompt="${1}: "
 }
 
 __ui_rofi_launcher() {
-  local theme
+  ! [ -s "$CONFIG_ROFI_THEME_MAIN" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_MAIN=\"$CONFIG_ROFI_THEME_MAIN\""
   local selection
+  local custom_opts
+  local multi_select
+  local line
 
-  [ -s "$CONFIG_ROFI_THEME_MAIN" ] && theme="-theme $CONFIG_ROFI_THEME_MAIN"
+  multi_select="$2"
+  [ "$multi_select" = "multi" ] && custom_opts="-multi-select"
+
   # shellcheck disable=SC2086
-  selection=$(while read -r line; do echo "$line" | sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'; done | rofi -no-config $theme -sort -matching fuzzy -dmenu -i -width 1500 -p "" -mesg "Select Action" -matching fuzzy -sorting-method fzf)
-  [ -z "$selection" ] && echo "Exit" || echo "$selection"
+  selection=$(
+    while read -r line; do
+      echo "$line" |
+        sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
+    done | rofi -config "$CONFIG_ROFI_THEME_MAIN" $custom_opts -p "$1"
+  )
+  [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
 
 _ui_launcher() {
-  case "$CONFIG_SELECTOR" in
+  case "$CONFIG_LAUNCHER" in
   rofi) __ui_rofi_launcher "$@" ;;
   fzf) __ui_fzf_launcher "$@" ;;
+  *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
   esac
 
 }
@@ -630,31 +651,42 @@ ui_launcher() {
 # CORE UI: launcher with preview
 # ==============================================================================
 __ui_fzf_launcher_with_preview() {
-  fzf \
-    --info=hidden \
-    --layout=reverse \
-    --height=100% \
+  local custom_opts
+  local multi_select
+  multi_select="$2"
+  [ "$multi_select" = "multi" ] && custom_opts="--multi"
+
+  # shellcheck disable=SC2086
+  fzf $custom_opts \
     --prompt="${1}: " \
-    --header-first --header="$CLI_HEADER" \
-    --preview-window=left,35%,wrap --bind=right:accept \
-    --expect=shift-left,shift-right --tabstop=1 \
-    --cycle --exact \
-    --ansi --preview="YT_X_MINIMAL_ENV=true $CLI_PATH _internal_fzf_preview $2 {}"
+    --preview="preview_txt='$CLI_PREVIEW_TXT_DIR/{3}' && [ -s \"$preview_txt\" ] && exec sh \"$preview_txt\""
 }
 
 __ui_rofi_launcher_with_preview() {
-  local theme
+  ! [ -s "$CONFIG_ROFI_THEME_PREVIEW" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PREVIEW=\"$CONFIG_ROFI_THEME_PREVIEW\""
   local selection
+  local custom_opts
+  local multi_select
+  local line
 
-  [ -z "$CONFIG_ROFI_THEME_PREVIEW" ] && theme="-theme $CONFIG_ROFI_THEME_PREVIEW"
-  selection=$(while read -r line; do echo "$line" | sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'; done | rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -sort -matching fuzzy -dmenu -i -p "" -mesg "Select Action" -matching fuzzy -sorting-method fzf)
-  [ -z "$selection" ] && echo "Exit" || echo "$selection"
+  multi_select="$2"
+  [ "$multi_select" = "multi" ] && custom_opts="-multi-select"
+
+  # shellcheck disable=SC2086
+  selection=$(
+    while read -r line; do
+      echo "$line" |
+        sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
+    done | rofi -config "$CONFIG_ROFI_THEME_PREVIEW" $custom_opts -p "$1"
+  )
+  [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
 
 _ui_launcher_with_preview() {
-  case "$PREFERRED_SELECTOR" in
+  case "$CONFIG_LAUNCHER" in
   rofi) __ui_rofi_launcher_with_preview "$@" ;;
   fzf) __ui_fzf_launcher_with_preview "$@" ;;
+  *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
   esac
 
 }
@@ -667,28 +699,28 @@ ui_launcher_with_preview() {
 # CORE UI: prompt
 # ==============================================================================
 __ui_default_prompt() {
+  local header
+  local value
+  header="$2"
+
   if _dep_ch gum; then
-    gum input --header "$CLI_HEADER" --prompt "$1: " --value "$2"
+    gum input --header "$header" --prompt "$1: "
   else
-    printf "%s\n" "$CLI_HEADER" >/dev/stderr
+    printf "%s\n" "$header" >/dev/stderr
     printf "%s: " "$1" >/dev/stderr
-    read -r VAL
-    printf "%s" "$VAL"
+    read -r value
+    printf "%s" "$value"
   fi
 }
 
 __ui_rofi_prompt() {
-  local theme
+  ! [ -s "$CONFIG_ROFI_THEME_PROMPT" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PROMPT=\"$CONFIG_ROFI_THEME_PROMPT\""
 
-  [ -s "$CONFIG_ROFI_THEME_PROMPT" ] && theme="-theme $CONFIG_ROFI_THEME_PROMPT"
-
-  # shellcheck disable=SC2086
-  rofi -dmenu $theme -p "$1: "
+  rofi -config "$CONFIG_ROFI_THEME_PROMPT" -p "$1: "
 }
 
 _ui_prompt() {
-  #TODO: implement defaults
-  case "$CONFIG_SELECTOR" in
+  case "$CONFIG_LAUNCHER" in
   rofi) __ui_rofi_prompt "$@" ;;
   *) __ui_default_prompt "$@" ;;
   esac
@@ -702,35 +734,67 @@ ui_prompt() {
 # CORE UI: confirm
 # ==============================================================================
 _ui_default_confirm() {
-  if _dep_ch gum; then
-    gum confirm "$1"
+  local yes
+  local no
+  local default
+  local default_index
+
+  yes="${3:-y}"
+  no="${4:-n}"
+  default="${2:-$no}"
+
+  if [ "$default" = "$yes" ]; then
+    default_index=1
   else
-    printf "%s\n" "$CLI_HEADER" >/dev/stderr
-    printf "%s [y/N]: " "$1" >/dev/stderr
+    default_index=0
+  fi
+
+  if _dep_ch gum; then
+    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
+  else
+    printf "%s ($yes/$no; Default: $default): " "$1" >/dev/stderr
     read -r CONFIRMED
     case "$CONFIRMED" in
-    y | Y)
+    "$yes")
       return 0
       ;;
-    *)
+    "$no")
       return 1
+      ;;
+    *)
+      if [ "$default" = "$yes" ]; then
+        return 0
+      else
+        return 1
+      fi
       ;;
     esac
   fi
 }
 
 _ui_rofi_confirm() {
-  local theme
+  ! [ -s "$CONFIG_ROFI_THEME_CONFIRM" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_CONFIRM=\"$CONFIG_ROFI_THEME_CONFIRM\""
+  local yes
+  local no
+  local default
+  local default_index
 
-  [ -s "$CONFIG_ROFI_THEME_PROMPT" ] && theme="-theme $CONFIG_ROFI_THEME_CONFIRM"
+  yes="${3:-y}"
+  no="${4:-n}"
+  default="${2:-$no}"
 
-  # shellcheck disable=SC2086
-  rofi -dmenu $theme -p "$1: "
+  if [ "$default" = "$yes" ]; then
+    default_index=0
+  else
+    default_index=1
+  fi
+
+  printf "%s\n%s" "$yes" "$no" |
+    rofi -config "$CONFIG_ROFI_THEME_CONFIRM" -p "$1: " -selected-row "$default_index"
 }
 
 _ui_confirm() {
-  #TODO: implement defaults
-  case "$CONFIG_SELECTOR" in
+  case "$CONFIG_LAUNCHER" in
   rofi) _ui_rofi_confirm "$@" ;;
   *) _ui_default_confirm "$@" ;;
   esac
@@ -756,12 +820,9 @@ __ui_default_pager() {
 }
 
 __ui_rofi_pager() {
-  local theme
+  ! [ -s "$CONFIG_ROFI_THEME_PAGER" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PAGER=\"$CONFIG_ROFI_THEME_PAGER\""
 
-  [ -s "$CONFIG_ROFI_THEME_MAIN" ] && theme="-theme $CONFIG_ROFI_THEME_MAIN"
-
-  # shellcheck disable=SC2086
-  rofi -no-config $theme -sort -matching fuzzy -dmenu -i -width 1500 -p "" -mesg "Preview" -matching fuzzy -sorting-method fzf
+  rofi -config "$CONFIG_ROFI_THEME_PAGER" -mesg "$TXT_ROFI_PAGER_MESSAGE" -p "$TXT_ROFI_PAGER_PROMPT"
 }
 
 _ui_pager() {
