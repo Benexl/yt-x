@@ -858,6 +858,42 @@ ui_pager() {
 }
 
 # ==============================================================================
+# CORE UI: loader
+# ==============================================================================
+__ui_default_loader() {
+  local cmd
+  cmd="$*"
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum spin --show-output -- $cmd
+  else
+    echo "Loading..." >/dev/stderr
+    $cmd
+  fi
+
+}
+
+__ui_rofi_loader() {
+  local cmd
+  cmd="$*"
+
+  ui_notify "Loading..."
+  $cmd
+}
+
+_ui_loader() {
+  case "$CONFIG_SELECTOR" in
+  rofi) __ui_rofi_loader "$@" ;;
+  *) __ui_default_loader "$@" ;;
+  esac
+}
+
+ui_load() {
+  _ui_loader "$@"
+}
+
+# ==============================================================================
 # Previews
 # ==============================================================================
 generate_text_preview() {
