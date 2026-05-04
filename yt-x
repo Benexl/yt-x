@@ -90,6 +90,7 @@ __init_env_paths() {
 
   # Directories
   CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_APP_NAME"
+
   CLI_EXTENSIONS_DIR="$CLI_CONFIG_DIR/extensions"
   CLI_EXTENSIONS_SITES_DIR="$CLI_EXTENSIONS_DIR/sites"
   CLI_EXTENSIONS_THEMES_DIR="$CLI_EXTENSIONS_DIR/themes"
@@ -97,11 +98,15 @@ __init_env_paths() {
   CLI_EXTENSIONS_CMDS_DIR="$CLI_EXTENSIONS_DIR/cmds"
 
   CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
+
   CLI_STATE_DIR="$CLI_CACHE_DIR/state"
+  CLI_CURRENT_STATE_DIR="$CLI_STATE_DIR/${CLI_START_TIME}-$$"
+
   CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
   CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
   CLI_PREVIEW_TXT_DIR="$CLI_CACHE_DIR/previews/text"
   CLI_PLAYLIST_DIR="$CLI_CACHE_DIR/playlists"
+
   CLI_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
   CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
@@ -110,14 +115,13 @@ __init_env_paths() {
   CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
   CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
   CLI_RECENT_FILE="$CLI_CONFIG_DIR/recent.json"
-  CLI_SAVED_FILE="$CLI_CONFIG_DIR/saved_videos.json"
-  CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom_playlists.json"
+  CLI_SAVED_FILE="$CLI_CONFIG_DIR/saved-videos.json"
+  CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom-playlists.json"
   CLI_SUBSCRIPTIONS_FILE="$CLI_CONFIG_DIR/subscriptions.json"
-  CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom_cmds.json"
+  CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom-cmds.json"
 
-  CLI_STATE_FILE="$CLI_STATE_DIR/$(date +%Y-%m-%d_%H-%M-%S).json"
   CLI_LOG_FILE="$CLI_CACHE_DIR/logs/${CLI_NAME}.log"
-  CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search_history.txt"
+  CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search-history.txt"
   CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
 
   # Ensure directories exist
@@ -126,7 +130,7 @@ __init_env_paths() {
     "$CLI_EXTENSIONS_THEMES_DIR" \
     "$CLI_EXTENSIONS_LANGS_DIR" \
     "$CLI_EXTENSIONS_CMDS_DIR" \
-    "$CLI_STATE_DIR" \
+    "$CLI_CURRENT_STATE_DIR" \
     "$CLI_PREVIEW_IMGS_DIR" \
     "$CLI_PREVIEW_TXT_DIR" \
     "$CLI_PLAYLIST_DIR" \
@@ -141,6 +145,7 @@ __post_init_env() {
 }
 
 _init_env() {
+  CLI_START_TIME=$(date +%s)
   __init_env_platform
   __init_env_paths
   __post_init_env
@@ -257,10 +262,8 @@ __load_env_config() {
 }
 
 __load_default_lang() {
-
-  # ==============================================================================
-  # MENUS
-  # ==============================================================================
+  # core: state
+  TXT_STATE_MALFORMED_CURRENT="Malformed State. Confirm contents of: $CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
 
   # core: navigation
   TXT_MENU_NEXT="Next"
@@ -297,6 +300,7 @@ __load_default_lang() {
   TXT_MENU_MAIN_CLIPS="Clips"
   TXT_MENU_MAIN_EDIT_CONFIG="Edit Config"
   TXT_MENU_MAIN_MISC="Miscellaneous"
+
   # miscellaneous
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explore Playlists"
@@ -346,7 +350,6 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
 
   [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
-
 }
 
 __load_default_theme() {
@@ -1199,28 +1202,110 @@ _preview_fzf_all() {
 }
 
 # ==============================================================================
-# State Management
+# Data Fetching
 # ==============================================================================
-get_channels_data() {
-  [ "$FORCE_CHANNEL_THUMBNAILS_DOWNLOAD" = "0" ] && download_preview_images "$channels_data" "https:"
-  if [ -f "$CLI_CONFIG_DIR/subscriptions.json" ] && ! [ "$force_update" = "1" ]; then
-    channels_data=$(cat "$CLI_CONFIG_DIR/subscriptions.json")
-  else
-    echo Loading subscriptions...
-    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config)"
-    ! [ "$FORCE_CHANNEL_THUMBNAILS_DOWNLOAD" = "0" ] && [ "$ENABLE_PREVIEW" = "true" ] && download_preview_images "$channels_data" "https:"
-    [ -n "$channels_data" ] && ! [ "$channels_data" = "null" ] && echo "$channels_data" >"$CLI_CONFIG_DIR/subscriptions.json" || send_notification "Failed to fetch subscriptions"
-    clear
-  fi
+__fetch_yt_dlp() {
+  local url
+  local playlist_start
+  local playlist_end
+  local custom_opts
+
+  url="$1"
+  playlist_start="$2"
+  playlist_end="$3"
+  custom_opts="$4"
+
+  # shellcheck disable=SC2086
+  ui_load yt-dlp $custom_opts "$url" \
+    --dump-single-json \
+    --flat-playlist \
+    --extractor-args \
+    --playlist-start "$playlist_start" \
+    --playlist-end "$playlist_end"
 }
 
-run_yt_dlp() {
-  if _dep_ch gum; then
-    gum spin --show-output -- yt-dlp "$1" -J --flat-playlist --extractor-args youtubetab:approximate_date --playlist-start "$PLAYLIST_START" --playlist-end "$PLAYLIST_END" $PREFERRED_BROWSER || send_notification "Failed to fetch data : ("
-  else
-    echo "Loading..." >/dev/stderr
-    yt-dlp "$1" -J --flat-playlist --extractor-args youtubetab:approximate_date --playlist-start "$PLAYLIST_START" --playlist-end "$PLAYLIST_END" $PREFERRED_BROWSER || send_notification "Failed to fetch data : ("
-  fi
+_fetch_media() {
+  __fetch_yt_dlp "$@"
+}
+
+fetch_media() {
+  local base_url
+  base_url="https://youtube.com"
+  url="${base_url}/$1"
+  shift
+
+  _fetch_media "$url" "$@"
+}
+
+# ==============================================================================
+# State Management
+# ==============================================================================
+__state_clean_prev() {
+  local current_state_dir
+  current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+  ! [ -d "$current_state_dir" ] && ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  rm -rf "$current_state_dir"
+}
+
+_state_init() {
+  STATE_CURRENT=0
+
+  STATE_CURRENT_CHANNEL_RESULTS=""
+  STATE_CURRENT_CHANNEL_RESULTS_START=1
+  STATE_CURRENT_CHANNEL_RESULTS_END="$CONFIG_PER_PAGE"
+  STATE_CURRENT_CHANNEL_URL=""
+
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+  STATE_CURRENT_PLAYLIST_RESULTS=""
+  STATE_CURRENT_PLAYLIST_URL=""
+
+  STATE_CURRENT_VIDEO=""
+  STATE_CURRENT_VIDEO_URL=""
+}
+
+_state_push() {
+  local current_state_dir
+
+  STATE_CURRENT="$((STATE_CURRENT + 1))"
+  current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+  mkdir -p "$current_state_dir"
+
+  echo "$STATE_CURRENT_CHANNEL_RESULTS" >"$current_state_dir/channel_results"
+  echo "$STATE_CURRENT_CHANNEL_RESULTS_START" >"$current_state_dir/channel_results_start"
+  echo "$STATE_CURRENT_CHANNEL_RESULTS_END" >"$current_state_dir/channel_results_end"
+  echo "$STATE_CURRENT_CHANNEL_URL" >"$current_state_dir/channel_url"
+
+  echo "$STATE_CURRENT_PLAYLIST_START" >"$current_state_dir/playlist_start"
+  echo "$STATE_CURRENT_PLAYLIST_END" >"$current_state_dir/playlist_end"
+  echo "$STATE_CURRENT_PLAYLIST_RESULTS" >"$current_state_dir/playlist_results"
+  echo "$STATE_CURRENT_PLAYLIST_URL" >"$current_state_dir/playlist_url"
+
+  echo "$STATE_CURRENT_VIDEO" >"$current_state_dir/video"
+  echo "$STATE_CURRENT_VIDEO_URL" >"$current_state_dir/video_url"
+}
+
+_state_pop() {
+  local current_state_dir
+
+  __state_clean_prev
+
+  STATE_CURRENT="$((STATE_CURRENT - 1))"
+  current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+  ! [ -d "$current_state_dir" ] && ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+
+  STATE_CURRENT_CHANNEL_RESULTS="$(cat "$current_state_dir/channel_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_CHANNEL_RESULTS_START="$(cat "$current_state_dir/channel_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_CHANNEL_RESULTS_END="$(cat "$current_state_dir/channel_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_CHANNEL_URL="$(cat "$current_state_dir/channel_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+
+  STATE_CURRENT_PLAYLIST_START="$(cat "$current_state_dir/playlist_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLIST_END="$(cat "$current_state_dir/playlist_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLIST_RESULTS="$(cat "$current_state_dir/playlist_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLIST_URL="$(cat "$current_state_dir/playlist_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+
+  STATE_CURRENT_VIDEO="$(cat "$current_state_dir/video")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_VIDEO_URL="$(cat "$current_state_dir/video_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 }
 
 # ==============================================================================
@@ -2273,7 +2358,6 @@ Categories=Entertainment"
 _app_update_check() {
   local timestamp_file
   local interval
-  local current_time
   local last_check_time
 
   if [ "$CONFIG_CHECK_FOR_UPDATES" = "true" ]; then
@@ -2283,12 +2367,11 @@ _app_update_check() {
     interval=$((12 * 60 * 60))
 
     # Determine whether to run the update check
-    current_time=$(date +%s)
     last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
 
-    if [ "$((current_time - last_check_time))" -ge "$interval" ]; then
+    if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
       _app_util_check_update
-      echo "$current_time" >"$timestamp_file"
+      echo "$CLI_START_TIME" >"$timestamp_file"
     fi
   fi
 }
