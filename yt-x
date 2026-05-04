@@ -2102,7 +2102,6 @@ _app_edit_config() {
   else
     send_notification "Could not find preferred editor ($PREFERRED_EDITOR) or editor env ($EDITOR) or xdg-open or open" && exit 1
   fi
-  _util_byebye
 }
 
 _app_generate_desktop_entry() {
@@ -2218,7 +2217,7 @@ Options:
     set the preferred selector for $CLI_NAME to use
   -p <player>,--player <player> [mpv/vlc/tplay]
     set the video player for $CLI_NAME to use
-  -x <extension>,--extension <extension> [name of extension file at $CLI_EXTENSION_DIR or full path]
+  -x <extension>,--extension <extension> [name of extension file at $CLI_EXTENSIONS_DIR or full path]
     set the extension for $CLI_NAME to use (accepts full path starting with /)
   --preview
     enable the preview window
@@ -2237,10 +2236,10 @@ arguments:
 
 Examples:
   $CLI_NAME --generate-desktop-entry
-  $CLI_NAME completions --fish 
-"
-  printf "%s" "$CLI_NAME"
-  _util_byebye "$1"
+  $CLI_NAME completions --fish"
+
+  printf "%s\n" "$help_msg"
+  exit "${1:-0}"
 }
 
 _app_usage_completions() {
@@ -2259,8 +2258,10 @@ Options:
 Example:
   $CLI_NAME completions --fish
   $CLI_NAME completions --bash
-  $CLI_NAME completions --zsh
-    "
+  $CLI_NAME completions --zsh"
+
+  printf "%s\n" "$help_msg"
+  exit "${1:-0}"
 }
 
 # ==============================================================================
@@ -2291,29 +2292,30 @@ complete -c $CLI_NAME --no-files --short-option S --long-option search --descrip
 
 complete -c $CLI_NAME --no-files --short-option z --long-option zsh --description 'print zsh completions' --condition '__fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option b --long-option bash --description 'print bash completions' --condition '__fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option f --long-option fish --description 'print fish completions' --condition '__fish_seen_subcommand_from completions'
-    "
-  printf "%s" "$completions"
-
+complete -c $CLI_NAME --no-files --short-option f --long-option fish --description 'print fish completions' --condition '__fish_seen_subcommand_from completions'"
+  printf "%s\n" "$completions"
+  exit 1
 }
 
 # ==============================================================================
 # APP:cmdline parser
 # ==============================================================================
 __app_cmd_line_parser_completions() {
-  [ -n "$2" ] || usage 1
+  [ -n "$2" ] || _app_usage 1
   case "$2" in
   -f | --fish) _app_completions_fish ;;
   -b | --bash)
     # TODO: write bash completions
-    echo Contribute to $CLI_NAME by writing bash completions
+    echo Contribute to "$CLI_NAME" by writing bash completions
+    exit 1
     ;;
   -z | --zsh)
     # TODO: write zsh completions
-    echo Contribute to $CLI_NAME by writing zsh completions
+    echo Contribute to "$CLI_NAME" by writing zsh completions
+    exit 1
     ;;
   -h | --help) _app_usage_completions ;;
-  *) _app_usage_completions ;;
+  *) _app_usage_completions 1 ;;
   esac
 
 }
@@ -2332,60 +2334,76 @@ __app_cmd_line_parser_extensions() {
 _app_cmd_line_parser() {
   while [ $# -gt 0 ]; do
     case "$1" in
-    -h | --help) _app_usage 0 ;;
+    -h | --help) _app_usage ;;
     -v | --version)
-      echo "$CLI_NAME v$CLI_VERSION Copyright © 2024 $CLI_AUTHOR projects"
+      echo "$CLI_NAME v$CLI_VERSION MIT Copyright © 2024 $CLI_AUTHOR projects"
       exit 0
       ;;
-    -e | --edit-config) _app_edit_config ;;
+    -e | --edit-config)
+      _app_edit_config
+      _util_byebye
+      ;;
     -U | --update)
-      check_update "A new version of $CLI_NAME has been found would you like to upgrade? (y/n)"
-      _u
+      _app_util_check_update
+      _util_byebye
       ;;
     -S | --search)
       CMD_ACTION="Search"
       CMD_SEARCH_TERMS="$2"
       shift
       ;;
-    -s | --preferred-selector)
-      [ -n "$2" ] || usage 1
-      PREFERRED_SELECTOR="$2"
+    -l | --launcher)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_LAUNCHER="$2"
       shift
       ;;
-    --preview)
-      ENABLE_PREVIEW="true"
+    -i | --preview)
+      CONFIG_ENABLE_PREVIEW=true
       ;;
-    --no-preview)
-      ENABLE_PREVIEW="false"
+    -I | --no-preview)
+      CONFIG_ENABLE_PREVIEW=false
       ;;
     --disown-streaming-process)
-      DISOWN_STREAMING_PROCESS="true"
+      CONFIG_DISOWN_STREAMING_PROCESS=true
       ;;
     --no-disown-streaming-process)
-      DISOWN_STREAMING_PROCESS="false"
+      CONFIG_DISOWN_STREAMING_PROCESS=false
       ;;
     --disown-downloading-process)
-      DISOWN_DOWNLOADING_PROCESS="true"
+      CONFIG_DISOWN_DOWNLOADING_PROCESS=true
       ;;
     --no-disown-downloading-process)
-      DISOWN_DOWNLOADING_PROCESS="false"
+      CONFIG_DISOWN_DOWNLOADING_PROCESS=false
       ;;
-    --rofi-theme)
-      [ -n "$2" ] || usage 1
-      ROFI_THEME="$2"
+    --rofi-theme-main)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_MAIN="$2"
+      shift
+      ;;
+    --rofi-theme-preview)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PREVIEW="$2"
+      shift
+      ;;
+    --rofi-theme-prompt)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PROMPT="$2"
+      shift
+      ;;
+    --rofi-theme-confirm)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_CONFIRM="$2"
       shift
       ;;
     -p | --player)
-      [ -n "$2" ] || usage 1
-      PLAYER="$2"
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_PLAYER="$2"
       shift
       ;;
     -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
     completions) __app_cmd_line_parser_completions "$@" ;;
-    -x | --extension) __app_cmd_line_parser_extensions "$@" ;;
-    *)
-      usage 1
-      ;;
+    -x | --extensions) __app_cmd_line_parser_extensions "$@" ;;
+    *) _app_usage 1 ;;
     esac
     shift
   done
