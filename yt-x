@@ -2129,6 +2129,50 @@ menu_main() {
 # ==============================================================================
 # APP: utils
 # ==============================================================================
+_app_util_update_script() {
+  local update
+  if [ -z "$CLI_PATH" ]; then
+    ui_notify_critical "Can't find $CLI_NAME in PATH"
+  fi
+
+  if [ ! -w "$CLI_PATH" ]; then
+    ui_confirm "It seems you have installed $CLI_NAME as root, which is not recommended. Do you still want to update using sudo? (I recommended reinstalling the cli as non root)" || _util_byebye
+    if _dep_ch sudo; then
+      exec sudo -s "$CLI_PATH" "-u"
+    else
+      ui_notify_critical "Insufficient permissions to update and can't find sudo in PATH"
+    fi
+  fi
+
+  update=$(curl -s "$CLI_URL")
+  [ -z "$update" ] && ui_notify_critical "Failed to fetch update information"
+  update="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" - 2>/dev/null)"
+  if [ -z "$update" ]; then
+    ui_notify "Script is up to date :)"
+  else
+    if printf "%s" "$update" | patch "$CLI_PATH" -; then
+      ui_notify "Script has been updated!"
+    else
+      ui_notify_critical "Can't update for some reason!"
+    fi
+  fi
+  exec "$CLI_PATH"
+}
+
+_app_util_check_update() {
+  local update
+  update=$(curl -s "$CLI_URL")
+  [ -z "$update" ] && ui_notify_critical "Failed to fetch update information"
+  update="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" -)"
+  if [ -n "$update" ]; then
+    # TODO: show pretty diffs
+    ui_confirm "An update has been found would you like to see the changes before deciding whether to update?" && echo "$update" | ui_pager
+    ui_confirm "Would you like to proceed with the update?" && _app_util_update_script
+  else
+    return 1
+  fi
+}
+
 _app_edit_config() {
   if command -v "$PREFERRED_EDITOR" >/dev/null 2>&1; then
     $PREFERRED_EDITOR "$CLI_CONFIG_DIR/${CLI_NAME}.conf"
@@ -2160,19 +2204,23 @@ Categories=Education"
 }
 
 _app_update_check() {
-  if [ "$UPDATE_CHECK" = "true" ]; then
-    # setup for ui
+  local timestamp_file
+  local interval
+  local current_time
+  local last_check_time
+
+  if [ "$CONFIG_CHECK_FOR_UPDATES" = "true" ]; then
     timestamp_file="$CLI_CACHE_DIR/.last_update_check"
 
     # Time interval in seconds (6 hours = 21600 seconds)
-    interval=$((6 * 60 * 60))
+    interval=$((12 * 60 * 60))
 
     # Determine whether to run the update check
     current_time=$(date +%s)
     last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
 
-    if ( (current_time - last_check_time interval >=)); then
-      check_update "A new version of $CLI_NAME has been found would you like to upgrade? (y/n)"
+    if [ "$((current_time - last_check_time))" -ge "$interval" ]; then
+      _app_util_check_update
       echo "$current_time" >"$timestamp_file"
     fi
   fi
@@ -2182,47 +2230,6 @@ _app_core_dep_ch() {
   ! _dep_ch "yt-dlp" >/dev/null 2>&1 && ui_notify_critical "yt-dlp is not installed and is a core dep please install it to proceed"
   ! _dep_ch "jq" && ui_notify_critical "jq is not installed and is a core dep please install it to proceed"
   ! _dep_ch "fzf" && ui_notify_critical "fzf is not installed and is a core dep please install it to proceed"
-}
-
-_app_util_update_script() {
-  local update
-  if [ -z "$CLI_PATH" ]; then
-    _ui_notify "Can't find yt-x in PATH"
-    _util_byebye 1
-  fi
-
-  if [ ! -w "$CLI_PATH" ]; then
-    if [ -n "$(command -v sudo)" ]; then
-      exec sudo -s "$CLI_PATH" "-u"
-    else
-      _ui_notify "Insufficient permissions to update and can't find sudo in PATH"
-      _util_byebye 1
-    fi
-  fi
-
-  update=$(curl -s "$CLI_URL" || _util_byebye 1)
-  update="$(printf '%s' "$update" | diff -u "$CLI_PATH" - 2>/dev/null)"
-  if [ -z "$update" ]; then
-    _ui_notify "Script is up to date :)"
-  else
-    if printf '%s' "$update" | patch "$CLI_PATH" -; then
-      _ui_notify "Script has been updated!"
-    else
-      _ui_notify_error "Can't update for some reason!"
-    fi
-  fi
-  exec "$CLI_PATH"
-}
-
-_app_util_check_update() {
-  local update
-  update=$(curl -s "$CLI_URL")
-  update="$(printf '%s\n' "$update" | diff -u "$CLI_PATH" - 2>/dev/null)"
-  if [ -n "$update" ]; then
-    # TODO: show pretty diffs
-    _ui_confirm "An update has been found would you like to see the changes before deciding whether to update?" && echo "$update" | _ui_pager
-    _ui_confirm "Would you like to proceed with the update?" && _app_util_update_script
-  fi
 }
 
 # ==============================================================================
@@ -2383,8 +2390,7 @@ _app_cmd_line_parser() {
       _util_byebye
       ;;
     -U | --update)
-      _app_util_check_update
-      _util_byebye
+      ! _app_util_check_update && ui_notify "No updates found, script is up to date :)" && _util_byebye
       ;;
     -S | --search)
       CMD_ACTION="Search"
