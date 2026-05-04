@@ -1825,7 +1825,7 @@ _menu_channels_explorer() {
     export SHELL CLI_CONFIG_DIR
     channel_name=$(printf "%s\nMain Menu\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS")
     channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
-    [ "$channel_name" = "Exit" ] && byebye
+    [ "$channel_name" = "Exit" ] && _util_byebye
     [ "$channel_name" = "Main Menu" ] && break
     channel="$(echo "$channels_data" | jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]")"
     channels_explorer
@@ -1852,7 +1852,7 @@ __menu_miscellaneous_explore_channels() {
     export channels_data SHELL
     channel_name=$(printf "%s\nBack\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS_EXPLORER")
     channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
-    [ "$channel_name" = "Exit" ] && byebye
+    [ "$channel_name" = "Exit" ] && _util_byebye
     [ "$channel_name" = "Back" ] || [ "$channel_name" = "" ] && break
     channel="$(echo "$channels_data" | jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]")"
     channels_explorer
