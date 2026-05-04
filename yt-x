@@ -92,8 +92,9 @@ __init_env_paths() {
   CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
   # Files
-  CLI_CONFIG_FILE="$CLI_CONFIG_DIR/${CLI_NAME}.conf"
+  CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config.sh"
   CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
+  CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
   CLI_RECENT_FILE="$CLI_CONFIG_DIR/recent.json"
   CLI_SAVED_FILE="$CLI_CONFIG_DIR/saved_videos.json"
   CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom_playlists.json"
@@ -133,18 +134,110 @@ _init_env() {
 # ==============================================================================
 # CONFIGURATION & ENVIRONMENT
 # ==============================================================================
-__load_default_theme() {
-  if $CLI_SUPPORTS_TRUE_COLOR; then
-    THEME_FZF_ICON_COLOR_PRIMARY=""
-    THEME_FZF_ICON_COLOR_SECONDARY=""
-    THEME_FZF_ICON_COLOR_ACCENT=""
-    THEME_FZF_ICON_COLOR_ERROR=""
-  fi
+__load_default_config() {
+  : "${CONFIG_AUTOLOADED_EXTENSIONS:=}"
+  : "${CONFIG_ENABLE_COLORS:=true}"
+  : "${CONFIG_LAUNCHER:=fzf}"
+  : "${CONFIG_ENABLE_PREVIEW:=false}"
+  : "${CONFIG_IMAGE_RENDERER:=chafa}"
+  : "${CONFIG_CHAFA_ARGS:=}"
+  : "${CONFIG_ICAT_ARGS:=}"
+  : "${CONFIG_IMGCAT_ARGS:=}"
+  : "${CONFIG_YT_DLP_ARGS:=}"
+  : "${CONFIG_PLAYER:=mpv}"
+  : "${CONFIG_DISOWN_STREAMING_PROCESS:=false}"
+  : "${CONFIG_DISOWN_DOWNLOADING_PROCESS:=false}"
+  : "${CONFIG_MPV_ARGS:=}"
+  : "${CONFIG_VLC_ARGS:=}"
+  : "${CONFIG_TPLAY_ARGS:=}"
+  : "${CONFIG_VIDEO_QUALITY:=1080}"
+  : "${CONFIG_PER_PAGE:=30}"
+  : "${CONFIG_BROWSER:=}"
+  : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
+  : "${CONFIG_NOTIFICATION_DURATION:=5}"
+  : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
+  : "${CONFIG_CHECK_FOR_UPDATES:=true}"
+  : "${CONFIG_NO_OF_RECENT:=10}"
+  : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
+  : "${CONFIG_ROFI_THEME:=}"
+  : "${CONFIG_FZF_OPTS:="
+  --ansi
+  --border
+  --scheme=history
+  --style=full
+  --color=bg+:#283457
+  --color=bg:#16161e
+  --color=border:#27a1b9
+  --color=fg:#c0caf5
+  --color=gutter:#16161e
+  --color=header:#ff9e64
+  --color=hl+:#2ac3de
+  --color=hl:#2ac3de
+  --color=info:#545c7e
+  --color=marker:#ff007c
+  --color=pointer:#ff007c
+  --color=prompt:#2ac3de
+  --color=query:#c0caf5:regular
+  --color=scrollbar:#27a1b9
+  --color=separator:#ff9e64
+  --color=spinner:#ff007c
+  --border=rounded
+  --border-label=''
+  --prompt=' >'
+  --marker=' >'
+  --pointer='◆'
+  --layout=reverse
+  --cycle
+  --ghost='こんにちは...'
+  --height=100%
+  --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+  --no-margin
+  +m
+  -i
+  --exact
+  --tabstop=1
+  --preview-window=border-rounded,left,35%,wrap
+  --wrap
+"}"
 }
 
-_load_theme() {
-  _load_default_theme
-  [ -s "$CLI_DEFAULT_THEME_FILE" ] && . "$CLI_DEFAULT_THEME_FILE"
+__load_env_config() {
+  CONFIG_AUTOLOADED_EXTENSIONS="${YT_X_AUTOLOADED_EXTENSIONS:-$CONFIG_AUTOLOADED_EXTENSIONS}"
+  CONFIG_ENABLE_COLORS="${YT_X_ENABLE_COLORS:-$CONFIG_PRETTY_PRINT}"
+  CONFIG_SELECTOR="${YT_X_SELECTOR:-$CONFIG_SELECTOR}"
+  CONFIG_ENABLE_PREVIEW="${YT_X_ENABLE_PREVIEW:-$CONFIG_ENABLE_PREVIEW}"
+
+  # Renderer Settings
+  CONFIG_IMAGE_RENDERER="${YT_X_IMAGE_RENDERER:-$CONFIG_IMAGE_RENDERER}"
+  CONFIG_CHAFA_ARGS="${YT_X_CHAFA_ARGS:-$CONFIG_CHAFA_ARGS}"
+  CONFIG_ICAT_ARGS="${YT_X_ICAT_ARGS:-$CONFIG_ICAT_ARGS}"
+  CONFIG_IMGCAT_ARGS="${YT_X_IMGCAT_ARGS:-$CONFIG_IMGCAT_ARGS}"
+
+  # Player Settings
+  CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
+  CONFIG_MPV_ARGS="${YT_X_MPV_ARGS:-$CONFIG_MPV_ARGS}"
+  CONFIG_VLC_ARGS="${YT_X_VLC_ARGS:-$CONFIG_VLC_ARGS}"
+  CONFIG_TPLAY_ARGS="${YT_X_TPLAY_ARGS:-$CONFIG_TPLAY_ARGS}"
+
+  # Media Prefs
+  CONFIG_VIDEO_QUALITY="${YT_X_VIDEO_QUALITY:-$CONFIG_VIDEO_QUALITY}"
+  CONFIG_PER_PAGE="${YT_X_PER_PAGE:-$CONFIG_PER_PAGE}"
+  CONFIG_BROWSER="${YT_X_BROWSER:-$CONFIG_BROWSER}"
+
+  # System/UI
+  CONFIG_EDITOR="${YT_X_EDITOR:-$CONFIG_EDITOR}"
+  CONFIG_NOTIFICATION_DURATION="${YT_X_NOTIFICATION_DURATION:-$CONFIG_NOTIFICATION_DURATION}"
+  CONFIG_DOWNLOAD_DIR="${YT_X_DOWNLOAD_DIR:-$CONFIG_DOWNLOAD_DIR}"
+  CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
+  CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
+  CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
+
+  # Advanced
+  CONFIG_FZF_OPTS="${YT_X_FZF_OPTS:-$CONFIG_FZF_OPTS}"
+  CONFIG_ROFI_THEME_MAIN="${YT_X_ROFI_THEME_MAIN:-$CONFIG_ROFI_THEME_MAIN}"
+  CONFIG_ROFI_THEME_PREVIEW="${YT_X_ROFI_THEME_PREVIEW:-$CONFIG_ROFI_THEME_PREVIEW}"
+  CONFIG_ROFI_THEME_PROMPT="${YT_X_ROFI_THEME_PROMPT:-$CONFIG_ROFI_THEME_PROMPT}"
+  CONFIG_ROFI_THEME_CONFIRM="${CONFIG_ROFI_THEME_CONFIRM:-$CONFIG_ROFI_THEME_CONFIRM}"
 }
 
 __load_default_lang() {
@@ -227,115 +320,22 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
 
+  [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
+
 }
 
-__load_default_config() {
-  : "${CONFIG_AUTOLOADED_EXTENSIONS:=}"
-  : "${CONFIG_PRETTY_PRINT:=true}"
-  : "${CONFIG_SELECTOR:=fzf}"
-  : "${CONFIG_ENABLE_PREVIEW:=false}"
-  : "${CONFIG_IMAGE_RENDERER:=chafa}"
-  : "${CONFIG_CHAFA_ARGS:=}"
-  : "${CONFIG_ICAT_ARGS:=}"
-  : "${CONFIG_IMGCAT_ARGS:=}"
-  : "${CONFIG_PLAYER:=mpv}"
-  : "${CONFIG_MPV_ARGS:=}"
-  : "${CONFIG_VLC_ARGS:=}"
-  : "${CONFIG_TPLAY_ARGS:=}"
-  : "${CONFIG_VIDEO_QUALITY:=1080}"
-  : "${CONFIG_PER_PAGE:=30}"
-  : "${CONFIG_BROWSER:=}"
-  : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
-  : "${CONFIG_NOTIFICATION_DURATION:=5}"
-  : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
-  : "${CONFIG_CHECK_FOR_UPDATES:=true}"
-  : "${CONFIG_NO_OF_RECENT:=10}"
-  : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
-  : "${CONFIG_ROFI_THEME:=}"
-  : "${CONFIG_FZF_OPTS:="
-  --ansi
-  --border
-  --scheme=history
-  --style=full
-  --color=bg+:#283457
-  --color=bg:#16161e
-  --color=border:#27a1b9
-  --color=fg:#c0caf5
-  --color=gutter:#16161e
-  --color=header:#ff9e64
-  --color=hl+:#2ac3de
-  --color=hl:#2ac3de
-  --color=info:#545c7e
-  --color=marker:#ff007c
-  --color=pointer:#ff007c
-  --color=prompt:#2ac3de
-  --color=query:#c0caf5:regular
-  --color=scrollbar:#27a1b9
-  --color=separator:#ff9e64
-  --color=spinner:#ff007c
-  --border=rounded
-  --border-label=''
-  --prompt=' >'
-  --marker=' >'
-  --pointer='◆'
-  --layout=reverse
-  --cycle
-  --ghost='こんにちは...'
-  --height=100%
-  --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
-  --no-margin
-  +m
-  -i
-  --exact
-  --tabstop=1
-  --preview-window=border-rounded,left,35%,wrap
-  --wrap
-"}"
-}
+__load_default_theme() {
+  if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
+    THEME_FZF_ICON_COLOR_PRIMARY=""
+    THEME_FZF_ICON_COLOR_SECONDARY=""
+    THEME_FZF_ICON_COLOR_ACCENT=""
+    THEME_FZF_ICON_COLOR_ERROR=""
 
-_load_env_config() {
-  CONFIG_AUTOLOADED_EXTENSIONS="${YT_X_AUTOLOADED_EXTENSIONS:-$CONFIG_AUTOLOADED_EXTENSIONS}"
-  CONFIG_PRETTY_PRINT="${YT_X_PRETTY_PRINT:-$CONFIG_PRETTY_PRINT}"
-  CONFIG_SELECTOR="${YT_X_SELECTOR:-$CONFIG_SELECTOR}"
-  CONFIG_ENABLE_PREVIEW="${YT_X_ENABLE_PREVIEW:-$CONFIG_ENABLE_PREVIEW}"
-
-  # Renderer Settings
-  CONFIG_IMAGE_RENDERER="${YT_X_IMAGE_RENDERER:-$CONFIG_IMAGE_RENDERER}"
-  CONFIG_CHAFA_ARGS="${YT_X_CHAFA_ARGS:-$CONFIG_CHAFA_ARGS}"
-  CONFIG_ICAT_ARGS="${YT_X_ICAT_ARGS:-$CONFIG_ICAT_ARGS}"
-  CONFIG_IMGCAT_ARGS="${YT_X_IMGCAT_ARGS:-$CONFIG_IMGCAT_ARGS}"
-
-  # Player Settings
-  CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
-  CONFIG_MPV_ARGS="${YT_X_MPV_ARGS:-$CONFIG_MPV_ARGS}"
-  CONFIG_VLC_ARGS="${YT_X_VLC_ARGS:-$CONFIG_VLC_ARGS}"
-  CONFIG_TPLAY_ARGS="${YT_X_TPLAY_ARGS:-$CONFIG_TPLAY_ARGS}"
-
-  # Media Prefs
-  CONFIG_VIDEO_QUALITY="${YT_X_VIDEO_QUALITY:-$CONFIG_VIDEO_QUALITY}"
-  CONFIG_PER_PAGE="${YT_X_PER_PAGE:-$CONFIG_PER_PAGE}"
-  CONFIG_BROWSER="${YT_X_BROWSER:-$CONFIG_BROWSER}"
-
-  # System/UI
-  CONFIG_EDITOR="${YT_X_EDITOR:-$CONFIG_EDITOR}"
-  CONFIG_NOTIFICATION_DURATION="${YT_X_NOTIFICATION_DURATION:-$CONFIG_NOTIFICATION_DURATION}"
-  CONFIG_DOWNLOAD_DIR="${YT_X_DOWNLOAD_DIR:-$CONFIG_DOWNLOAD_DIR}"
-  CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
-  CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
-  CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
-
-  # Advanced
-  CONFIG_FZF_OPTS="${YT_X_FZF_OPTS:-$CONFIG_FZF_OPTS}"
-  CONFIG_ROFI_THEME_MAIN="${YT_X_ROFI_THEME_MAIN:-$CONFIG_ROFI_THEME_MAIN}"
-  CONFIG_ROFI_THEME_PREVIEW="${YT_X_ROFI_THEME_PREVIEW:-$CONFIG_ROFI_THEME_PREVIEW}"
-  CONFIG_ROFI_THEME_PROMPT="${YT_X_ROFI_THEME_PROMPT:-$CONFIG_ROFI_THEME_PROMPT}"
-  CONFIG_ROFI_THEME_CONFIRM="${CONFIG_ROFI_THEME_CONFIRM:-$CONFIG_ROFI_THEME_CONFIRM}"
-}
-
-_post_config_load() {
-  if $CONFIG_PRETTY_PRINT; then
-    _load_theme
+    [ -s "$CLI_DEFAULT_THEME_FILE" ] && . "$CLI_DEFAULT_THEME_FILE"
   fi
+}
+
+__post_config_load() {
   if [ -n "$CONFIG_AUTOLOADED_EXTENSIONS" ]; then
     for ext in $(echo "$CONFIG_AUTOLOADED_EXTENSIONS" | tr ',' '\n'); do
       [ -s "$CLI_EXTENSIONS_DIR/$ext" ] && . "$CLI_EXTENSIONS_DIR/$ext"
@@ -359,10 +359,10 @@ _print_config() {
 #
 # ===================================================================================
 #
-# !! BE CAREFUL WHAT YOU INCLUDE HERE SINCE THE CONFIG FILE SOURCED AS A SCRIPT  !!
-# !! ITS RECOMMENDED TO ONLY DO VARIABLE ASSIGNMENTS AND CONDITIONAL ASSIGNMENTS !!
-# !! AND DO MORE COMPLEX STUFF USING EXTENSIONS BY CONVENTION                    !!
-# !! Environment variables (export YT_X_VAR=...) override these settings.        !!
+# !! BE CAREFUL WHAT YOU INCLUDE HERE SINCE THE CONFIG FILE IS SOURCED AS A SCRIPT  !!
+# !! ITS RECOMMENDED TO ONLY DO VARIABLE ASSIGNMENTS AND CONDITIONAL ASSIGNMENTS    !!
+# !! AND DO MORE COMPLEX STUFF USING EXTENSIONS BY CONVENTION                       !!
+# !! Environment variables (export YT_X_VAR=...) override these settings.           !!
 #
 # ===================================================================================
 
@@ -371,11 +371,11 @@ CONFIG_AUTOLOADED_EXTENSIONS="$CONFIG_AUTOLOADED_EXTENSIONS"
 
 # Enable or disable colored/formatted output
 # Options: true, false (Default: true)
-CONFIG_PRETTY_PRINT="$CONFIG_PRETTY_PRINT"
+CONFIG_ENABLE_COLORS="$CONFIG_ENABLE_COLORS"
 
-# The menu selector tool used for the ui
+# The menu launcher tool used for the ui
 # Options: fzf, rofi (Default: fzf)
-CONFIG_SELECTOR="$CONFIG_SELECTOR"
+CONFIG_LAUNCHER="$CONFIG_LAUNCHER"
 
 # Enable image/video previews within the selector
 # Options: true, false (Default: false)
@@ -390,6 +390,9 @@ CONFIG_CHAFA_ARGS="$CONFIG_CHAFA_ARGS"
 CONFIG_ICAT_ARGS="$CONFIG_ICAT_ARGS"
 CONFIG_IMGCAT_ARGS="$CONFIG_IMGCAT_ARGS"
 
+# custom args for yt-dlp
+CONFIG_YT_DLP_ARGS="$CONFIG_YT_DLP_ARGS"
+
 # The media player used for playback
 # Options: mpv, vlc, tplay (Default: mpv)
 CONFIG_PLAYER="$CONFIG_PLAYER"
@@ -402,6 +405,11 @@ CONFIG_TPLAY_ARGS="$CONFIG_TPLAY_ARGS"
 # Preferred video resolution
 # Options: 2160, 1440, 1080, 720, 480 (Default: 1080)
 CONFIG_VIDEO_QUALITY="$CONFIG_VIDEO_QUALITY"
+
+# Whether to disown the streaming/downloading process to prevent blocking the UI
+# options: true, false (Default: false)
+CONFIG_DISOWN_STREAMING_PROCESS="$CONFIG_DISOWN_STREAMING_PROCESS"
+CONFIG_DISOWN_DOWNLOADING_PROCESS="$CONFIG_DISOWN_DOWNLOADING_PROCESS"
 
 # Maximum number of search results to fetch per page
 # Options: Integer (Default: 30)
@@ -447,7 +455,7 @@ EOF
 }
 
 _load_config() {
-  _load_default_config
+  __load_default_config
 
   # Create config if missing
   [ -f "$CLI_CONFIG_FILE" ] || _print_config >"$CLI_CONFIG_FILE"
@@ -455,8 +463,10 @@ _load_config() {
   # Load Config File
   . "$CLI_CONFIG_FILE"
 
-  _load_env_config
-  _post_config_load
+  __load_env_config
+  __load_default_lang
+  __load_default_theme
+  __post_config_load
 }
 
 # ==============================================================================
