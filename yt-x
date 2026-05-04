@@ -2257,18 +2257,33 @@ _app_edit_config() {
 
 _app_generate_desktop_entry() {
   local entry
-  entry="\
+
+  if ui_confirm "Which launcher would you like to configure a desktop entry for" "rofi" "rofi" "fzf"; then
+    entry="\
 [Desktop Entry]
 Name=$CLI_NAME
 Type=Application
-X-Version=$CLI_VERSION
+Version=$CLI_VERSION
 Path=$HOME
-Comment=Browse Youtube from the terminal
+Comment=Browse Youtube from the terminal plus other sites yt-dlp supports
+Terminal=false
+Exec=$CLI_PATH --launcher rofi
+Categories=Entertainment"
+  else
+    entry="\
+[Desktop Entry]
+Name=$CLI_NAME
+Type=Application
+Version=$CLI_VERSION
+Path=$HOME
+Comment=Browse Youtube from the terminal plus other sites yt-dlp supports
 Terminal=true
-Exec=$0
-Categories=Education"
-  printf "%s" "$entry"
-  _util_byebye
+Exec=$CLI_PATH --launcher fzf
+Categories=Entertainment"
+  fi
+
+  printf "%s\n" "$entry"
+  exit 0
 }
 
 _app_update_check() {
