@@ -372,7 +372,8 @@ __post_config_load() {
 
 _print_config() {
   cat <<EOF
-#
+# ===================================================================================
+# 大きな力には大きな責任が伴う
 # ===================================================================================
 #
 #     ██╗░░░██╗████████╗░░░░░░██╗░░██╗  ░█████╗░░█████╗░███╗░░██╗███████╗██╗░██████╗░
@@ -478,6 +479,10 @@ CONFIG_ROFI_THEME_PREVIEW="$CONFIG_ROFI_THEME_PREVIEW"
 CONFIG_ROFI_THEME_PROMPT="$CONFIG_ROFI_THEME_PROMPT"
 CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
 CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
+  
+# ==============================================================================
+# 楽しんでね
+# ==============================================================================
 EOF
 }
 
@@ -2494,6 +2499,7 @@ main() {
 
 main "$@"
 
+# ==============================================================================
 # MIT License
 #
 # Copyright (c) 2024-2026 Benexl
@@ -2515,3 +2521,6 @@ main "$@"
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+# ==============================================================================
+# もうマジで終わった（笑）
+# ==============================================================================
