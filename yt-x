@@ -549,6 +549,22 @@ _ui_notify_critical() {
   fi
 }
 
+ui_notify() {
+  _ui_notify "$@"
+}
+
+ui_notify_warning() {
+  _ui_notify_warning "$@"
+}
+
+ui_notify_error() {
+  _ui_notify_error "$@"
+}
+
+ui_notify_critical() {
+  _ui_notify_critical "$@"
+}
+
 # ==============================================================================
 # CORE UI: launcher
 # ==============================================================================
@@ -579,6 +595,10 @@ _ui_launcher() {
   fzf) __ui_fzf_launcher "$@" ;;
   esac
 
+}
+
+ui_launcher() {
+  _ui_launcher "$@"
 }
 
 # ==============================================================================
@@ -614,6 +634,10 @@ _ui_launcher_with_preview() {
 
 }
 
+ui_launcher_with_preview() {
+  _ui_launcher_with_preview "$@"
+}
+
 # ==============================================================================
 # CORE UI: prompt
 # ==============================================================================
@@ -643,6 +667,10 @@ _ui_prompt() {
   rofi) __ui_rofi_prompt "$@" ;;
   *) __ui_default_prompt "$@" ;;
   esac
+}
+
+ui_prompt() {
+  _ui_prompt "$@"
 }
 
 # ==============================================================================
@@ -681,6 +709,10 @@ _ui_confirm() {
   rofi) _ui_rofi_confirm "$@" ;;
   *) _ui_default_confirm "$@" ;;
   esac
+}
+
+ui_confirm() {
+  _ui_confirm "$@"
 }
 
 # ==============================================================================
@@ -1498,6 +1530,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_EXI
   done
 }
 
+menu_playlist_actions() {
+  _menu_playlist_actions
+}
+
 # ==============================================================================
 # Menus: playlist explorer
 # ==============================================================================
@@ -1548,6 +1584,10 @@ _menu_playlist_explorer() {
     esac
     _menu_playlist_actions
   done
+}
+
+menu_playlist_explorer() {
+  _menu_playlist_explorer
 }
 
 # ==============================================================================
@@ -1634,6 +1674,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
 }
 
+menu_channel_actions() {
+  _menu_channel_actions
+}
+
 # ==============================================================================
 # Menus: channels explorer
 # ==============================================================================
@@ -1648,6 +1692,10 @@ _menu_channels_explorer() {
     channel="$(echo "$channels_data" | jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]")"
     channels_explorer
   done
+}
+
+menu_channels_explorer() {
+  _menu_channels_explorer
 }
 
 # ==============================================================================
@@ -1875,6 +1923,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
 }
 
+menu_miscellaneous() {
+  _menu_miscellaneous
+}
+
 # ==============================================================================
 # Menus: main
 # ==============================================================================
@@ -2015,6 +2067,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   "$TXT_MENU_EXIT" | "") _util_byebye ;;
   *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
   esac
+}
+
+menu_main() {
+  _menu_main
 }
 
 # ==============================================================================
