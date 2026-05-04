@@ -2413,7 +2413,6 @@ _app_cmd_line_parser() {
       ;;
     -e | --edit-config)
       _app_edit_config
-      _util_byebye
       ;;
     -U | --update)
       ! _app_util_check_update && ui_notify "No updates found, script is up to date :)" && _util_byebye
