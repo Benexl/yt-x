@@ -166,6 +166,7 @@ __load_default_config() {
   : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
   : "${CONFIG_NOTIFICATION_DURATION:=5}"
   : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
+  : "${CONFIG_DOWNLOADS_ENUMERATE:=false}"
   : "${CONFIG_CHECK_FOR_UPDATES:=true}"
   : "${CONFIG_NO_OF_RECENT:=10}"
   : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
@@ -238,6 +239,7 @@ __load_env_config() {
   CONFIG_EDITOR="${YT_X_EDITOR:-$CONFIG_EDITOR}"
   CONFIG_NOTIFICATION_DURATION="${YT_X_NOTIFICATION_DURATION:-$CONFIG_NOTIFICATION_DURATION}"
   CONFIG_DOWNLOAD_DIR="${YT_X_DOWNLOAD_DIR:-$CONFIG_DOWNLOAD_DIR}"
+  CONFIG_DOWNLOADS_ENUMERATE="${YT_X_ENUMERATE_DOWNLOADS:-$CONFIG_DOWNLOADS_ENUMERATE}"
   CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
   CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
@@ -462,6 +464,7 @@ CONFIG_NOTIFICATION_DURATION="$CONFIG_NOTIFICATION_DURATION"
 # Directory where downloads are saved
 # Default: $HOME/Videos/$CLI_NAME
 CONFIG_DOWNLOAD_DIR="$CONFIG_DOWNLOAD_DIR"
+CONFIG_DOWNLOADS_ENUMERATE="$CONFIG_DOWNLOADS_ENUMERATE"
 
 # Automatically check for script updates on startup
 # Options: true, false (Default: true)
@@ -1671,14 +1674,6 @@ __menu_playlist_actions_mix() {
   menu_playlist_explorer
 }
 
-__menu_playlist_actions_toggle_enumerate_downloads() {
-  if [ "$enumerate_playlist" = "" ]; then
-    enumerate_playlist="%(playlist_index)s - "
-  else
-    enumerate_playlist=""
-  fi
-}
-
 __menu_playlist_actions_download_all() {
   playlist_name=$(prompt "Name of the playlist" "$playlist_title")
   if [ -n "$urlForAll" ]; then
@@ -1811,6 +1806,14 @@ You can use the following:
     :
   fi
 
+}
+
+__menu_playlist_actions_toggle_enumerate_downloads() {
+  if $CONFIG_DOWNLOADS_ENUMERATE; then
+    CONFIG_DOWNLOADS_ENUMERATE=false
+  else
+    CONFIG_DOWNLOADS_ENUMERATE=true
+  fi
 }
 
 _menu_playlist_actions() {
