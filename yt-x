@@ -328,7 +328,7 @@ __load_default_lang() {
   # Playlist actions
   TXT_MENU_PLAYLIST_PROMPT_ACTION="Select Media Action"
   TXT_MENU_PLAYLIST_ACTIONS_WATCH="Watch"
-  TXT_MENU_PLAYLIST_ACTIONS_PLAY_ALL="Play All"
+  TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL="Play All"
   TXT_MENU_PLAYLIST_ACTIONS_LISTEN="Listen"
   TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL="Listen To All"
   TXT_MENU_PLAYLIST_ACTIONS_MIX="Mix"
@@ -345,7 +345,8 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
 
   # player
-  THEME_PLAYER_START="Now Watching"
+  TXT_PLAYER_START_WATCHING="Now Watching"
+  TXT_PLAYER_START_LISTENING="Now Listening To"
   TXT_PLAYER_NOT_FOUND="No suitable media player found. Please set CONFIG_PLAYER to a valid media player command. Currently set to: $CONFIG_PLAYER"
 
   [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
@@ -1604,141 +1605,59 @@ play() {
 }
 
 # ==============================================================================
-# Menus: playlist actions
+# Data Local
 # ==============================================================================
-__menu_playlist_actions_play_all() {
-  if echo "$url" | grep -q "list=RD" || echo "$urlForAll" | grep -q "list=RD" || [ "$(echo "$search_results" | jq 'has("uploader_url") | not')" = "true" ]; then
-    if [ -n "$urlForAll" ]; then
-      # Fix YouTube Mix URLs FIRST
+_update_recent() {
+  local current_recent
+  local id
+  local video_entry
 
-      # url="${url/&start_radio=0/}"
-      # urlForAll="${urlForAll/&start_radio=1/}"
-      cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$urlForAll").m3u8"
-      if ! [ -s "$cached_playlist" ]; then
-        _mix_data=$(yt-dlp "$urlForAll" --flat-playlist -J)
-        [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-        echo '#EXTM3U' >>"$cached_playlist"
+  current_recent='{"entries":[]}'
+  [ -s "$CLI_RECENT_FILE" ] && current_recent=$(cat "$CLI_RECENT_FILE")
 
-        lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-        for i in $(seq 1 "$lines"); do
-          local _video
-          local _title
-          local _channel
-          local _url
-          _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-          _title=$(echo "$_video" | jq ".title" -r)
-          _channel=$(echo "$_video" | jq '.channel' -r)
-          _url=$(echo "$_video" | jq '.url' -r)
-          echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-          echo "$_url" >>"$cached_playlist"
-          # echo "#EXTALB:Album Name" >>"$cached_playlist"
-          # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-          # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-          echo "" >>"$cached_playlist"
-        done
-      fi
-      "$MPV_CMD" "$cached_playlist"
-    else
-      cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$url").m3u8"
+  id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
+  video_entry="$(echo "$STATE_CURRENT_VIDEO" | jq '.title |= sub("^[0-9]+ "; "")')"
 
-      if ! [ -s "$cached_playlist" ]; then
-        _mix_data=$(yt-dlp "$url" --flat-playlist -J)
-        [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-        echo '#EXTM3U' >>"$cached_playlist"
-
-        lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-        for i in $(seq 1 "$lines"); do
-          local _video
-          local _title
-          local _channel
-          local _url
-          _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-          _title=$(echo "$_video" | jq ".title" -r)
-          _channel=$(echo "$_video" | jq '.channel' -r)
-          _url=$(echo "$_video" | jq '.url' -r)
-          echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-          echo "$_url" >>"$cached_playlist"
-          # echo "#EXTALB:Album Name" >>"$cached_playlist"
-          # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-          # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-          echo "" >>"$cached_playlist"
-        done
-      fi
-      "$MPV_CMD" "$cached_playlist"
-    fi
-  else
-    if [ -n "$urlForAll" ]; then
-      "$MPV_CMD" "$urlForAll"
-    else
-      "$MPV_CMD" "$url"
-    fi
-  fi
-
+  echo "$current_recent" |
+    jq "{
+    \"entries\":[
+      .entries[]
+      | select(.id != \"$id\")
+      ]
+    }
+  |.entries+=[$video_entry]" |
+    jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_RECENT_FILE"
 }
 
-__menu_playlist_actions_listen_to_all() {
-  if echo "$url" | grep -q "list=RD" || echo "$urlForAll" | grep -q "list=RD" || [ "$(echo "$search_results" | jq 'has("uploader_url") | not')" = "true" ]; then
-    if [ -n "$urlForAll" ]; then
-      cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$urlForAll").m3u8"
+# ==============================================================================
+# Menus: playlist actions
+# ==============================================================================
+__menu_playlist_actions_watch() {
+  printf "${THEME_PLAYER_START}$TXT_PLAYER_START_WATCHING:${THEME_RESET} %s\n" "$STATE_CURRENT_VIDEO_TITLE"
 
-      if ! [ -s "$cached_playlist" ]; then
-        _mix_data=$(yt-dlp "$urlForAll" --flat-playlist -J)
-        [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-        echo '#EXTM3U' >>"$cached_playlist"
+  play "$(_cached_mix_path_or_url "$STATE_CURRENT_VIDEO_URL")" "watch"
+  _update_recent
+}
 
-        lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-        for i in $(seq 1 "$lines"); do
-          local _video
-          local _title
-          local _channel
-          local _url
-          _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-          _title=$(echo "$_video" | jq ".title" -r)
-          _channel=$(echo "$_video" | jq '.channel' -r)
-          _url=$(echo "$_video" | jq '.url' -r)
-          echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-          echo "$_url" >>"$cached_playlist"
-          # echo "#EXTALB:Album Name" >>"$cached_playlist"
-          # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-          # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-          echo "" >>"$cached_playlist"
-        done
-      fi
-      "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
-    else
-      cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "$url").m3u8"
-      if ! [ -s "$cached_playlist" ]; then
-        _mix_data=$(yt-dlp "$url" --flat-playlist -J)
-        [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-        echo '#EXTM3U' >>"$cached_playlist"
+__menu_playlist_actions_watch_all() {
+  printf "${THEME_PLAYER_START}$TXT_PLAYER_START_WATCHING:${THEME_RESET} %s\n" "$STATE_CURRENT_PLAYLIST_TITLE"
 
-        lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-        for i in $(seq 1 "$lines"); do
-          local _video
-          local _title
-          local _channel
-          local _url
-          _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-          _title=$(echo "$_video" | jq ".title" -r)
-          _channel=$(echo "$_video" | jq '.channel' -r)
-          _url=$(echo "$_video" | jq '.url' -r)
-          echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-          echo "$_url" >>"$cached_playlist"
-          # echo "#EXTALB:Album Name" >>"$cached_playlist"
-          # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-          # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-          echo "" >>"$cached_playlist"
-        done
-      fi
-      "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
-    fi
-  else
-    if [ -n "$urlForAll" ]; then
-      "$MPV_CMD" "$urlForAll" --no-video --force-window=no
-    else
-      "$MPV_CMD" "$url" --no-video --force-window=no
-    fi
-  fi
+  play "$(_cached_mix_path_or_url "$STATE_CURRENT_PLAYLIST_URL")" "watch"
+  _update_recent
+}
+
+__menu_playlist_actions_listen() {
+  printf "${THEME_PLAYER_START}$TXT_PLAYER_START_LISTENING:${THEME_RESET} %s\n" "$STATE_CURRENT_VIDEO_TITLE"
+
+  play "$(_cached_mix_path_or_url "$STATE_CURRENT_VIDEO_URL")" "listen"
+  _update_recent
+}
+
+__menu_playlist_actions_listen_all() {
+  printf "${THEME_PLAYER_START}$TXT_PLAYER_START_LISTENING:${THEME_RESET} %s\n" "$STATE_CURRENT_PLAYLIST_TITLE"
+
+  play "$(_cached_mix_path_or_url "$STATE_CURRENT_PLAYLIST_URL")" "listen"
+  _update_recent
 }
 
 __menu_playlist_actions_toggle_enumerate_downloads() {
@@ -1780,71 +1699,6 @@ __menu_playlist_actions_download_all_audio() {
 
 }
 
-__menu_playlist_actions_listen() {
-  printf "${MAGENTA}Now Listening to:${RESET} %s\n" "$title"
-  video_url=$(echo "$video" | jq '.url' -r)
-  if echo "$video_url" | grep -q "list=RD"; then
-    video_id=$(echo "$video" | jq '.id' -r | sed 's/RD//g')
-    cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id").m3u8"
-    if ! [ -s "$cached_playlist" ]; then
-      _mix_data=$(yt-dlp "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id" --flat-playlist -J)
-      [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-      echo '#EXTM3U' >>"$cached_playlist"
-
-      lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-      for i in $(seq 1 "$lines"); do
-        local _video
-        local _title
-        local _channel
-        local _url
-        _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-        _title=$(echo "$_video" | jq ".title" -r)
-        _channel=$(echo "$_video" | jq '.channel' -r)
-        _url=$(echo "$_video" | jq '.url' -r)
-        echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-        echo "$_url" >>"$cached_playlist"
-        # echo "#EXTALB:Album Name" >>"$cached_playlist"
-        # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-        # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-        echo "" >>"$cached_playlist"
-      done
-    fi
-    "$MPV_CMD" "$cached_playlist" --no-video --force-window=no
-  else
-    if ! [ "$PLAYER" = mpv ] && ! [ "$PLAYER" = tplay ] || [ "$PLATFORM" = android ]; then
-      video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "bestaudio/best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
-      if ! [ "$?" = 0 ] || [ -z "$video_url" ]; then
-        echo No video format found
-        sleep 5
-      fi
-    fi
-    case "$PLATFORM" in
-    android)
-      case "$PLAYER" in
-      mpv | tplay) nohup am start --user 0 -a android.intent.action.VIEW -d "$video_url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 & ;;
-      vlc) nohup am start --user 0 -a android.intent.action.VIEW -d "$video_url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$title" >/dev/null 2>&1 & ;;
-      esac
-      ;;
-    *)
-      case "$PLAYER" in
-      mpv)
-        "$MPV_CMD" "$video_url" --no-video --force-window=no
-        ;;
-      vlc) vlc "$video_url" --video-title "$title" ;;
-      tplay) tplay "$video_url" ;;
-      esac
-      ;;
-    esac
-
-  fi
-
-  current_recent_videos='{"entries":[]}'
-  [ -s "$CLI_CONFIG_DIR/recent.json" ] && current_recent_videos=$(cat "$CLI_CONFIG_DIR/recent.json")
-  id=$(echo "$video" | jq '.id' -r)
-  echo "$current_recent_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}|.entries+=[$(echo "$video" | jq '.title |= sub("^[0-9]+ "; "")')]" | jq "{\"entries\":.entries[-$NO_OF_RECENT:]}" >"$CLI_CONFIG_DIR/recent.json"
-
-}
-
 __menu_playlist_actions_mix() {
 
   local url0 _search_results
@@ -1864,74 +1718,6 @@ __menu_playlist_actions_mix() {
   playlist_explorer
   urlForAll=$url0
   search_results="$_search_results"
-}
-
-__menu_playlist_actions_watch() {
-  printf "${MAGENTA}Now watching:${RESET} %s\n" "$title"
-
-  video_url=$(echo "$video" | jq '.url' -r)
-  if echo "$video_url" | grep -q "list=RD"; then
-    local _mix_data
-    video_id=$(echo "$video" | jq '.id' -r | sed 's/RD//g')
-
-    cached_playlist="$CLI_AUTO_GEN_PLAYLISTS/$(generate_sha256 "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id").m3u8"
-
-    if ! [ -s "$cached_playlist" ]; then
-      _mix_data=$(yt-dlp "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id" --flat-playlist -J)
-      [ -z "$_mix_data" ] && send_notification "Failed to get mix data"
-      echo '#EXTM3U' >>"$cached_playlist"
-
-      lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-      for i in $(seq 1 "$lines"); do
-        local _video
-        local _title
-        local _channel
-        local _url
-        _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-        _title=$(echo "$_video" | jq ".title" -r)
-        _channel=$(echo "$_video" | jq '.channel' -r)
-        _url=$(echo "$_video" | jq '.url' -r)
-        echo "#EXTINF:-1,$_title" >>"$cached_playlist"
-        echo "$_url" >>"$cached_playlist"
-        # echo "#EXTALB:Album Name" >>"$cached_playlist"
-        # echo "#EXTGENRE:Genre" >>"$cached_playlist"
-        # echo "#EXTGRP:Group Name" >>"$cached_playlist"
-        echo "" >>"$cached_playlist"
-      done
-    fi
-    "$MPV_CMD" "$cached_playlist"
-  else
-    if ! [ "$PLAYER" = mpv ] && ! [ "$PLAYER" = tplay ] || [ "$PLATFORM" = android ]; then
-      video_url=$(yt-dlp "$video_url" -q --no-warnings --get-url --format "best[height<=$VIDEO_QUALITY]/best" 2>/dev/null | tail -n 1)
-      if ! [ "$?" = 0 ] || [ -z "$video_url" ]; then
-        echo No video format found
-        sleep 5
-      fi
-    fi
-    case "$PLATFORM" in
-    android)
-      case "$PLAYER" in
-      mpv | tplay) nohup am start --user 0 -a android.intent.action.VIEW -d "$video_url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 & ;;
-      vlc) nohup am start --user 0 -a android.intent.action.VIEW -d "$video_url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$title" >/dev/null 2>&1 & ;;
-      esac
-      ;;
-    *)
-      case "$PLAYER" in
-      mpv)
-        "$MPV_CMD" "$video_url"
-        ;;
-      vlc) vlc "$video_url" --video-title "$title" ;;
-      tplay) tplay "$video_url" ;;
-      esac
-      ;;
-    esac
-
-  fi
-
-  current_recent_videos='{"entries":[]}'
-  [ -s "$CLI_CONFIG_DIR/recent.json" ] && current_recent_videos=$(cat "$CLI_CONFIG_DIR/recent.json")
-  id=$(echo "$video" | jq '.id' -r)
-  echo "$current_recent_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}|.entries+=[$(echo "$video" | jq '.title |= sub("^[0-9]+ "; "")')]" | jq "{\"entries\":.entries[-$NO_OF_RECENT:]}" >"$CLI_CONFIG_DIR/recent.json"
 }
 
 __menu_playlist_actions_save() {
@@ -2043,7 +1829,7 @@ _menu_playlist_actions() {
 
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_PLAY_ALL}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰎆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_LISTEN}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_MIX}
@@ -2058,20 +1844,19 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰦗${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_D
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_BROWSER}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SHELL}
-${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_BACK}
-${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_EXIT}"
+${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
+${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
     media_action="$(
       printf "%s" "$actions" |
         ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g'
     )"
-    clear
     case "$media_action" in
     "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_playlist_actions_watch ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_PLAY_ALL") __menu_playlist_actions_handle_play_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL") __menu_playlist_actions_watch_all ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN") __menu_playlist_actions_listen ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL") __menu_playlist_actions_listen_to_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL") __menu_playlist_actions_listen_all ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_MIX") __menu_playlist_actions_mix ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SAVE") __menu_playlist_actions_save ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE") __menu_playlist_actions_unsave ;;
@@ -2084,11 +1869,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_EXI
     "$TXT_MENU_PLAYLIST_ACTIONS_BROWSER") __menu_playlist_actions_open_in_browser ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM") __menu_playlist_actions_toggle_enumerate_downloads ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SHELL") __menu_playlist_actions_shell ;;
-    "$TXT_MENU_BACK" | "") break ;;
+    "$TXT_MENU_BACK" | "") _state_pop && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify "${TXT_MENU_INVALID_ACTION}: $media_action" ;;
     esac
-    clear
   done
 }
 
