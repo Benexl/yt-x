@@ -1380,11 +1380,7 @@ fetch_playlist_next() {
 }
 
 fetch_playlist_prev() {
-  STATE_CURRENT_PLAYLIST_END="$((STATE_CURRENT_PLAYLIST_START - 1))"
-  STATE_CURRENT_PLAYLIST_START="$((STATE_CURRENT_PLAYLIST_END - CONFIG_PER_PAGE))"
-
-  _fetch_playlist "$STATE_CURRENT_PLAYLIST_URL"
-  _state_push
+  [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
 }
 
 # ==============================================================================
