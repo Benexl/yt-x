@@ -337,6 +337,7 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_ACTIONS_SAVE="Save"
   TXT_MENU_PLAYLIST_ACTIONS_UNSAVE="UnSave"
   TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST="Save Playlist"
+  TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST="UnSave Playlist"
   TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE="Subscribe To Channel"
   TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD="Download"
   TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL="Download All"
@@ -350,6 +351,7 @@ __load_default_lang() {
   TXT_PLAYER_START_WATCHING="Now Watching"
   TXT_PLAYER_START_LISTENING="Now Listening To"
   TXT_PLAYER_NOT_FOUND="No suitable media player found. Please set CONFIG_PLAYER to a valid media player command. Currently set to: $CONFIG_PLAYER"
+  TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST="Enter the name of the playlist"
 
   [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
 }
@@ -1654,6 +1656,27 @@ _update_saved_videos() {
     jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_SAVED_VIDEOS_FILE"
 }
 
+_update_saved_playlists() {
+  local custom_playlist
+  local custom_playlists
+  local playlist_name
+  local playlist_id
+
+  custom_playlists="[]"
+  [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ] && custom_playlists=$(cat "$CLI_CUSTOM_PLAYLISTS_FILE")
+  playlist_name=$(ui_prompt "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST" "$STATE_CURRENT_PLAYLIST_TITLE")
+  playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_URL" | sed 's/.*list=//g')
+  custom_playlist="
+    {
+      \"id\": \"$id\"
+      \"name\": \"$playlist_name\",
+      \"playlistUrl\": \"https://www.youtube.com/playlist?list=$playlist_id\",
+      \"playlistWatchUrl\": \"https://www.youtube.com/watch?list=$playlist_id\"
+    }
+  "
+  echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CUSTOM_PLAYLISTS_FILE"
+}
+
 _remove_recent() {
   local current_recent
   local id
@@ -1688,6 +1711,17 @@ _remove_saved_video() {
       | select(.id != \"$id\")
       ]
     }" >"$CLI_SAVED_VIDEOS_FILE"
+}
+
+_remove_saved_playlist() {
+  local custom_playlist
+  local playlist_id
+
+  custom_playlists="[]"
+  [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ] && custom_playlists=$(cat "$CLI_CUSTOM_PLAYLISTS_FILE")
+
+  playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_URL" | sed 's/.*list=//g')
+  echo "$custom_playlists" | jq "select(.id != \"$playlist_id\")" >"$CLI_CUSTOM_PLAYLISTS_FILE"
 }
 
 # ==============================================================================
@@ -1789,24 +1823,14 @@ __menu_playlist_actions_unsave() {
 }
 
 __menu_playlist_actions_save_playlist() {
+  # TODO: integerate with yt playlists maybe
   # For now a pseudo like feature is just as useful
-  custom_playlists="[]"
-  [ -s "$CLI_CONFIG_DIR/custom_playlists.json" ] && custom_playlists=$(cat "$CLI_CONFIG_DIR/custom_playlists.json")
-  playlist_name=$(prompt "Enter the name of the playlist" "$playlist_title")
-  if [ -n "$urlForAll" ]; then
-    playlist_id=$(echo "$urlForAll" | sed 's/.*list=//g')
-  else
-    playlist_id=$(echo "$url" | sed 's/.*list=//g')
-  fi
-  custom_playlist="
-          {
-            \"name\": \"$playlist_name\",
-            \"playlistUrl\": \"https://www.youtube.com/playlist?list=$playlist_id\",
-            \"playlistWatchUrl\": \"https://www.youtube.com/watch?list=$playlist_id\"
-          }
-        "
-  echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CONFIG_DIR/custom_playlists.json" && send_notification "successfully added to custom playlists" || send_notification "Failed to add to custom playlists"
+  _update_saved_playlists
+}
 
+__menu_playlist_actions_unsave_playlist() {
+  # For now a pseudo like feature is just as useful
+  _remove_saved_playlist
 }
 
 __menu_playlist_actions_shell() {
@@ -1904,6 +1928,7 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_MI
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SAVE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰧎${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_UNSAVE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰐒${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰐒${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󱑤${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰦗${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL}
@@ -1926,14 +1951,15 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN") __menu_playlist_actions_listen ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL") __menu_playlist_actions_listen_all ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_MIX") __menu_playlist_actions_mix ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD") __menu_playlist_actions_download ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO") __menu_playlist_actions_download_audio ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL") __menu_playlist_actions_download_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO") __menu_playlist_actions_download_all_audio ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SAVE") __menu_playlist_actions_save ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE") __menu_playlist_actions_unsave ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST") __menu_playlist_actions_save_playlist ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST") __menu_playlist_actions_unsave_playlist ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE") __menu_playlist_actions_subscribe_to_channel ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD") __menu_playlist_actions_download ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL") __menu_playlist_actions_download_all ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO") __menu_playlist_actions_download_audio ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO") __menu_playlist_actions_download_all_audio ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_BROWSER") __menu_playlist_actions_open_in_browser ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM") __menu_playlist_actions_toggle_enumerate_downloads ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SHELL") __menu_playlist_actions_shell ;;
