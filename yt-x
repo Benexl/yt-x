@@ -12,7 +12,6 @@ CLI_VERSION="0.5.0"
 CLI_AUTHOR="Benexl"
 CLI_REPO_URL="https://github.com/Benexl/yt-x"
 CLI_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x"
-CLI_SUPPORT_PROJECT_URL="https://buymeacoffee.com/benexl"
 CLI_HEADER="\
 ██╗░░░██╗████████╗░░░░░░██╗░░██╗
 ╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝
