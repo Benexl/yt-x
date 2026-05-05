@@ -1822,8 +1822,7 @@ __menu_playlist_actions_open_in_browser() {
 
 __menu_playlist_actions_visit_channel() {
   # TODO: use youtube api to enable video subscriptions
-  send_notification "contribute to the project by adding this feature"
-  sleep "$CONFIG_NOTIFICATION_DURATION"
+  ui_notify_error "contribute to the project by adding this feature"
 }
 
 __menu_playlist_actions_subscribe_to_channel() {
