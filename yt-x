@@ -1878,46 +1878,56 @@ menu_playlist_actions() {
 # Menus: playlist explorer
 # ==============================================================================
 __menu_playlist_explorer_next() {
-  PLAYLIST_START=$((PLAYLIST_START + "$NO_OF_SEARCH_RESULTS"))
-  PLAYLIST_END=$((PLAYLIST_END + "$NO_OF_SEARCH_RESULTS"))
-  search_results=$(run_yt_dlp "$url")
-  DOWNLOAD_IMAGES=0
-
+  fetch_playlist_next
 }
 
 __menu_playlist_explorer_previous() {
-  PLAYLIST_START=$((PLAYLIST_START - "$NO_OF_SEARCH_RESULTS"))
-  [ $PLAYLIST_START -le 0 ] && PLAYLIST_START=1
-  PLAYLIST_END=$((PLAYLIST_END - "$NO_OF_SEARCH_RESULTS"))
-  [ $PLAYLIST_END -le "$NO_OF_SEARCH_RESULTS" ] && PLAYLIST_END="$NO_OF_SEARCH_RESULTS"
-  search_results=$(run_yt_dlp "$url")
-  DOWNLOAD_IMAGES=0
+  fetch_playlist_prev
+}
 
+__menu_playlist_explorer() {
+  local title
+  local id
+  local video
+
+  title="$1"
+  # TODO: consider not using -E since its not yet posix
+  # though apparently its suppose to be made standard soon
+  # and most environments support it, so it should be fine for now
+  id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
+  STATE_CURRENT_VIDEO="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq ".entries[$((id - 1))]")"
+  STATE_CURRENT_VIDEO_URL="$(echo "$STATE_CURRENT_VIDEO" | jq '.url' -r)"
+  _state_push
+
+  menu_playlist_actions
 }
 
 _menu_playlist_explorer() {
-  exit
-  local search_results
-  local titles
   local other_choices
-  other_choices="\
-    $TXT_MENU_NEXT
-    $TXT_MENU_PREVIOUS
-    $TXT_MENU_BACK
-    $TXT_MENU_EXIT
-    "
-  while true; do
-    titles=$(echo "$search_results" | jq '.entries[].title' -r 2>/dev/null)
-    title="$(printf "%s\n%s" "$titles" "$other_choices" | ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" "playlist" | tr -d '\n' | sed 's/^[^0-9]  //g' | sed 's/"/\\"/g')"
-    clear
+  local titles
+  local choice
 
-    case "$title" in
+  other_choices="\
+$TXT_MENU_NEXT
+$TXT_MENU_PREVIOUS
+$TXT_MENU_BACK
+$TXT_MENU_EXIT"
+
+  while true; do
+    titles=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+    choice="$(
+      printf "%s\n%s" "$titles" "$other_choices" |
+        ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" |
+        tr -d '\n' | sed 's/"/\\"/g'
+    )"
+
+    case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlist_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_playlist_explorer_previous ;;
-    "$TXT_MENU_BACK" | "") break ;;
+    "$TXT_MENU_BACK" | "") _state_pop && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
+    *) __menu_playlist_explorer "$choice" ;;
     esac
-    _menu_playlist_actions
   done
 }
 
