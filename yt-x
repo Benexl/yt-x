@@ -2252,8 +2252,7 @@ __menu_miscellaneous_sync_youtube_subscriptions() {
 }
 
 __menu_miscellaneous_clear_search_history() {
-  confirm "Are you sure you want to clear your search history ($CLI_CACHE_DIR/search_history.txt)?" && rm "$CLI_CACHE_DIR/search_history.txt"
-
+  ui_confirm "Are you sure you want to clear your search history ($CLI_SEARCH_HISTORY_FILE)?" && rm "$CLI_SEARCH_HISTORY_FILE"
 }
 
 __menu_miscellaneous_edit_search_history() {
