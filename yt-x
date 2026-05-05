@@ -284,13 +284,14 @@ __load_default_lang() {
   TXT_EDITOR_NOT_FOUND="No suitable editor found. Please set CONFIG_EDITOR to a valid text editor command or ensure \$EDITOR is set."
 
   # main
+  TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
   TXT_MENU_MAIN="Main Menu"
   TXT_MENU_MAIN_FEED="Your Feed"
   TXT_MENU_MAIN_TRENDING="Trending"
   TXT_MENU_MAIN_PLAYLISTS="Playlists"
   TXT_MENU_MAIN_SEARCH="Search"
   TXT_MENU_MAIN_WATCH_LATER="Watch Later"
-  TXT_MENU_MAIN_SUBS_FEED="Subscription Feed"
+  TXT_MENU_MAIN_SUBS_FEED="Subscriptions Feed"
   TXT_MENU_MAIN_CHANNELS="Channels"
   TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Custom Playlists"
   TXT_MENU_MAIN_LIKED="Liked Videos"
@@ -300,6 +301,9 @@ __load_default_lang() {
   TXT_MENU_MAIN_CLIPS="Clips"
   TXT_MENU_MAIN_EDIT_CONFIG="Edit Config"
   TXT_MENU_MAIN_MISC="Miscellaneous"
+
+  # other menus
+  TXT_MENU_SEARCH_PROMPT="Enter search query"
 
   # miscellaneous
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
@@ -1867,6 +1871,7 @@ __menu_playlist_explorer_previous() {
 }
 
 _menu_playlist_explorer() {
+  exit
   local search_results
   local titles
   local other_choices
@@ -2182,42 +2187,80 @@ menu_miscellaneous() {
 # Menus: main
 # ==============================================================================
 __menu_main_feed() {
+  local url
   url=""
+
   fetch_playlist "$url"
   menu_playlist_explorer
 }
 
-__menu_main_trending() {
-  url="https://www.youtube.com/feed/trending"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
-}
+__menu_main_subscriptions_feed() {
+  local url
+  url="feed/subscriptions"
 
-__menu_main_playlists() {
-  url="https://www.youtube.com/feed/library"
-  # Note: Use playlists_explorer if you want to list the containers
-  playlists_explorer
+  fetch_playlist "$url"
+  menu_playlist_explorer
 }
 
 __menu_main_search() {
-  clear
   local search_term
-  search_term="$(prompt "Enter search term" | jq -Rr '@uri')"
-  url="https://www.youtube.com/results?search_query=$search_term"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
+  local url
+
+  search_term="$(ui_prompt "$TXT_MENU_SEARCH_PROMPT" | jq -Rr '@uri')"
+  url="results?search_query=$search_term"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
 }
 
 __menu_main_watch_later() {
-  url="https://www.youtube.com/playlist?list=WL"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
+  local url
+  url="playlist?list=WL"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
 }
 
-__menu_main_subscription_feed() {
-  url="https://www.youtube.com/feed/subscriptions"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
+__menu_main_playlists() {
+  local url
+  url="feed/playlists"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+__menu_main_liked_videos() {
+  local url
+  url="playlist?list=LL"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+__menu_main_watch_history() {
+  local url
+  url="feed/history"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+__menu_main_clips() {
+  local url
+  url="feed/clips"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+# NOTE: youtube currently no longer has a trending page
+# but other sites may have one so...
+__menu_main_trending() {
+  local url
+  url="trending"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
 }
 
 __menu_main_custom_playlists() {
@@ -2232,33 +2275,15 @@ __menu_main_custom_playlists() {
   done
 }
 
-__menu_main_liked_videos() {
-  url="https://www.youtube.com/playlist?list=LL"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
-}
-
 __menu_main_saved_videos() {
   ! [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && echo No saved videos && sleep "$CONFIG_NOTIFICATION_DURATION" && main
   search_results=$(jq '{"entries":.entries|reverse}' "$CLI_CONFIG_DIR/saved_videos.json")
   playlist_explorer
 }
 
-__menu_main_watch_history() {
-  url="https://www.youtube.com/feed/history"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
-}
-
 __menu_main_recent() {
   # Often treated as a subset of history
   url="https://www.youtube.com/feed/history"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
-}
-
-__menu_main_clips() {
-  url="https://www.youtube.com/feed/clips"
   search_results=$(run_yt_dlp "$url")
   playlist_explorer
 }
@@ -2272,41 +2297,39 @@ _menu_main() {
   local actions
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_FEED}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_TRENDING}
-${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MAIN_PLAYLISTS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SEARCH}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_WATCH_LATER}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_MAIN_SUBS_FEED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_WATCH_LATER}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MAIN_PLAYLISTS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰑈${THEME_RESET}  ${TXT_MENU_MAIN_CHANNELS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CUSTOM_PLAYLISTS}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_LIKED}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SAVED}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_HISTORY}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_RECENT}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_LIKED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_HISTORY}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CLIPS}
-${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
-  action="$(printf "%s" "$actions" | ui_launcher "Select Action" | sed 's/.*  //g')"
+  action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
   case "$action" in
   "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
-  "$TXT_MENU_MAIN_TRENDING") __menu_main_trending ;;
-  "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
   "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
+  "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscriptions_feed ;;
   "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
-  "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscription_feed ;;
-  "$TXT_MENU_MAIN_CHANNELS") _menu_channels_explorer ;;
+  "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
+  "$TXT_MENU_MAIN_CHANNELS") menu_channels_explorer ;;
   "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
-  "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
   "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
-  "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
   "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
+  "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
+  "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
   "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
-  "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
   "$TXT_MENU_MAIN_MISC") _menu_miscellaneous ;;
+  "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
   "$TXT_MENU_EXIT" | "") _util_byebye ;;
-  *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
+  *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
   esac
 }
 
