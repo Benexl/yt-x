@@ -1654,6 +1654,24 @@ _update_saved_videos() {
     jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_SAVED_VIDEOS_FILE"
 }
 
+_remove_recent() {
+  local current_recent
+  local id
+
+  current_recent='{"entries":[]}'
+  [ -s "$CLI_RECENT_FILE" ] && current_recent=$(cat "$CLI_RECENT_FILE")
+
+  id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
+
+  echo "$current_recent" |
+    jq "{
+    \"entries\":[
+      .entries[]
+      | select(.id != \"$id\")
+      ]
+    }" >"$CLI_RECENT_FILE"
+}
+
 _remove_saved_video() {
   local current_saved_videos
   local id
