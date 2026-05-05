@@ -96,7 +96,7 @@ __init_env_paths() {
   CLI_PREVIEW_TXT_DIR="$CLI_CACHE_DIR/previews/text"
 
   CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
-  CLI_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
+  CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
   CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
   # Files
@@ -123,7 +123,7 @@ __init_env_paths() {
     "$CLI_PREVIEW_IMGS_DIR" \
     "$CLI_PREVIEW_TXT_DIR" \
     "$CLI_AUTO_GEN_PLAYLISTS" \
-    "$CLI_ARCHIVE_DIR" \
+    "$CLI_DOWNLOAD_ARCHIVE_DIR" \
     "$CLI_LOG_DIR"
 
 }
@@ -351,6 +351,9 @@ __load_default_lang() {
   TXT_PLAYER_START_LISTENING="Now Listening To"
   TXT_PLAYER_NOT_FOUND="No suitable media player found. Please set CONFIG_PLAYER to a valid media player command. Currently set to: $CONFIG_PLAYER"
   TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST="Enter the name of the playlist"
+
+  # others
+  TXT_DOWNLOAD_COMPLETED="Completed downloading of "
 
   [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
 }
@@ -1340,6 +1343,7 @@ __fetch_yt_dlp() {
     --playlist-end "$playlist_end" \
     $custom_opts
 }
+
 __fetch_video_url() {
   local url
   url="$1"
@@ -1410,6 +1414,93 @@ fetch_playlist_next() {
 
 fetch_playlist_prev() {
   [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
+}
+
+# ==============================================================================
+# Data downloading
+# ==============================================================================
+__download_yt_dlp() {
+  local url
+  local custom_opts
+
+  url="$1"
+  shift
+  custom_opts="$*"
+
+  yt-dlp "$url"
+}
+_download_media() {
+  local url
+  local custom_opts
+
+  url="$1"
+  shift
+
+  [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
+
+  __download_yt_dlp "$url" "$custom_opts" "$@"
+}
+
+_download_video() {
+  _download_media "$STATE_CURRENT_VIDEO_URL" \
+    --output "$CONFIG_DOWNLOAD_DIR/video/individual/%(channel)s/%(title)s.%(ext)s"
+}
+
+download_video() {
+  _download_video
+}
+
+_download_audio() {
+  _download_media "$STATE_CURRENT_VIDEO_URL" \
+    --output "$CONFIG_DOWNLOAD_DIR/audio/individual/%(channel)s/%(title)s.%(ext)s"
+}
+
+download_audio() {
+  _download_audio
+}
+
+_download_playlist_video() {
+  local download_archive
+  local enumerate_playlist
+  local playlist_title
+
+  playlist_title="$(ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+
+  [ "$CONFIG_DOWNLOADS_ENUMERATE" = "true" ] && enumerate_playlist="%(playlist_index)s - "
+
+  # TODO: could be more unique
+  download_archive="$(_util_generate_hash "video - $STATE_CURRENT_PLAYLIST_URL")"
+
+  _download_media "$STATE_CURRENT_PLAYLIST_URL" \
+    --output "$CONFIG_DOWNLOAD_DIR/video/$playlist_title/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" \
+    --download-archive "$CLI_DOWNLOAD_ARCHIVE_DIR/$download_archive"
+}
+
+download_playlist_video() {
+  _download_playlist_video
+}
+
+_download_playlist_audio() {
+  local download_archive
+  local enumerate_playlist
+  local playlist_title
+
+  playlist_title="$(ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+
+  download_archive="$(_util_generate_hash "audio - $STATE_CURRENT_PLAYLIST_URL")"
+
+  [ "$CONFIG_DOWNLOADS_ENUMERATE" = "true" ] && enumerate_playlist="%(playlist_index)s - "
+
+  # TODO: could be more unique
+  download_archive="$(_util_generate_hash "audio - $STATE_CURRENT_PLAYLIST_URL")"
+
+  _download_media "$STATE_CURRENT_PLAYLIST_URL" \
+    --output "$CONFIG_DOWNLOAD_DIR/audio/$playlist_title/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" \
+    --download-archive "$CLI_DOWNLOAD_ARCHIVE_DIR/$download_archive"
+}
+
+download_playlist_audio() {
+  _download_playlist_audio
 }
 
 # ==============================================================================
@@ -1766,48 +1857,23 @@ __menu_playlist_actions_mix() {
 }
 
 __menu_playlist_actions_download() {
-  video_url=$(echo "$video" | jq '.url' -r)
-  yt-dlp "$video_url" --output "$DOWNLOAD_DIRECTORY/videos/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-  send_notification "Completed downloading of $title"
-
+  download_video
+  ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_VIDEO_TITLE"
 }
 
 __menu_playlist_actions_download_all() {
-  playlist_name=$(prompt "Name of the playlist" "$playlist_title")
-  if [ -n "$urlForAll" ]; then
-    # yt_dlp_cmd=("yt-dlp" "$urlForAll" "--output" "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
-    # "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
-    :
-  else
-    # yt_dlp_cmd=("yt-dlp" "$url" "--output" "$DOWNLOAD_DIRECTORY/videos/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
-    # "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
-    :
-  fi
-  send_notification "Completed downloading of $playlist_name"
-
+  download_playlist_video
+  ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_PLAYLIST_TITLE"
 }
 
 __menu_playlist_actions_download_audio() {
-  video_url=$(echo "$video" | jq '.url' -r)
-  yt-dlp "$video_url" -x -f 'bestaudio' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-  send_notification "Completed downloading of $title"
-
+  download_audio
+  ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_VIDEO_TITLE"
 }
 
 __menu_playlist_actions_download_all_audio() {
-  playlist_name=$(prompt "Name of the playlist" "$playlist_title")
-
-  if [ -n "$urlForAll" ]; then
-    # yt_dlp_cmd=("yt-dlp" "$urlForAll" "--audio-format" "mp3" '-x' '-f' 'bestaudio/best' "--output" "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
-    # "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
-    :
-  else
-    # yt_dlp_cmd=("yt-dlp" "$url" "--audio-format" "mp3" '-x' '-f' 'bestaudio/best' "--output" "$DOWNLOAD_DIRECTORY/audio/$playlist_name/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" $PREFERRED_BROWSER)
-    # "${yt_dlp_cmd[@]}" --download-archive "$CLI_YT_DLP_ARCHIVE/$(echo -n -- "${yt_dlp_cmd[@]}" | generate_sha256)"
-    :
-  fi
-  send_notification "Completed downloading of $playlist_name"
-
+  download_playlist_audio
+  ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_PLAYLIST_TITLE"
 }
 
 __menu_playlist_actions_save() {
@@ -1851,7 +1917,7 @@ __menu_playlist_actions_shell() {
     STATE_CURRENT_VIDEO_URL \
     STATE_CURRENT_VIDEO_TITLE
 
-  export CLI_HEADER CLI_NAME CONFIG_DOWNLOAD_DIR CLI_ARCHIVE_DIR
+  export CLI_HEADER CLI_NAME CONFIG_DOWNLOAD_DIR CLI_DOWNLOAD_ARCHIVE_DIR
 
   init_text="\
 $CLI_HEADER
