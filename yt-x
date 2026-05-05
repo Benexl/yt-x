@@ -180,6 +180,7 @@ __load_default_config() {
   : "${CONFIG_NO_OF_RECENT:=10}"
   : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
   : "${CONFIG_ROFI_THEME:=}"
+  : "${CONFIG_FZF_HEADER:=$CLI_HEADER}"
   : "${CONFIG_FZF_OPTS:="
   --ansi
   --border
@@ -217,8 +218,7 @@ __load_default_config() {
   --exact
   --tabstop=1
   --preview-window=border-rounded,left,35%,wrap
-  --wrap
-"}"
+  --wrap"}"
 }
 
 __load_env_config() {
@@ -253,6 +253,7 @@ __load_env_config() {
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
 
   # Advanced
+  CONFIG_FZF_HEADER="${YT_X_FZF_HEADER:-$CONFIG_FZF_HEADER}"
   CONFIG_FZF_OPTS="${YT_X_FZF_OPTS:-$CONFIG_FZF_OPTS}"
   CONFIG_ROFI_THEME_MAIN="${YT_X_ROFI_THEME_MAIN:-$CONFIG_ROFI_THEME_MAIN}"
   CONFIG_ROFI_THEME_PREVIEW="${YT_X_ROFI_THEME_PREVIEW:-$CONFIG_ROFI_THEME_PREVIEW}"
@@ -477,6 +478,8 @@ CONFIG_NO_OF_RECENT="$CONFIG_NO_OF_RECENT"
 CONFIG_ENABLE_SEARCH_HISTORY="$CONFIG_ENABLE_SEARCH_HISTORY"
 
 # Custom options passed directly to fzf
+CONFIG_FZF_HEADER="\\
+$CONFIG_FZF_HEADER"
 CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS"
 
 # Rofi config all are required to run rofi as a launcher
@@ -636,10 +639,19 @@ __ui_fzf_launcher() {
   local custom_opts
   local multi_select
   multi_select="$2"
+
   [ "$multi_select" = "multi" ] && custom_opts="--multi"
+  [ -n "$CONFIG_FZF_HEADER" ] && custom_opts="$custom_opts --header-first --header=$CONFIG_FZF_HEADER"
+
+  # TODO: is there a better way to do this
+  local old_ifs
+  old_ifs="$IFS"
+  IFS=" "
 
   # shellcheck disable=SC2086
-  fzf $custom_opts --prompt="${1}: "
+  fzf --prompt="${1}: " $custom_opts
+
+  IFS="$old_ifs"
 }
 
 __ui_rofi_launcher() {
@@ -681,13 +693,26 @@ ui_launcher() {
 __ui_fzf_launcher_with_preview() {
   local custom_opts
   local multi_select
+  local preview_script
+
+  preview_script="
+preview_txt='$CLI_PREVIEW_TXT_DIR/{3}'
+[ -s \"\$preview_txt\" ] && exec sh \"\$preview_txt\"
+"
+
   multi_select="$2"
   [ "$multi_select" = "multi" ] && custom_opts="--multi"
+  [ -n "$CONFIG_FZF_HEADER" ] && custom_opts="$custom_opts --header-first --header=$CONFIG_FZF_HEADER"
+
+  # TODO: is there a better way to do this
+  local old_ifs
+  old_ifs="$IFS"
+  IFS=" "
 
   # shellcheck disable=SC2086
-  fzf $custom_opts \
-    --prompt="${1}: " \
-    --preview="preview_txt='$CLI_PREVIEW_TXT_DIR/{3}' && [ -s \"\$preview_txt\" ] && exec sh \"\$preview_txt\""
+  fzf --prompt="${1}: " --preview="$preview_script" $custom_opts
+
+  IFS="$old_ifs"
 }
 
 __ui_rofi_launcher_with_preview() {
