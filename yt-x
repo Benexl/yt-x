@@ -1812,13 +1812,12 @@ EOF
 
 __menu_playlist_actions_open_in_browser() {
   if _dep_ch open; then
-    open "$(echo "$video" | jq '.url' -r)"
+    open "$STATE_CURRENT_VIDEO_URL"
   elif _dep_ch xdg-open; then
-    xdg-open "$(echo "$video" | jq '.url' -r)"
+    xdg-open "$STATE_CURRENT_VIDEO_URL"
   else
-    send_notification "Could not find xdg-open or open"
+    ui_notify_error "Could not find xdg-open or open"
   fi
-
 }
 
 __menu_playlist_actions_visit_channel() {
