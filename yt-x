@@ -1286,6 +1286,8 @@ _state_pop() {
   __state_clean_prev
 
   STATE_CURRENT="$((STATE_CURRENT - 1))"
+  [ "$((STATE_CURRENT))" -lt 1 ] && return
+
   current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
   ! [ -d "$current_state_dir" ] && ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 
