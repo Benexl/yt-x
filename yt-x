@@ -1351,12 +1351,11 @@ __fetch_audio_url() {
 
 _fetch_media() {
   local custom_opts
-  local base_url
+  local url
 
   [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
 
-  base_url="https://youtube.com"
-  url="${base_url}/$1"
+  url="$1"
   shift
 
   # shellcheck disable=SC2086
@@ -1383,7 +1382,10 @@ _fetch_playlist() {
 
 fetch_playlist() {
   local url
-  url="$1"
+  local base_url
+
+  base_url="https://youtube.com"
+  url="$base_url/$1"
 
   # fetching playlist for the first time, initialize the indices
   STATE_CURRENT_PLAYLIST_START=1
