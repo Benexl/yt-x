@@ -1202,49 +1202,6 @@ _preview_fzf_all() {
 }
 
 # ==============================================================================
-# Data Fetching
-# ==============================================================================
-__fetch_yt_dlp() {
-  local url
-  local playlist_start
-  local playlist_end
-  local custom_opts
-
-  url="$1"
-  playlist_start="$2"
-  playlist_end="$3"
-  shift
-  shift
-  shift
-  custom_opts="$*"
-
-  # shellcheck disable=SC2086
-  ui_load yt-dlp "$url" \
-    --dump-single-json \
-    --flat-playlist \
-    --playlist-start "$playlist_start" \
-    --playlist-end "$playlist_end" \
-    $custom_opts
-}
-
-_fetch_media() {
-  local custom_opts
-  [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
-
-  # shellcheck disable=SC2086
-  __fetch_yt_dlp "$@" --extractor-args youtubetab:approximate_date $custom_opts
-}
-
-fetch_media() {
-  local base_url
-  base_url="https://youtube.com"
-  url="${base_url}/$1"
-  shift
-
-  _fetch_media "$url" "$@"
-}
-
-# ==============================================================================
 # State Management
 # ==============================================================================
 __state_clean_prev() {
@@ -1313,6 +1270,96 @@ _state_pop() {
 
   STATE_CURRENT_VIDEO="$(cat "$current_state_dir/video")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_VIDEO_URL="$(cat "$current_state_dir/video_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+}
+
+# ==============================================================================
+# Data Fetching
+# ==============================================================================
+__fetch_yt_dlp() {
+  local url
+  local playlist_start
+  local playlist_end
+  local custom_opts
+
+  url="$1"
+  playlist_start="$2"
+  playlist_end="$3"
+  shift
+  shift
+  shift
+  custom_opts="$*"
+
+  # shellcheck disable=SC2086
+  ui_load yt-dlp "$url" \
+    --dump-single-json \
+    --flat-playlist \
+    --playlist-start "$playlist_start" \
+    --playlist-end "$playlist_end" \
+    $custom_opts
+}
+
+_fetch_media() {
+  local custom_opts
+  local base_url
+
+  [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
+
+  base_url="https://youtube.com"
+  url="${base_url}/$1"
+  shift
+
+  # shellcheck disable=SC2086
+  __fetch_yt_dlp "$url" "$@" --extractor-args youtubetab:approximate_date $custom_opts
+}
+
+_fetch_playlist() {
+  local url
+  url="$1"
+
+  STATE_CURRENT_PLAYLIST_URL="$url"
+  STATE_CURRENT_PLAYLIST_RESULTS="$(
+    _fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END" |
+      jq "
+          .entries=(.entries 
+          | to_entries
+          | map(.value.title=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.title) 
+          |map(.value))
+          "
+  )"
+}
+
+fetch_playlist() {
+  local url
+  url="$1"
+
+  # fetching playlist for the first time, initialize the indices
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+
+  _fetch_playlist "$url"
+  _state_push
+}
+
+fetch_playlist_next() {
+  local url
+  url="$1"
+
+  STATE_CURRENT_PLAYLIST_START="$((STATE_CURRENT_PLAYLIST_END + 1))"
+  STATE_CURRENT_PLAYLIST_END="$((STATE_CURRENT_PLAYLIST_END + CONFIG_PER_PAGE))"
+
+  _fetch_playlist "$url"
+  _state_push
+}
+
+fetch_playlist_prev() {
+  local url
+  url="$1"
+
+  STATE_CURRENT_PLAYLIST_END="$((STATE_CURRENT_PLAYLIST_START - 1))"
+  STATE_CURRENT_PLAYLIST_START="$((STATE_CURRENT_PLAYLIST_END - CONFIG_PER_PAGE))"
+
+  _fetch_playlist "$url"
+  _state_push
 }
 
 # ==============================================================================
@@ -1828,22 +1875,16 @@ __menu_playlist_explorer_previous() {
 _menu_playlist_explorer() {
   local search_results
   local titles
-  local choices
-  choices="\
+  local other_choices
+  other_choices="\
     $TXT_MENU_NEXT
     $TXT_MENU_PREVIOUS
     $TXT_MENU_BACK
     $TXT_MENU_EXIT
     "
   while true; do
-    search_results=$(echo "$search_results" | jq "
-          .entries=(.entries 
-          | to_entries
-          | map(.value.title=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.title) 
-          |map(.value))
-          ")
     titles=$(echo "$search_results" | jq '.entries[].title' -r 2>/dev/null)
-    title="$(printf "%s\n%s" "$titles" "$choices" | ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" "playlist" | tr -d '\n' | sed 's/^[^0-9]  //g' | sed 's/"/\\"/g')"
+    title="$(printf "%s\n%s" "$titles" "$other_choices" | ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" "playlist" | tr -d '\n' | sed 's/^[^0-9]  //g' | sed 's/"/\\"/g')"
     clear
 
     case "$title" in
@@ -2148,9 +2189,8 @@ menu_miscellaneous() {
 # ==============================================================================
 __menu_main_feed() {
   url=""
-  STATE_CURRENT_PLAYLIST_RESULTS="$(fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END")"
-  _state_push
-  menu_playlist_explorer
+  fetch_playlist "$url"
+  exit
 }
 
 __menu_main_trending() {
