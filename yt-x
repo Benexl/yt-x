@@ -1367,7 +1367,6 @@ _fetch_playlist() {
   local url
   url="$1"
 
-  STATE_CURRENT_PLAYLIST_URL="$url"
   STATE_CURRENT_PLAYLIST_RESULTS="$(
     _fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END" |
       jq "
@@ -1377,6 +1376,8 @@ _fetch_playlist() {
           |map(.value))
           "
   )"
+
+  STATE_CURRENT_PLAYLIST_URL="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.original_url' -r)"
   STATE_CURRENT_PLAYLIST_TITLE="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.title' -r)"
 }
 
