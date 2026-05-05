@@ -1674,6 +1674,13 @@ __menu_playlist_actions_mix() {
   menu_playlist_explorer
 }
 
+__menu_playlist_actions_download() {
+  video_url=$(echo "$video" | jq '.url' -r)
+  yt-dlp "$video_url" --output "$DOWNLOAD_DIRECTORY/videos/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+  send_notification "Completed downloading of $title"
+
+}
+
 __menu_playlist_actions_download_all() {
   playlist_name=$(prompt "Name of the playlist" "$playlist_title")
   if [ -n "$urlForAll" ]; then
@@ -1686,6 +1693,13 @@ __menu_playlist_actions_download_all() {
     :
   fi
   send_notification "Completed downloading of $playlist_name"
+
+}
+
+__menu_playlist_actions_download_audio() {
+  video_url=$(echo "$video" | jq '.url' -r)
+  yt-dlp "$video_url" -x -f 'bestaudio' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
+  send_notification "Completed downloading of $title"
 
 }
 
@@ -1714,6 +1728,13 @@ __menu_playlist_actions_save() {
 
 }
 
+__menu_playlist_actions_unsave() {
+  current_liked_videos='{"entries":[]}'
+  [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && current_liked_videos=$(cat "$CLI_CONFIG_DIR/saved_videos.json")
+  id=$(echo "$video" | jq '.id' -r)
+  echo "$current_liked_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}" >"$CLI_CONFIG_DIR/saved_videos.json"
+}
+
 __menu_playlist_actions_save_playlist() {
   # For now a pseudo like feature is just as useful
   custom_playlists="[]"
@@ -1732,50 +1753,6 @@ __menu_playlist_actions_save_playlist() {
           }
         "
   echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CONFIG_DIR/custom_playlists.json" && send_notification "successfully added to custom playlists" || send_notification "Failed to add to custom playlists"
-
-}
-
-__menu_playlist_actions_unsave() {
-  current_liked_videos='{"entries":[]}'
-  [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && current_liked_videos=$(cat "$CLI_CONFIG_DIR/saved_videos.json")
-  id=$(echo "$video" | jq '.id' -r)
-  echo "$current_liked_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}" >"$CLI_CONFIG_DIR/saved_videos.json"
-}
-
-__menu_playlist_actions_subscribe_to_channel() {
-  # TODO: use youtube api to enable video subscriptions
-  send_notification "contribute to the project by adding this feature"
-  sleep "$CONFIG_NOTIFICATION_DURATION"
-}
-
-__menu_playlist_actions_visit_channel() {
-  # TODO: use youtube api to enable video subscriptions
-  send_notification "contribute to the project by adding this feature"
-  sleep "$CONFIG_NOTIFICATION_DURATION"
-}
-
-__menu_playlist_actions_open_in_browser() {
-  if _dep_ch open; then
-    open "$(echo "$video" | jq '.url' -r)"
-  elif _dep_ch xdg-open; then
-    xdg-open "$(echo "$video" | jq '.url' -r)"
-  else
-    send_notification "Could not find xdg-open or open"
-  fi
-
-}
-
-__menu_playlist_actions_download() {
-  video_url=$(echo "$video" | jq '.url' -r)
-  yt-dlp "$video_url" --output "$DOWNLOAD_DIRECTORY/videos/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-  send_notification "Completed downloading of $title"
-
-}
-
-__menu_playlist_actions_download_audio() {
-  video_url=$(echo "$video" | jq '.url' -r)
-  yt-dlp "$video_url" -x -f 'bestaudio' --audio-format mp3 --output "$DOWNLOAD_DIRECTORY/audio/individual/%(channel)s/%(title)s.%(ext)s" $PREFERRED_BROWSER
-  send_notification "Completed downloading of $title"
 
 }
 
@@ -1806,6 +1783,28 @@ You can use the following:
     :
   fi
 
+}
+
+__menu_playlist_actions_open_in_browser() {
+  if _dep_ch open; then
+    open "$(echo "$video" | jq '.url' -r)"
+  elif _dep_ch xdg-open; then
+    xdg-open "$(echo "$video" | jq '.url' -r)"
+  else
+    send_notification "Could not find xdg-open or open"
+  fi
+
+}
+
+__menu_playlist_actions_visit_channel() {
+  # TODO: use youtube api to enable video subscriptions
+  send_notification "contribute to the project by adding this feature"
+  sleep "$CONFIG_NOTIFICATION_DURATION"
+}
+
+__menu_playlist_actions_subscribe_to_channel() {
+  # TODO: use youtube api to enable video subscriptions
+  ui_notify_error "contribute to the project by adding this feature"
 }
 
 __menu_playlist_actions_toggle_enumerate_downloads() {
