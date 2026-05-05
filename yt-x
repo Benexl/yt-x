@@ -736,6 +736,8 @@ __ui_rofi_launcher_with_preview() {
 }
 
 _ui_launcher_with_preview() {
+  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] || ui_launcher "$@"
+
   case "$CONFIG_LAUNCHER" in
   rofi) __ui_rofi_launcher_with_preview "$@" ;;
   fzf) __ui_fzf_launcher_with_preview "$@" ;;
