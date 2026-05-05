@@ -1341,24 +1341,18 @@ fetch_playlist() {
 }
 
 fetch_playlist_next() {
-  local url
-  url="$1"
-
   STATE_CURRENT_PLAYLIST_START="$((STATE_CURRENT_PLAYLIST_END + 1))"
   STATE_CURRENT_PLAYLIST_END="$((STATE_CURRENT_PLAYLIST_END + CONFIG_PER_PAGE))"
 
-  _fetch_playlist "$url"
+  _fetch_playlist "$STATE_CURRENT_PLAYLIST_URL"
   _state_push
 }
 
 fetch_playlist_prev() {
-  local url
-  url="$1"
-
   STATE_CURRENT_PLAYLIST_END="$((STATE_CURRENT_PLAYLIST_START - 1))"
   STATE_CURRENT_PLAYLIST_START="$((STATE_CURRENT_PLAYLIST_END - CONFIG_PER_PAGE))"
 
-  _fetch_playlist "$url"
+  _fetch_playlist "$STATE_CURRENT_PLAYLIST_URL"
   _state_push
 }
 
@@ -2190,7 +2184,7 @@ menu_miscellaneous() {
 __menu_main_feed() {
   url=""
   fetch_playlist "$url"
-  exit
+  menu_playlist_explorer
 }
 
 __menu_main_trending() {
