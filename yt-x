@@ -2347,25 +2347,27 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
-  action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
-  case "$action" in
-  "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
-  "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
-  "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscriptions_feed ;;
-  "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
-  "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
-  "$TXT_MENU_MAIN_CHANNELS") menu_channels_explorer ;;
-  "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
-  "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
-  "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
-  "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
-  "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
-  "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
-  "$TXT_MENU_MAIN_MISC") _menu_miscellaneous ;;
-  "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
-  "$TXT_MENU_EXIT" | "") _util_byebye ;;
-  *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
-  esac
+  while true; do
+    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
+    case "$action" in
+    "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
+    "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
+    "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscriptions_feed ;;
+    "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
+    "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
+    "$TXT_MENU_MAIN_CHANNELS") menu_channels_explorer ;;
+    "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
+    "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
+    "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
+    "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
+    "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
+    "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
+    "$TXT_MENU_MAIN_MISC") _menu_miscellaneous ;;
+    "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+  done
 }
 
 menu_main() {
