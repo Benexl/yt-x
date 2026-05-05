@@ -304,7 +304,7 @@ __load_default_lang() {
   TXT_MENU_MAIN_MISC="Miscellaneous"
 
   # other menus
-  TXT_MENU_SEARCH_PROMPT="Enter search query"
+  TXT_MENU_PROMPT_SEARCH="Enter search query"
 
   # miscellaneous
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
@@ -336,7 +336,7 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_EXPLORER_PROMPT="Select Media"
 
   # Playlist actions
-  TXT_MENU_PLAYLIST_ACTIONS_PROMPT="Select Media Action"
+  TXT_MENU_PLAYLIST_PROMPT_ACTION="Select Media Action"
   TXT_MENU_PLAYLIST_ACTIONS_WATCH="Watch"
   TXT_MENU_PLAYLIST_ACTIONS_PLAY_ALL="Play All"
   TXT_MENU_PLAYLIST_ACTIONS_LISTEN="Listen"
@@ -1822,6 +1822,7 @@ You can use the following:
 _menu_playlist_actions() {
   local actions
   local media_action
+
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_PLAY_ALL}
@@ -1843,7 +1844,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_B
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_EXIT}"
 
   while true; do
-    media_action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT" | sed 's/.  //g')"
+    media_action="$(
+      printf "%s" "$actions" |
+        ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g'
+    )"
     clear
     case "$media_action" in
     "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_playlist_actions_watch ;;
@@ -2241,7 +2245,7 @@ __menu_main_search() {
   local search_term
   local url
 
-  search_term="$(ui_prompt "$TXT_MENU_SEARCH_PROMPT" | jq -Rr '@uri')"
+  search_term="$(ui_prompt "$TXT_MENU_PROMPT_SEARCH" | jq -Rr '@uri')"
   url="results?search_query=$search_term"
 
   fetch_playlist "$url"
