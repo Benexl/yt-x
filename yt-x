@@ -1257,6 +1257,7 @@ _state_init() {
 
   STATE_CURRENT_VIDEO=""
   STATE_CURRENT_VIDEO_URL=""
+  STATE_CURRENT_VIDEO_TITLE=""
 }
 
 _state_push() {
@@ -1278,6 +1279,7 @@ _state_push() {
 
   echo "$STATE_CURRENT_VIDEO" >"$current_state_dir/video"
   echo "$STATE_CURRENT_VIDEO_URL" >"$current_state_dir/video_url"
+  echo "$STATE_CURRENT_VIDEO_TITLE" >"$current_state_dir/video_title"
 }
 
 _state_pop() {
@@ -1303,6 +1305,7 @@ _state_pop() {
 
   STATE_CURRENT_VIDEO="$(cat "$current_state_dir/video")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_VIDEO_URL="$(cat "$current_state_dir/video_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_VIDEO_TITLE="$(cat "$current_state_dir/video_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 }
 
 # ==============================================================================
@@ -1901,6 +1904,7 @@ __menu_playlist_explorer() {
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
   STATE_CURRENT_VIDEO="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq ".entries[$((id - 1))]")"
   STATE_CURRENT_VIDEO_URL="$(echo "$STATE_CURRENT_VIDEO" | jq '.url' -r)"
+  STATE_CURRENT_VIDEO_TITLE="$(echo "$title" | sed 's/^[0-9]+ //g')"
   _state_push
 
   menu_playlist_actions
