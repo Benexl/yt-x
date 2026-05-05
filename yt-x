@@ -1429,6 +1429,7 @@ __download_yt_dlp() {
 
   yt-dlp "$url"
 }
+
 _download_media() {
   local url
   local custom_opts
@@ -1538,7 +1539,7 @@ __cached_mix_path() {
       _channel=$(echo "$_video" | jq '.channel' -r)
       _url=$(echo "$_video" | jq '.url' -r)
       echo "#EXTINF:-1,$_title" >>"$cached_mix_path"
-      echo "$_url" >>"$cached_mix"
+      echo "$_url" >>"$cached_mix_path"
 
       # NOTE: the data below is not available in the mix data of yt
       # but other sites may have them so...
@@ -1548,7 +1549,7 @@ __cached_mix_path() {
       # echo "#EXTGRP:Group Name" >>"$cached_mix"
 
       # newline
-      echo "" >>"$cached_mix"
+      echo "" >>"$cached_mix_path"
     done
   fi
 
@@ -1560,7 +1561,7 @@ _cached_mix_path_or_url() {
   url="$1"
 
   if echo "$url" | grep -q "list=RD"; then
-    ui_load __cached_mix_path "$url"
+    __cached_mix_path "$url"
   else
     echo "$url"
   fi
