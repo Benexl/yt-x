@@ -1560,7 +1560,7 @@ _cached_mix_path_or_url() {
   url="$1"
 
   if echo "$url" | grep -q "list=RD"; then
-    echo "$(ui_load __cached_mix_url "$url")"
+    ui_load __cached_mix_path "$url"
   else
     echo "$url"
   fi
