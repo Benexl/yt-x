@@ -105,7 +105,7 @@ __init_env_paths() {
   CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
   CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
   CLI_RECENT_FILE="$CLI_CONFIG_DIR/recent.json"
-  CLI_SAVED_FILE="$CLI_CONFIG_DIR/saved-videos.json"
+  CLI_SAVED_VIDEOS_FILE="$CLI_CONFIG_DIR/saved-videos.json"
   CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom-playlists.json"
   CLI_SUBSCRIPTIONS_FILE="$CLI_CONFIG_DIR/subscriptions.json"
   CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom-cmds.json"
@@ -1632,6 +1632,46 @@ _update_recent() {
     jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_RECENT_FILE"
 }
 
+_update_saved_videos() {
+  local current_saved_videos
+  local id
+  local video_entry
+
+  current_saved_videos='{"entries":[]}'
+  [ -s "$CLI_SAVED_VIDEOS_FILE" ] && current_saved_videos=$(cat "$CLI_SAVED_VIDEOS_FILE")
+
+  id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
+  video_entry="$(echo "$STATE_CURRENT_VIDEO" | jq '.title |= sub("^[0-9]+ "; "")')"
+
+  echo "$current_saved_videos" |
+    jq "{
+    \"entries\":[
+      .entries[]
+      | select(.id != \"$id\")
+      ]
+    }
+  |.entries+=[$video_entry]" |
+    jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_SAVED_VIDEOS_FILE"
+}
+
+_remove_saved_video() {
+  local current_saved_videos
+  local id
+
+  current_saved_videos='{"entries":[]}'
+  [ -s "$CLI_SAVED_VIDEOS_FILE" ] && current_saved_videos=$(cat "$CLI_SAVED_VIDEOS_FILE")
+
+  id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
+
+  echo "$current_saved_videos" |
+    jq "{
+    \"entries\":[
+      .entries[]
+      | select(.id != \"$id\")
+      ]
+    }" >"$CLI_SAVED_VIDEOS_FILE"
+}
+
 # ==============================================================================
 # Menus: playlist actions
 # ==============================================================================
@@ -1720,19 +1760,14 @@ __menu_playlist_actions_download_all_audio() {
 }
 
 __menu_playlist_actions_save() {
+  # TODO: integerate with watch later maybe
+  # though i doubt anyone wants make theirs any longer lol
   # For now a pseudo like feature is just as useful
-  current_liked_videos='{"entries":[]}'
-  [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && current_liked_videos=$(cat "$CLI_CONFIG_DIR/saved_videos.json")
-  id=$(echo "$video" | jq '.id' -r)
-  echo "$current_liked_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}|.entries+=[$(echo "$video" | jq '.title |= sub("^[0-9]+ "; "")')]" >"$CLI_CONFIG_DIR/saved_videos.json"
-
+  _update_saved_videos
 }
 
 __menu_playlist_actions_unsave() {
-  current_liked_videos='{"entries":[]}'
-  [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && current_liked_videos=$(cat "$CLI_CONFIG_DIR/saved_videos.json")
-  id=$(echo "$video" | jq '.id' -r)
-  echo "$current_liked_videos" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}" >"$CLI_CONFIG_DIR/saved_videos.json"
+  _remove_saved_video
 }
 
 __menu_playlist_actions_save_playlist() {
