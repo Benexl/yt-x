@@ -2169,10 +2169,34 @@ __menu_miscellaneous_explore_channels() {
 }
 
 __menu_miscellaneous_explore_playlists() {
-  search_term=$(prompt "What playlist would you like to explore?")
-  url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAw%253D%253D"
-  PLAYLISTS_EXTRA_ARGS="--playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS"
-  playlists_explorer
+  local search_term
+  local url
+
+  search_term=$(ui_prompt "What playlist would you like to explore?" | jq -Rr '@uri')
+
+  url="results?search_query=$search_term&sp=EgIQAw%253D%253D"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+__menu_miscellaneous_custom_commands() {
+  ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds. Create them here: <$F_CUSTOM_CMDS>"
+  while true; do
+    custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | ui_launcher "Select Custom Data Loader Command To Run")
+    [ "$custom_cmd_name" = "Back" ] || [ "$custom_cmd_name" = "" ] && break
+    custom_yt_dlp_cmd=$(jq -r ". | map(select(.name == \"$custom_cmd_name\" )) | .[0].cmd" "$F_CUSTOM_CMDS")
+    echo Running custom command...
+    search_results=$(
+      if _dep_ch gum; then
+        gum spin --show-output --show-error -- $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
+      else
+        echo "Loading..." >/dev/stderr
+        $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
+      fi
+    )
+    playlist_explorer
+  done
 
 }
 
@@ -2215,23 +2239,20 @@ __menu_miscellaneous_new_custom_command() {
 
 }
 
-__menu_miscellaneous_custom_commands() {
-  ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds. Create them here: <$F_CUSTOM_CMDS>"
-  while true; do
-    custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | ui_launcher "Select Custom Data Loader Command To Run")
-    [ "$custom_cmd_name" = "Back" ] || [ "$custom_cmd_name" = "" ] && break
-    custom_yt_dlp_cmd=$(jq -r ". | map(select(.name == \"$custom_cmd_name\" )) | .[0].cmd" "$F_CUSTOM_CMDS")
-    echo Running custom command...
-    search_results=$(
-      if _dep_ch gum; then
-        gum spin --show-output --show-error -- $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-      else
-        echo "Loading..." >/dev/stderr
-        $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-      fi
-    )
-    playlist_explorer
-  done
+__menu_miscellaneous_sync_youtube_subscriptions() {
+  if confirm "This will erase your local subs, proceed?"; then
+    echo "Syncing subscriptions..."
+    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config"
+    download_preview_images "$channels_data" "https:"
+    [ -n "$channels_data" ] && ! [ "$channels_data" = "null" ] && echo "$channels_data" >"$CLI_CONFIG_DIR/subscriptions.json" && send_notification "successfully imported yt subs" || send_notification "Failed to fetch subscriptions"
+  else
+    send_notification "Sync cancelled"
+  fi
+
+}
+
+__menu_miscellaneous_clear_search_history() {
+  confirm "Are you sure you want to clear your search history ($CLI_CACHE_DIR/search_history.txt)?" && rm "$CLI_CACHE_DIR/search_history.txt"
 
 }
 
@@ -2253,23 +2274,6 @@ __menu_miscellaneous_edit_mpv_config() {
 
 __menu_miscellaneous_edit_yt_dlp_config() {
   _util_file_edit "$XDG_CONFIG_HOME/yt-dlp/config"
-}
-
-__menu_miscellaneous_clear_search_history() {
-  confirm "Are you sure you want to clear your search history ($CLI_CACHE_DIR/search_history.txt)?" && rm "$CLI_CACHE_DIR/search_history.txt"
-
-}
-
-__menu_miscellaneous_sync_youtube_subscriptions() {
-  if confirm "This will erase your local subs, proceed?"; then
-    echo "Syncing subscriptions..."
-    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config"
-    download_preview_images "$channels_data" "https:"
-    [ -n "$channels_data" ] && ! [ "$channels_data" = "null" ] && echo "$channels_data" >"$CLI_CONFIG_DIR/subscriptions.json" && send_notification "successfully imported yt subs" || send_notification "Failed to fetch subscriptions"
-  else
-    send_notification "Sync cancelled"
-  fi
-
 }
 
 _menu_miscellaneous() {
