@@ -70,16 +70,6 @@ __init_env_platform() {
   else
     CLI_SUPPORTS_TRUE_COLOR=false
   fi
-
-  # Detect correct mpv command (mpv or mpv.exe)
-  if _dep_ch mpv; then
-    MPV_CMD="mpv"
-  elif _dep_ch "mpv.exe"; then
-    MPV_CMD="mpv.exe"
-  else
-    MPV_CMD="mpv" # fallback
-  fi
-
 }
 
 __init_env_paths() {
@@ -354,6 +344,10 @@ __load_default_lang() {
   TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
 
+  # player
+  THEME_PLAYER_START="Now Watching"
+  TXT_PLAYER_NOT_FOUND="No suitable media player found. Please set CONFIG_PLAYER to a valid media player command. Currently set to: $CONFIG_PLAYER"
+
   [ -s "$CLI_DEFAULT_LANG_FILE" ] && . "$CLI_DEFAULT_LANG_FILE"
 }
 
@@ -363,6 +357,8 @@ __load_default_theme() {
     THEME_FZF_ICON_COLOR_SECONDARY=""
     THEME_FZF_ICON_COLOR_ACCENT=""
     THEME_FZF_ICON_COLOR_ERROR=""
+    THEME_RESET=""
+    THEME_PLAYER_START=""
 
     [ -s "$CLI_DEFAULT_THEME_FILE" ] && . "$CLI_DEFAULT_THEME_FILE"
   fi
@@ -1339,6 +1335,19 @@ __fetch_yt_dlp() {
     --playlist-end "$playlist_end" \
     $custom_opts
 }
+__fetch_video_url() {
+  local url
+  url="$1"
+
+  ui_load yt-dlp "$url" --quiet --no-warnings --get-url | head -n 1
+}
+
+__fetch_audio_url() {
+  local url
+  url="$1"
+
+  ui_load yt-dlp "$url" --quiet --no-warnings --get-url | tail -n 1
+}
 
 _fetch_media() {
   local custom_opts
@@ -1393,6 +1402,139 @@ fetch_playlist_next() {
 
 fetch_playlist_prev() {
   [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
+}
+
+# ==============================================================================
+# Data Viewers
+# ==============================================================================
+__player_mpv() {
+  local url
+  local mode
+  local opts
+  local mpv_cmd
+
+  mode="$2"
+  opts="$CONFIG_MPV_ARGS"
+
+  case "$CLI_PLATFORM" in
+  android)
+    case "$mode" in
+    listen)
+      url="$(__fetch_audio_url "$1")"
+      ;;
+    *)
+      url="$(__fetch_video_url "$1")"
+      ;;
+    esac
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 &
+    ;;
+  *)
+    url="$1"
+    case "$mode" in
+    listen)
+      opts="$opts --no-video"
+      ;;
+    esac
+
+    if _dep_ch mpv; then
+      mpv_cmd="mpv"
+    elif _dep_ch "mpv.exe"; then
+      mpv_cmd="mpv.exe"
+    else
+      ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
+    fi
+
+    $mpv_cmd "$url" "$opts"
+    ;;
+  esac
+}
+
+__player_vlc() {
+  local url
+  local mode
+  local opts
+  local vlc_cmd
+
+  mode="$2"
+  opts="$CONFIG_MPV_ARGS"
+
+  case "$CLI_PLATFORM" in
+  android)
+    case "$mode" in
+    listen)
+      url="$(__fetch_audio_url "$1")"
+      ;;
+    *)
+      url="$(__fetch_video_url "$1")"
+      ;;
+    esac
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$title" >/dev/null 2>&1 &
+    ;;
+  *)
+    url="$1"
+    case "$mode" in
+    listen)
+      opts="$opts --no-video"
+      ;;
+    esac
+
+    if _dep_ch vlc; then
+      vlc_cmd="vlc"
+    elif _dep_ch "vlc.exe"; then
+      vlc_cmd="vlc.exe"
+    else
+      ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
+    fi
+
+    $vlc_cmd "$url" "$opts"
+    ;;
+  esac
+}
+
+__player_tplay() {
+  local url
+  local opts
+  local tplay_cmd
+
+  opts="$CONFIG_TPLAY_ARGS"
+
+  case "$CLI_PLATFORM" in
+  android)
+    case "$mode" in
+    listen)
+      url="$(__fetch_audio_url "$1")"
+      ;;
+    *)
+      url="$(__fetch_video_url "$1")"
+      ;;
+    esac
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 &
+    ;;
+  *)
+    url="$1"
+
+    if _dep_ch tplay; then
+      tplay_cmd="tplay"
+    else
+      ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
+    fi
+
+    $tplay_cmd "$url" "$opts"
+    ;;
+  esac
+}
+
+_play() {
+  case "$CONFIG_PLAYER" in
+  mpv) __player_mpv "$1" "$2" ;;
+  vlc) __player_vlc "$1" "$2" ;;
+  tplay) __player_tplay "$1" "$2" ;;
+  *) ui_notify_critical "$TXT_PLAYER_NOT_FOUND" ;;
+  esac
+}
+
+play() {
+  _play "$@"
 }
 
 # ==============================================================================
