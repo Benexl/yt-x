@@ -1213,19 +1213,26 @@ __fetch_yt_dlp() {
   url="$1"
   playlist_start="$2"
   playlist_end="$3"
-  custom_opts="$4"
+  shift
+  shift
+  shift
+  custom_opts="$*"
 
   # shellcheck disable=SC2086
-  ui_load yt-dlp $custom_opts "$url" \
+  ui_load yt-dlp "$url" \
     --dump-single-json \
     --flat-playlist \
-    --extractor-args \
     --playlist-start "$playlist_start" \
-    --playlist-end "$playlist_end"
+    --playlist-end "$playlist_end" \
+    $custom_opts
 }
 
 _fetch_media() {
-  __fetch_yt_dlp "$@"
+  local custom_opts
+  [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
+
+  # shellcheck disable=SC2086
+  __fetch_yt_dlp "$@" --extractor-args youtubetab:approximate_date $custom_opts
 }
 
 fetch_media() {
@@ -2140,9 +2147,10 @@ menu_miscellaneous() {
 # Menus: main
 # ==============================================================================
 __menu_main_feed() {
-  url="https://www.youtube.com/feed/subscriptions"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
+  url=""
+  STATE_CURRENT_PLAYLIST_RESULTS="$(fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END")"
+  _state_push
+  menu_playlist_explorer
 }
 
 __menu_main_trending() {
@@ -2269,6 +2277,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 }
 
 menu_main() {
+  _state_init
   _menu_main
 }
 
@@ -2613,7 +2622,7 @@ main() {
   _app_cmd_line_parser "$@"
   _app_update_check
   _app_core_dep_ch
-  _menu_main
+  menu_main
 }
 
 main "$@"
