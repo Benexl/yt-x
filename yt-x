@@ -1660,6 +1660,17 @@ __menu_playlist_actions_listen_all() {
   _update_recent
 }
 
+__menu_playlist_actions_mix() {
+  local video_id
+  local url
+
+  video_id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
+  url="watch?v=${video_id}&list=RD$video_id"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
 __menu_playlist_actions_toggle_enumerate_downloads() {
   if [ "$enumerate_playlist" = "" ]; then
     enumerate_playlist="%(playlist_index)s - "
@@ -1697,27 +1708,6 @@ __menu_playlist_actions_download_all_audio() {
   fi
   send_notification "Completed downloading of $playlist_name"
 
-}
-
-__menu_playlist_actions_mix() {
-
-  local url0 _search_results
-  video_id=$(echo "$video" | jq '.id' -r)
-  url0=$urlForAll
-  urlForAll="https://www.youtube.com/watch?v=${video_id}&list=RD$video_id"
-
-  _search_results="$search_results"
-  search_results=$(
-    if _dep_ch gum; then
-      gum spin --show-output -- yt-dlp "$urlForAll" -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER $PLAYLISTS_EXTRA_ARGS --playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS
-    else
-      echo "Loading..." >/dev/stderr
-      yt-dlp "$urlForAll" -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER $PLAYLISTS_EXTRA_ARGS --playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS
-    fi
-  )
-  playlist_explorer
-  urlForAll=$url0
-  search_results="$_search_results"
 }
 
 __menu_playlist_actions_save() {
