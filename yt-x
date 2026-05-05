@@ -95,8 +95,8 @@ __init_env_paths() {
   CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
   CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
   CLI_PREVIEW_TXT_DIR="$CLI_CACHE_DIR/previews/text"
-  CLI_PLAYLIST_DIR="$CLI_CACHE_DIR/playlists"
 
+  CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
   CLI_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
   CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
@@ -123,7 +123,7 @@ __init_env_paths() {
     "$CLI_CURRENT_STATE_DIR" \
     "$CLI_PREVIEW_IMGS_DIR" \
     "$CLI_PREVIEW_TXT_DIR" \
-    "$CLI_PLAYLIST_DIR" \
+    "$CLI_AUTO_GEN_PLAYLISTS" \
     "$CLI_ARCHIVE_DIR" \
     "$CLI_LOG_DIR"
 
@@ -1402,6 +1402,69 @@ fetch_playlist_next() {
 
 fetch_playlist_prev() {
   [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
+}
+
+# ==============================================================================
+# Data Caching
+# ==============================================================================
+__cached_mix_path() {
+  local url
+  local video_id
+  local _mix_data
+  local cached_mix_path
+
+  url="$1"
+  video_id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r | sed 's/RD//g')
+
+  cached_mix_path="$CLI_AUTO_GEN_PLAYLISTS/$(_util_generate_hash "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id").m3u8"
+
+  if ! [ -s "$cached_mix_path" ]; then
+    _mix_data="$(yt-dlp "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id" --flat-playlist --dump-single-json 2>/dev/null)"
+
+    # NOTE: it silently fails and will just return the original url
+    # if it fails to fetch the mix data, which can happen for various reasons (e.g. network issues, yt-dlp issues, etc.)
+    [ -z "$_mix_data" ] && echo "$url" && return
+
+    # start creating the m3u8 mix
+    echo '#EXTM3U' >>"$cached_mix_path"
+    lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
+    for i in $(seq 1 "$lines"); do
+      local _video
+      local _title
+      local _channel
+      local _url
+
+      _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
+      _title=$(echo "$_video" | jq ".title" -r)
+      _channel=$(echo "$_video" | jq '.channel' -r)
+      _url=$(echo "$_video" | jq '.url' -r)
+      echo "#EXTINF:-1,$_title" >>"$cached_mix_path"
+      echo "$_url" >>"$cached_mix"
+
+      # NOTE: the data below is not available in the mix data of yt
+      # but other sites may have them so...
+
+      # echo "#EXTALB:Album Name" >>"$cached_mix"
+      # echo "#EXTGENRE:Genre" >>"$cached_mix"
+      # echo "#EXTGRP:Group Name" >>"$cached_mix"
+
+      # newline
+      echo "" >>"$cached_mix"
+    done
+  fi
+
+  echo "$cached_mix_path"
+}
+
+_cached_mix_path_or_url() {
+  local url
+  url="$1"
+
+  if echo "$url" | grep -q "list=RD"; then
+    echo "$(ui_load __cached_mix_url "$url")"
+  else
+    echo "$url"
+  fi
 }
 
 # ==============================================================================
