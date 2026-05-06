@@ -1684,7 +1684,7 @@ _fetch_channels() {
           "
   )"
 
-  STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.webpage_url' -r)"
+  STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.url' -r)"
   STATE_CURRENT_CHANNEL_RESULTS_TITLE="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.title' -r)"
 }
 
@@ -2424,8 +2424,7 @@ $TXT_MENU_EXIT"
     choice="$(
       printf "%s\n%s" "$titles" "$other_choices" |
         preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" |
-        tr -d '\n' | sed 's/"/\\"/g'
+        ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
     )"
 
     case "$choice" in
@@ -2465,7 +2464,7 @@ __menu_playlists_explorer() {
   # and most environments support it, so it should be fine for now
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
   current_playlist="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq ".entries[$((id - 1))]")"
-  url="$(echo "$current_playlist" | jq '.webpage_url' -r)"
+  url="$(echo "$current_playlist" | jq '.url' -r)"
 
   _fetch_playlist "$url"
   menu_playlist_explorer
@@ -2631,10 +2630,10 @@ __menu_channels_explorer() {
 
   channel="$(
     echo "$STATE_CURRENT_CHANNEL_RESULTS" |
-      jq ".entries|map(select(.title == \"$channel_name\"))|.[0]"
+      jq --arg name "$channel_name" '.entries|map(select(.title == $name))|.[0]'
   )"
 
-  STATE_CURRENT_CHANNEL_URL="$(echo "$STATE_CURRENT_CHANNEL" | jq '.uploader_url' -r)"
+  STATE_CURRENT_CHANNEL_URL="$(echo "$channel" | jq '.url' -r)"
   STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel" | jq '.title' -r)"
   _state_push
 
@@ -2976,7 +2975,7 @@ __menu_main_channels_explorer() {
           jq -r "
           .entries
           | map(select(.title == \"$channel\" )) 
-          | .[0].uploader_url" "$CLI_SUBSCRIPTIONS_FILE"
+          | .[0].url" "$CLI_SUBSCRIPTIONS_FILE"
         )
 
         STATE_CURRENT_CHANNEL_URL="$url"
