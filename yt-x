@@ -2117,7 +2117,7 @@ _update_saved_playlists() {
 
   custom_playlist="
     {
-      \"id\": \"$id\"
+      \"id\": \"$playlist_id\",
       \"name\": \"$playlist_name\",
       \"url\": \"$STATE_CURRENT_PLAYLIST_URL\",
     }
