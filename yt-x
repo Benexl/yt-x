@@ -3364,7 +3364,7 @@ __app_cmd_line_parser_completions() {
 }
 
 __app_cmd_line_parser_extensions() {
-  [ -n "$2" ] || usage 1
+  [ -n "$2" ] || _app_usage 1
   if [ "${2#/}" != "$2" ]; then
     . "$2"
   else
