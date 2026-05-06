@@ -279,6 +279,7 @@ __load_default_lang() {
   TXT_FZF_PREVIEW_VIEW_COUNT="Views"
   TXT_FZF_PREVIEW_LIVE_STATUS="Live Status"
   TXT_FZF_PREVIEW_TIMESTAMP="Uploaded"
+  TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS="Followers"
 
   # core: rofi
   TXT_ROFI_NOT_CONFIGURED="Rofi is not configured. Please set to a valid rofi config file path in your config.sh"
