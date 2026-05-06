@@ -2301,6 +2301,68 @@ menu_playlist_explorer() {
 }
 
 # ==============================================================================
+# Menus: playlists explorer
+# ==============================================================================
+__menu_playlists_explorer_next() {
+  fetch_playlists_next
+}
+
+__menu_playlists_explorer_previous() {
+  fetch_playlists_prev
+}
+
+__menu_playlists_explorer() {
+  local title
+  local id
+  local current_playlist
+  local url
+
+  title="$1"
+  # TODO: consider not using -E since its not yet posix
+  # though apparently its suppose to be made standard soon
+  # and most environments support it, so it should be fine for now
+  id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
+  current_playlist="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq ".entries[$((id - 1))]")"
+  url="$(echo "$current_playlist" | jq '.webpage_url' -r)"
+
+  _fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+_menu_playlists_explorer() {
+  local other_choices
+  local titles
+  local choice
+
+  other_choices="\
+$TXT_MENU_NEXT
+$TXT_MENU_PREVIOUS
+$TXT_MENU_BACK
+$TXT_MENU_EXIT"
+
+  while true; do
+    titles=$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.entries[].title' -r)
+    choice="$(
+      printf "%s\n%s" "$titles" "$other_choices" |
+        ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT" |
+        tr -d '\n' | sed 's/"/\\"/g'
+    )"
+
+    case "$choice" in
+    "$TXT_MENU_NEXT") __menu_playlists_explorer_next ;;
+    "$TXT_MENU_PREVIOUS") __menu_playlists_explorer_previous ;;
+    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
+    *) __menu_playlists_explorer "$choice" ;;
+    esac
+  done
+}
+
+menu_playlists_explorer() {
+  _menu_playlists_explorer
+}
+
+# ==============================================================================
 # Menus: channels actions
 # ==============================================================================
 __menu_channel_actions_subscribe() {
@@ -2468,8 +2530,8 @@ __menu_miscellaneous_explore_playlists() {
 
   url="results?search_query=$search_term&sp=EgIQAw%253D%253D"
 
-  fetch_playlist "$url"
-  menu_playlist_explorer
+  fetch_playlists "$url"
+  menu_playlists_explorer
 }
 
 __menu_miscellaneous_new_custom_command() {
@@ -2704,8 +2766,8 @@ __menu_main_playlists() {
   local url
   url="feed/playlists"
 
-  fetch_playlist "$url"
-  menu_playlist_explorer
+  fetch_playlists "$url"
+  menu_playlists_explorer
 }
 
 __menu_main_liked_videos() {
