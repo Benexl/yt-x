@@ -2591,8 +2591,8 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_FEATURED")
       url="$STATE_CURRENT_CHANNEL_URL/featured"
-      fetch_playlist "$url"
-      menu_playlist_explorer
+      fetch_playlists "$url"
+      menu_playlists_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS")
       url="$STATE_CURRENT_CHANNEL_URL/playlists"
