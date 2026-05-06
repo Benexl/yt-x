@@ -313,6 +313,8 @@ __load_default_lang() {
 
   TXT_MENU_MISC_SEARCH_HISTORY="Search History"
   TXT_MENU_MISC_SEARCH_HISTORY_PROMPT="Search for"
+  TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Clear Search History"
+  TXT_MENU_MISC_CLEAR_SEARCH_HISTORY_PROMPT="Are you sure you would like to clear your search history at $CLI_SEARCH_HISTORY_FILE?"
 
   TXT_MENU_MISC_NEW_CUSTOM_CMD="New Custom Command"
   TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
@@ -352,8 +354,6 @@ EOF
   TXT_MENU_MISC_SYNC_SUBS_CONFIRM="This will erase your local subs, proceed?"
   TXT_MENU_MISC_SYNC_SUBS_START="Syncing subscriptions..."
   TXT_MENU_MISC_SYNC_SUBS_FAILED="Failed to sync subs"
-
-  TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Clear Search History"
 
   # channels explorer
   TXT_MENU_CHANNELS_EXPLORER_PROMPT="Select a channel"
@@ -2511,7 +2511,9 @@ __menu_miscellaneous_sync_youtube_subscriptions() {
 }
 
 __menu_miscellaneous_clear_search_history() {
-  ui_confirm "Are you sure you want to clear your search history ($CLI_SEARCH_HISTORY_FILE)?" && rm "$CLI_SEARCH_HISTORY_FILE"
+  if ui_confirm "$TXT_MENU_MISC_CLEAR_SEARCH_HISTORY_PROMPT"; then
+    rm "$CLI_SEARCH_HISTORY_FILE"
+  fi
 }
 
 __menu_miscellaneous_edit_search_history() {
