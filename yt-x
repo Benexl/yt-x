@@ -287,6 +287,7 @@ __load_default_lang() {
   TXT_SAVED_VIDEOS_FILE_NOT_FOUND="You dont have any saved videos. Start saving videos to generate this file or edit the file here $CLI_SAVED_VIDEOS_FILE"
   TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND="You dont have any custom playlists. Start saving playlists to generate this file or edit the file here $CLI_CUSTOM_PLAYLISTS_FILE"
   TXT_SUBS_FILE_NOT_FOUND="You don't have any channel subscriptions. Please use the miscellaneous menu to add subscriptions to $CLI_SUBSCRIPTIONS_FILE"
+  TXT_RECENT_FILE_NOT_FOUND="You don't have any recent videos. Try watching sth first : ). And an entry will be created at $CLI_RECENT_FILE"
 
   # main
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
@@ -2819,10 +2820,12 @@ __menu_main_saved_videos() {
 }
 
 __menu_main_recent() {
-  # Often treated as a subset of history
-  url="https://www.youtube.com/feed/history"
-  search_results=$(run_yt_dlp "$url")
-  playlist_explorer
+  if [ -s "$CLI_RECENT_FILE" ]; then
+    STATE_CURRENT_PLAYLIST_RESULTS="$(jq '{"entries":.entries|reverse}' "$CLI_RECENT_FILE")"
+    menu_playlist_explorer
+  else
+    ui_notify_warning "$TXT_RECENT_FILE_NOT_FOUND"
+  fi
 }
 
 __menu_main_edit_config() {
