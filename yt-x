@@ -284,6 +284,7 @@ __load_default_lang() {
   # files
   TXT_CUSTOM_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_CUSTOM_CMDS_FILE or use the ui"
   TXT_SEARCH_HISTORY_FILE_NOT_FOUND="You dont have any search history. Start searching to generate search history or edit the file here $CLI_SEARCH_HISTORY_FILE"
+  TXT_SAVED_VIDEOS_FILE_NOT_FOUND="You dont have any saved videos. Start saving videos to generate this file or edit the file here $CLI_SAVED_VIDEOS_FILE"
 
   # main
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
@@ -2770,9 +2771,12 @@ __menu_main_custom_playlists() {
 }
 
 __menu_main_saved_videos() {
-  ! [ -s "$CLI_CONFIG_DIR/saved_videos.json" ] && echo No saved videos && sleep "$CONFIG_NOTIFICATION_DURATION" && main
-  search_results=$(jq '{"entries":.entries|reverse}' "$CLI_CONFIG_DIR/saved_videos.json")
-  playlist_explorer
+  if [ -s "$CLI_SAVED_VIDEOS_FILE" ]; then
+    STATE_CURRENT_PLAYLIST_RESULTS="$(jq '{"entries":.entries|reverse}' "$CLI_SAVED_VIDEOS_FILE")"
+    menu_playlist_explorer
+  else
+    ui_notify_warning "$TXT_SAVED_VIDEOS_FILE_NOT_FOUND"
+  fi
 }
 
 __menu_main_recent() {
