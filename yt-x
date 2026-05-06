@@ -1595,7 +1595,7 @@ __player_mpv() {
     url="$1"
     case "$mode" in
     listen)
-      opts="$opts --no-video"
+      opts="$opts --no-video --force-window=no"
       ;;
     esac
 
@@ -1607,9 +1607,15 @@ __player_mpv() {
       ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
     fi
 
-    $mpv_cmd "$url" "$opts"
+    # shellcheck disable=SC2086
+    $mpv_cmd "$url" $opts
     ;;
   esac
+
+  # shellcheck disable=SC2181
+  if [ "$?" = "0" ]; then
+    clear
+  fi
 }
 
 __player_vlc() {
@@ -1635,11 +1641,6 @@ __player_vlc() {
     ;;
   *)
     url="$1"
-    case "$mode" in
-    listen)
-      opts="$opts --no-video"
-      ;;
-    esac
 
     if _dep_ch vlc; then
       vlc_cmd="vlc"
@@ -1649,9 +1650,15 @@ __player_vlc() {
       ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
     fi
 
-    $vlc_cmd "$url" "$opts"
+    # shellcheck disable=SC2086
+    $vlc_cmd "$url" $opts
     ;;
   esac
+
+  # shellcheck disable=SC2181
+  if [ "$?" = "0" ]; then
+    clear
+  fi
 }
 
 __player_tplay() {
@@ -1682,9 +1689,15 @@ __player_tplay() {
       ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
     fi
 
-    $tplay_cmd "$url" "$opts"
+    # shellcheck disable=SC2086
+    $tplay_cmd "$url" $opts
     ;;
   esac
+
+  # shellcheck disable=SC2181
+  if [ "$?" = "0" ]; then
+    clear
+  fi
 }
 
 _play() {
