@@ -286,6 +286,7 @@ __load_default_lang() {
   TXT_SEARCH_HISTORY_FILE_NOT_FOUND="You dont have any search history. Start searching to generate search history or edit the file here $CLI_SEARCH_HISTORY_FILE"
   TXT_SAVED_VIDEOS_FILE_NOT_FOUND="You dont have any saved videos. Start saving videos to generate this file or edit the file here $CLI_SAVED_VIDEOS_FILE"
   TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND="You dont have any custom playlists. Start saving playlists to generate this file or edit the file here $CLI_CUSTOM_PLAYLISTS_FILE"
+  TXT_SUBS_FILE_NOT_FOUND="You don't have any channel subscriptions. Please use the miscellaneous menu to add subscriptions to $CLI_SUBSCRIPTIONS_FILE"
 
   # main
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
@@ -296,7 +297,10 @@ __load_default_lang() {
   TXT_MENU_MAIN_SEARCH="Search"
   TXT_MENU_MAIN_WATCH_LATER="Watch Later"
   TXT_MENU_MAIN_SUBS_FEED="Subscriptions Feed"
+
   TXT_MENU_MAIN_CHANNELS="Channels"
+  TXT_MENU_MAIN_CHANNELS_PROMPT="Select Channel"
+
   TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Custom Playlists"
   TXT_MENU_MAIN_LIKED="Liked Videos"
   TXT_MENU_MAIN_SAVED="Saved Videos"
@@ -2737,6 +2741,40 @@ __menu_main_trending() {
   menu_playlist_explorer
 }
 
+__menu_main_channels_explorer() {
+  local channel
+  local url
+
+  if [ -s "$CLI_SUBSCRIPTIONS_FILE" ]; then
+    while true; do
+      channel=$(
+        printf "%s\n%s" "$(jq -r '.entries[].channel' "$CLI_SUBSCRIPTIONS_FILE")" "$TXT_MENU_BACK" |
+          ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+      )
+
+      case "$channel" in
+      "$TXT_MENU_BACK") break ;;
+      *)
+        url=$(
+          jq -r "
+          .entries
+          | map(select(.channel == \"$channel\" )) 
+          | .[0].uploader_url" "$CLI_SUBSCRIPTIONS_FILE"
+        )
+
+        STATE_CURRENT_CHANNEL_URL="$url"
+        STATE_CURRENT_CHANNEL_TITLE="$channel"
+
+        _state_push
+        menu_channel_actions
+        ;;
+      esac
+    done
+  else
+    ui_notify_warning "$TXT_SUBS_FILE_NOT_FOUND"
+  fi
+}
+
 __menu_main_custom_playlists() {
   local playlist_title
   local url
@@ -2819,14 +2857,14 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscriptions_feed ;;
     "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
     "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
-    "$TXT_MENU_MAIN_CHANNELS") menu_channels_explorer ;;
+    "$TXT_MENU_MAIN_CHANNELS") __menu_main_channels_explorer ;;
     "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
     "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
     "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
     "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
     "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
     "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
-    "$TXT_MENU_MAIN_MISC") _menu_miscellaneous ;;
+    "$TXT_MENU_MAIN_MISC") menu_miscellaneous ;;
     "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
     "$TXT_MENU_EXIT" | "") _util_byebye ;;
     *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
