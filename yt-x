@@ -2303,7 +2303,7 @@ You can use the following:
     cat <<EOF >/tmp/yt_x_sh_init
 printf "%s" "$init_text"
 EOF
-    ENV=/tmp/sh_init sh -i
+    ENV=/tmp/yt_x_sh_init sh -i
   fi
 
 }
