@@ -254,6 +254,9 @@ __load_env_config() {
 }
 
 __load_default_lang() {
+  # core
+  TXT_BYEBYE="Have a good day"
+
   # core: state
   TXT_STATE_MALFORMED_CURRENT="Malformed State. Confirm contents of: $CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
 
@@ -566,7 +569,7 @@ _load_config() {
 # CORE: utilities
 # ==============================================================================
 _util_byebye() {
-  echo "Have a good day $USER"
+  echo "$TXT_BYEBYE $USER"
   exit "${1:-0}"
 }
 
