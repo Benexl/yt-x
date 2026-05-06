@@ -1084,13 +1084,11 @@ $fzf_preview
 }
 
 __preview_fzf_format_title() {
-  jq ".title" -r |
-    sed 's/"/\\\\"/g;s/%/%%/g;s/\$/\\\\$/g;s/^.. //g'
+  jq '.title| sub("^[0-9]+ "; "") | @sh' -r
 }
 
 __preview_fzf_format_description() {
-  jq ".description" -r |
-    sed 's/"/\\\\"/g;s/%/%%/g;s/\$/\\\\$/g'
+  jq '.description| if . == null then "null" else @sh end' -r
 }
 
 __preview_fzf_format_view_count() {
@@ -1203,13 +1201,15 @@ __preview_fzf_format_channel_follower_count() {
       |split("")
       |reverse
       |join("")
-      |gsub("([0-9]{3})(?=[0-9])"; "\(.),")
+      |gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),")
       |split("")
       |reverse
       |join("")
       '
 }
-
+__preview_fzf_format_channel() {
+  jq '.channel| if . == null then "null" else @sh end' -r
+}
 __preview_fzf_generate_script_for_item() {
   local shared_script_path
   local data_item
@@ -1239,7 +1239,7 @@ __preview_fzf_generate_script_for_item() {
 
   description=$(echo "$data_item" | __preview_fzf_format_description)
 
-  channel=$(echo "$data_item" | jq '.channel' -r)
+  channel=$(echo "$data_item" | __preview_fzf_format_channel)
   channel_follower_count="$(echo "$data_item" | __preview_fzf_format_channel_follower_count)"
 
   duration=$(echo "$data_item" | __preview_fzf_format_duration)
@@ -1269,40 +1269,41 @@ if [ '$CONFIG_ENABLE_PREVIEW' = 'true' ];then
   fi
 fi
 
-draw_divider
-
-printf "$title"
 
 draw_divider
 
-if ! [ "$channel" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}$channel\n";
+printf "%s\n" $title
+
+draw_divider
+
+if ! [ $channel = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" $channel;
 fi
 
 if ! [ "$channel_follower_count" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}$channel_follower_count\n";
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "$channel_follower_count";
 fi
 
 if ! [ "$duration" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}$duration\n";
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "$duration";
 fi
 
 if ! [ "$view_count" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}$view_count views\n";
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}%s views\n" "$view_count";
 fi
 
 if ! [ "$live_status" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}$live_status\n";
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}%s\n" "$live_status";
 fi
 
 if ! [ "$timestamp" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}$timestamp\n";
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "$timestamp";
 fi
 
 draw_divider
 
-if ! [ "$description" = "null" ];then
-  printf "$description";
+if ! [ $description = "null" ];then
+  printf "%s\n" $description;
 fi
 EOF
   )"
