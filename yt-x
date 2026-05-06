@@ -1083,144 +1083,20 @@ $fzf_preview
   fi
 }
 
-__preview_fzf_format_title() {
-  jq '.title| sub("^[0-9]+ "; "") | @sh' -r
-}
-
-__preview_fzf_format_description() {
-  jq '.description| if . == null then "null" else @sh end' -r
-}
-
-__preview_fzf_format_view_count() {
-  jq -r '
-      .view_count
-      |tostring
-      |split("")
-      |reverse
-      |join("")
-      |gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),")
-      |split("")
-      |reverse
-      |join("")
-      '
-}
-
-__preview_fzf_format_live_status() {
-  jq -r '
-    if .live_status == "is_live" then
-      "Online"
-    elif .live_status == "was_live" then
-      "Offline"
-    else
-      null
-    end
-  '
-}
-
-__preview_fzf_format_duration() {
-  jq -r '
-    try(
-      if .duration>=3600 then
-        if .duration/3600|floor == 1 then 
-          .duration/3600|floor|tostring + " hour" 
-        else
-          .duration/3600|floor|tostring + " hours" 
-        end
-      elif .duration>=60 then
-        if .duration/60|floor == 1 then 
-          .duration/60|floor|tostring + " min" 
-        else
-          .duration/60|floor|tostring + " mins" 
-        end
-      else
-        if .duration == 1 then 
-          .duration/1|floor|tostring + " sec" 
-        else
-          .duration/1|floor|tostring + " secs" 
-        end
-      end
-  )catch
-      null
-    '
-}
-
-__preview_fzf_format_timestamp() {
-  jq -r '
-    try(
-      (.upload_date | tostring)
-      | strptime("%Y%m%d")
-      | mktime
-      | now - .
-      | if . < 60 then
-          "Just now"
-        elif . < 3600 then
-          (. / 60 | floor) as $mins
-          | if $mins == 1 then
-              "1 minute ago"
-            else
-              "\($mins) minutes ago"
-            end
-        elif . < 86400 then
-          (. / 3600 | floor) as $hours
-          | if $hours == 1 then
-              "1 hour ago"
-            else
-              "\($hours) hours ago"
-            end
-        elif . < 2592000 then
-          (. / 86400 | floor) as $days
-          | if $days == 1 then
-              "1 day ago"
-            else
-              "\($days) days ago"
-            end
-        elif . < 31536000 then
-          (. / 2592000 | floor) as $months
-          | if $months == 1 then
-              "1 month ago"
-            else
-              "\($months) months ago"
-            end
-        else
-          (. / 31536000 | floor) as $years
-          | if $years == 1 then
-              "1 year ago"
-            else
-              "\($years) years ago"
-            end
-        end
-  )catch
-      null
-    '
-}
-
-__preview_fzf_format_channel_follower_count() {
-  jq -r '
-      .channel_follower_count
-      |tostring
-      |split("")
-      |reverse
-      |join("")
-      |gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),")
-      |split("")
-      |reverse
-      |join("")
-      '
-}
-__preview_fzf_format_channel() {
-  jq '.channel| if . == null then "null" else @sh end' -r
-}
 __preview_fzf_generate_script_for_item() {
   local shared_script_path
   local data_item
   local title
+  local raw_title
   local id
   local image_path
   local view_count
   local live_status
   local description
   local channel
+  local channel_follower_count
   local duration
+  local timestamp
   local preview_script_path
   local script
   local img_url
@@ -1228,30 +1104,53 @@ __preview_fzf_generate_script_for_item() {
   shared_script_path="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
   data_item="$1"
 
-  id=$(echo "$data_item" | jq '.id' -r)
-  title=$(echo "$data_item" | __preview_fzf_format_title)
+  eval "$(printf "%s\n" "$data_item" | jq -r '
+    def format_number:
+      tostring | split("") | reverse | join("") | gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),") | split("") | reverse | join("");
 
-  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$data_item" | jq -r '.title' | _util_generate_hash).sh"
+    def format_duration:
+      try(
+        if . >= 3600 then
+          (./3600|floor) as $h | if $h == 1 then "\($h) hour" else "\($h) hours" end
+        elif . >= 60 then
+          (./60|floor) as $m | if $m == 1 then "\($m) min" else "\($m) mins" end
+        else
+          (./1|floor) as $s | if $s == 1 then "\($s) sec" else "\($s) secs" end
+        end
+      ) catch null;
 
-  img_url="$(echo "$data_item" | jq '.thumbnails[-1].url' -r)"
+    def format_timestamp:
+      try(
+        (. | tostring | strptime("%Y%m%d") | mktime | now - .) as $diff
+        | if $diff < 60 then "Just now"
+          elif $diff < 3600 then ($diff / 60 | floor) as $mins | if $mins == 1 then "1 minute ago" else "\($mins) minutes ago" end
+          elif $diff < 86400 then ($diff / 3600 | floor) as $hours | if $hours == 1 then "1 hour ago" else "\($hours) hours ago" end
+          elif $diff < 2592000 then ($diff / 86400 | floor) as $days | if $days == 1 then "1 day ago" else "\($days) days ago" end
+          elif $diff < 31536000 then ($diff / 2592000 | floor) as $months | if $months == 1 then "1 month ago" else "\($months) months ago" end
+          else ($diff / 31536000 | floor) as $years | if $years == 1 then "1 year ago" else "\($years) years ago" end
+          end
+      ) catch null;[
+      "id=" + (.id // "" | @sh),
+      "title=" + (.title // "" | sub("^[0-9]+ "; "") | @sh | @sh),
+      "raw_title=" + (.title // "" | @sh),
+      "img_url=" + (.thumbnails[-1].url // "" | @sh),
+      "view_count=" + (.view_count | if . == null then "null" else (format_number | @sh) end),
+      "live_status=" + (if .live_status == "is_live" then ("Online" | @sh) elif .live_status == "was_live" then ("Offline" | @sh) else "null" end),
+      "description=" + (.description | if . == null then "null" else (@sh | @sh) end),
+      "channel=" + (.channel | if . == null then "null" else (@sh | @sh) end),
+      "channel_follower_count=" + (.channel_follower_count | if . == null then "null" else (format_number | @sh) end),
+      "duration=" + (.duration | format_duration | if . == null then "null" else @sh end),
+      "timestamp=" + (.upload_date | format_timestamp | if . == null then "null" else @sh end)
+    ] | join("\n")
+  ')"
+
+  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s\n" "$raw_title" | _util_generate_hash).sh"
+
   case "$img_url" in
   //*) img_url="https:$img_url" ;;
   esac
 
-  image_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$img_url" | _util_generate_hash).jpg"
-
-  view_count=$(echo "$data_item" | __preview_fzf_format_view_count)
-
-  live_status=$(echo "$data_item" | __preview_fzf_format_live_status)
-
-  description=$(echo "$data_item" | __preview_fzf_format_description)
-
-  channel=$(echo "$data_item" | __preview_fzf_format_channel)
-  channel_follower_count="$(echo "$data_item" | __preview_fzf_format_channel_follower_count)"
-
-  duration=$(echo "$data_item" | __preview_fzf_format_duration)
-
-  timestamp=$(echo "$data_item" | __preview_fzf_format_timestamp)
+  image_path="$CLI_PREVIEW_IMGS_DIR/$(printf "%s\n" "$img_url" | _util_generate_hash).jpg"
 
   script="$(
     cat <<EOF
