@@ -1229,7 +1229,7 @@ __preview_fzf_generate_script_for_item() {
   id=$(echo "$data_item" | jq '.id' -r)
   title=$(echo "$data_item" | __preview_fzf_format_title)
 
-  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$data_item" | jq '.title' | _util_generate_hash).sh"
+  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$data_item" | jq -r '.title' | _util_generate_hash).sh"
   image_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$data_item" | jq '.thumbnails[-1].url' -r | _util_generate_hash).jpg"
 
   view_count=$(echo "$data_item" | __preview_fzf_format_view_count)
