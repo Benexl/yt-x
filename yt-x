@@ -369,16 +369,20 @@ EOF
   TXT_MENU_CHANNELS_EXPLORER_PROMPT="Select a channel"
 
   # channel actions
-  TXT_MENU_CHANNEL_VIDEOS="Videos"
-  TXT_MENU_CHANNEL_FEATURED="Featured"
-  TXT_MENU_CHANNEL_SEARCH="Search"
-  TXT_MENU_CHANNEL_PLAYLISTS="Playlists"
-  TXT_MENU_CHANNEL_SHORTS="Shorts"
-  TXT_MENU_CHANNEL_STREAMS="Streams"
-  TXT_MENU_CHANNEL_PODCASTS="Podcasts"
-  TXT_MENU_CHANNEL_SUBSCRIBE="Subscribe"
-  TXT_MENU_CHANNEL_BACK="Back"
-  TXT_MENU_CHANNEL_EXIT="Exit"
+  TXT_MENU_CHANNEL_ACTIONS_PROMPT="Select action"
+  TXT_MENU_CHANNEL_ACTIONS_VIDEOS="Videos"
+  TXT_MENU_CHANNEL_ACTIONS_FEATURED="Featured"
+  TXT_MENU_CHANNEL_ACTIONS_SEARCH="Search"
+  TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT="Search for"
+  TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS="Playlists"
+  TXT_MENU_CHANNEL_ACTIONS_SHORTS="Shorts"
+  TXT_MENU_CHANNEL_ACTIONS_STREAMS="Streams"
+  TXT_MENU_CHANNEL_ACTIONS_PODCASTS="Podcasts"
+  TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE="Subscribe"
+  TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM="Would you like to import your youtube subscriptions first? You wont be able to do so again unless you delete $CLI_SUBSCRIPTIONS_FILE"
+
+  # playlists
+  TXT_MENU_PLAYLISTS_EXPLORER_PROMPT="Select Playlist"
 
   # playlist explorer
   TXT_MENU_PLAYLIST_EXPLORER_PROMPT="Select Media"
@@ -1600,6 +1604,30 @@ fetch_channels_prev() {
   [ "$((STATE_CURRENT_CHANNEL_RESULTS_START - 1))" -gt 1 ] && _state_pop
 }
 
+_fetch_yt_subs() {
+  local channels_data
+
+  if [ -z "$CONFIG_BROWSER" ]; then
+    ui_notify_warning "$TXT_CONFIG_BROWSER_NOT_SET"
+    return
+  fi
+  if ui_confirm "$TXT_MENU_MISC_SYNC_SUBS_CONFIRM"; then
+    ui_notify "$TXT_MENU_MISC_SYNC_SUBS_START"
+
+    channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist --dump-single-json --cookies-from-browser "$CONFIG_BROWSER")
+    if [ -n "$channels_data" ]; then
+      echo "$channels_data" >"$CLI_SUBSCRIPTIONS_FILE"
+    else
+      ui_notify_error "$TXT_MENU_MISC_SYNC_SUBS_FAILED"
+    fi
+  fi
+
+}
+
+fetch_yt_subs() {
+  _fetch_yt_subs
+}
+
 # ==============================================================================
 # Data downloading
 # ==============================================================================
@@ -2366,25 +2394,39 @@ menu_playlists_explorer() {
 # Menus: channels actions
 # ==============================================================================
 __menu_channel_actions_subscribe() {
-  if ! [ -s "$CLI_CONFIG_DIR/subscriptions.json" ]; then
-    if confirm "Would you like to import your youtube subscriptions first? You wont be able to do so again unless you delete subscriptions.json"; then
-      _channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J)
-      echo "$_channels_data" >"$CLI_CONFIG_DIR/subscriptions.json"
-    else
+  local _channels_data
+  local channel
+  local id
 
+  if ! [ -s "$CLI_SUBSCRIPTIONS_FILE" ]; then
+    if ui_confirm "$TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM"; then
+      fetch_yt_subs
+      _channels_data="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
+    else
       _channels_data='{"entries":[]}'
     fi
   else
-    _channels_data=$(cat "$CLI_CONFIG_DIR/subscriptions.json")
+    _channels_data="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
   fi
 
-  id=$(echo "$channel" | jq '.id' -r)
-  echo "$_channels_data" | jq "{\"entries\":[.entries[] | select(.id != \"$id\")]}|.entries+=[$channel]" >"$CLI_CONFIG_DIR/subscriptions.json" && send_notification "successfully subscribed" || send_notification "Failed to subscribe to channel"
+  channel="$(
+    echo "$STATE_CURRENT_CHANNEL_RESULTS" |
+      jq ".entries|map(select(.channel == \"$STATE_CURRENT_CHANNEL_TITLE\"))|.[0]"
+  )"
 
+  id=$(echo "$channel" | jq '.id' -r)
+  echo "$_channels_data" |
+    jq "{
+    \"entries\":[
+      .entries[]
+        | select(.id != \"$id\")
+    ]}|.entries+=[$channel]" >"$CLI_SUBSCRIPTIONS_FILE"
 }
 
 _menu_channel_actions() {
   local actions
+  local url
+
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_VIDEOS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰩉${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_FEATURED}
@@ -2398,40 +2440,49 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
-    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" | sed 's/.  //g')"
+    action="$(
+      printf "%s" "$actions" |
+        ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" |
+        sed 's/.  //g'
+    )"
     case "$action" in
     "$TXT_MENU_CHANNEL_ACTIONS_VIDEOS")
-      url="$uploader_url_base/videos"
-      search_results=$(run_yt_dlp "$url")
-      playlist_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/videos"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_STREAMS")
-      url="$uploader_url_base/streams"
-      search_results=$(run_yt_dlp "$url")
-      playlist_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/streams"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_PODCASTS")
-      url="$uploader_url_base/podcasts"
-      playlists_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/podcasts"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SHORTS")
-      url="$uploader_url_base/shorts"
-      search_results=$(run_yt_dlp "$url")
-      playlist_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/shorts"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_FEATURED")
-      url="$uploader_url_base/featured"
-      playlists_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/featured"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS")
-      url="$uploader_url_base/playlists"
-      playlists_explorer
+      url="$STATE_CURRENT_CHANNEL_URL/playlists"
+      fetch_playlists "$url"
+      menu_playlists_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SEARCH")
-      search_term="$(_ui_prompt "Enter term to search for" | jq -Rr '@uri')"
-      url="$uploader_url_base/search?query=$search_term"
-      search_results=$(run_yt_dlp "$url")
-      playlist_explorer
+      local search_term
+      search_term="$(ui_prompt "$TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT" | jq -Rr '@uri')"
+
+      url="$STATE_CURRENT_CHANNEL_URL/search?query=$search_term"
+      fetch_playlist "$url"
+      menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE") __menu_channel_actions_subscribe ;;
     "$TXT_MENU_BACK" | "") break ;;
@@ -2634,22 +2685,7 @@ __menu_miscellaneous_search_history() {
 }
 
 __menu_miscellaneous_sync_youtube_subscriptions() {
-  local channels_data
-
-  if [ -z "$CONFIG_BROWSER" ]; then
-    ui_notify_warning "$TXT_CONFIG_BROWSER_NOT_SET"
-    return
-  fi
-  if ui_confirm "$TXT_MENU_MISC_SYNC_SUBS_CONFIRM"; then
-    ui_notify "$TXT_MENU_MISC_SYNC_SUBS_START"
-
-    channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist --dump-single-json --cookies-from-browser "$CONFIG_BROWSER")
-    if [ -n "$channels_data" ]; then
-      echo "$channels_data" >"$CLI_SUBSCRIPTIONS_FILE"
-    else
-      ui_notify_error "$TXT_MENU_MISC_SYNC_SUBS_FAILED"
-    fi
-  fi
+  fetch_yt_subs
 }
 
 __menu_miscellaneous_clear_search_history() {
