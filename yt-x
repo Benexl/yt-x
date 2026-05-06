@@ -299,7 +299,9 @@ __load_default_lang() {
 
   # miscellaneous
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
+  TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Enter channel name"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explore Playlists"
+  TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Enter playlist name"
   TXT_MENU_MISC_SEARCH_HISTORY="Search History"
   TXT_MENU_MISC_NEW_CUSTOM_CMD="New Custom Command"
   TXT_MENU_MISC_CUSTOM_CMDS="Custom Commands"
@@ -310,6 +312,9 @@ __load_default_lang() {
   TXT_MENU_MISC_EDIT_CUSTOM_CMDS="Edit Custom Commands"
   TXT_MENU_MISC_SYNC_SUBS="Sync YouTube Subscriptions"
   TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Clear Search History"
+
+  # channels explorer
+  TXT_MENU_CHANNELS_EXPLORER_PROMPT="Select a channel"
 
   # channel actions
   TXT_MENU_CHANNEL_VIDEOS="Videos"
@@ -1250,6 +1255,7 @@ _state_init() {
   STATE_CURRENT=0
 
   STATE_CURRENT_CHANNEL_RESULTS=""
+  STATE_CURRENT_CHANNEL_RESULTS_URL=""
   STATE_CURRENT_CHANNEL_RESULTS_START=1
   STATE_CURRENT_CHANNEL_RESULTS_END="$CONFIG_PER_PAGE"
   STATE_CURRENT_CHANNEL_URL=""
@@ -1274,6 +1280,7 @@ _state_push() {
   mkdir -p "$current_state_dir"
 
   echo "$STATE_CURRENT_CHANNEL_RESULTS" >"$current_state_dir/channel_results"
+  echo "$STATE_CURRENT_CHANNEL_RESULTS_URL" >"$current_state_dir/channel_results_url"
   echo "$STATE_CURRENT_CHANNEL_RESULTS_START" >"$current_state_dir/channel_results_start"
   echo "$STATE_CURRENT_CHANNEL_RESULTS_END" >"$current_state_dir/channel_results_end"
   echo "$STATE_CURRENT_CHANNEL_URL" >"$current_state_dir/channel_url"
@@ -1302,6 +1309,7 @@ _state_pop() {
   ! [ -d "$current_state_dir" ] && ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 
   STATE_CURRENT_CHANNEL_RESULTS="$(cat "$current_state_dir/channel_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_CHANNEL_RESULTS_URL="$(cat "$current_state_dir/channel_results_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_RESULTS_START="$(cat "$current_state_dir/channel_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_RESULTS_END="$(cat "$current_state_dir/channel_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_URL="$(cat "$current_state_dir/channel_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
@@ -1414,6 +1422,50 @@ fetch_playlist_next() {
 
 fetch_playlist_prev() {
   [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
+}
+
+_fetch_channels() {
+  local url
+  url="$1"
+
+  STATE_CURRENT_CHANNEL_RESULTS="$(
+    _fetch_media "$url" "$STATE_CURRENT_CHANNEL_RESULTS_START" "$STATE_CURRENT_CHANNEL_RESULTS_END" |
+      jq "
+          .entries=(.entries 
+          | to_entries
+          | map(.value.channel=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.channel) 
+          |map(.value))
+          "
+  )"
+
+  STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.webpage_url' -r)"
+}
+
+fetch_channels() {
+  local url
+  local base_url
+
+  base_url="https://youtube.com"
+  url="$base_url/$1"
+
+  # fetching channels for the first time, initialize the indices
+  STATE_CURRENT_CHANNEL_RESULTS_START=1
+  STATE_CURRENT_CHANNEL_RESULTS_END="$CONFIG_PER_PAGE"
+
+  _fetch_channels "$url"
+  _state_push
+}
+
+fetch_channels_next() {
+  STATE_CURRENT_CHANNEL_RESULTS_START="$((STATE_CURRENT_CHANNEL_RESULTS_END + 1))"
+  STATE_CURRENT_CHANNEL_RESULTS_END="$((STATE_CURRENT_CHANNEL_RESULTS_END + CONFIG_PER_PAGE))"
+
+  _fetch_channels "$STATE_CURRENT_CHANNEL_RESULTS_URL"
+  _state_push
+}
+
+fetch_channels_prev() {
+  [ "$((STATE_CURRENT_CHANNEL_RESULTS_START - 1))" -gt 1 ] && _state_pop
 }
 
 # ==============================================================================
@@ -2152,9 +2204,6 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
     action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" | sed 's/.  //g')"
-    uploader_url_base="$(echo "$channel" | jq '.uploader_url' -r)"
-    clear
-
     case "$action" in
     "$TXT_MENU_CHANNEL_ACTIONS_VIDEOS")
       url="$uploader_url_base/videos"
@@ -2206,16 +2255,56 @@ menu_channel_actions() {
 # ==============================================================================
 # Menus: channels explorer
 # ==============================================================================
+__menu_channels_explorer_next() {
+  fetch_channels_next
+}
+
+__menu_channels_explorer_previous() {
+  fetch_channels_prev
+}
+
+__menu_channels_explorer() {
+  local channel
+  local channel_name
+
+  channel_name="$1"
+
+  channel="$(
+    echo "$STATE_CURRENT_CHANNEL_RESULTS" |
+      jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]"
+  )"
+
+  STATE_CURRENT_CHANNEL_URL="$(echo "$STATE_CURRENT_CHANNEL" | jq '.uploader_url' -r)"
+  STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel" | jq '.channel' -r)"
+  _state_push
+
+  menu_channel_actions
+}
+
 _menu_channels_explorer() {
+  local other_choices
+  local titles
+  local choice
+
+  other_choices="\
+$TXT_MENU_NEXT
+$TXT_MENU_PREVIOUS
+$TXT_MENU_BACK
+$TXT_MENU_EXIT"
+
   while true; do
-    channels=$(echo "$channels_data" | jq '.entries[].channel' -r)
-    export SHELL CLI_CONFIG_DIR
-    channel_name=$(printf "%s\nMain Menu\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS")
-    channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
-    [ "$channel_name" = "Exit" ] && _util_byebye
-    [ "$channel_name" = "Main Menu" ] && break
-    channel="$(echo "$channels_data" | jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]")"
-    channels_explorer
+    channels=$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].channel' -r)
+    choice="$(
+      printf "%s\n%s" "$channels" "$other_choices" |
+        ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
+    )"
+    case "$choice" in
+    "$TXT_MENU_NEXT") __menu_channels_explorer_next ;;
+    "$TXT_MENU_PREVIOUS") __menu_channels_explorer_previous ;;
+    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
+    *) __menu_channels_explorer "$choice" ;;
+    esac
   done
 }
 
@@ -2228,30 +2317,21 @@ menu_channels_explorer() {
 # ==============================================================================
 __menu_miscellaneous_explore_channels() {
   local search_term
-  while true; do
-    clear
-    search_term=$(prompt "What channel would you like to explore?")
-    url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAg%253D%253D"
-    echo "Loading..." >/dev/stderr
-    channels_data=$(yt-dlp "$url" -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER --playlist-start 1 --playlist-end $NO_OF_SEARCH_RESULTS)
-    clear
-    channels=$(echo "$channels_data" | jq '.entries[].channel' -r)
-    export channels_data SHELL
-    channel_name=$(printf "%s\nBack\nExit" "$channels" | ui_launcher_with_preview "Select Channel" "$PREVIEW_SCRIPT_FOR_CHANNELS_EXPLORER")
-    channel_name="$(echo "$channel_name" | sed 's/"/\\"/g;s/ *$//g' | tr -d "\n")"
-    [ "$channel_name" = "Exit" ] && _util_byebye
-    [ "$channel_name" = "Back" ] || [ "$channel_name" = "" ] && break
-    channel="$(echo "$channels_data" | jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]")"
-    channels_explorer
-  done
+  local url
 
+  search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT" | jq -Rr '@uri')
+
+  url="results?search_query=$search_term&sp=EgIQAg%253D%253D"
+
+  fetch_channels "$url"
+  menu_channels_explorer
 }
 
 __menu_miscellaneous_explore_playlists() {
   local search_term
   local url
 
-  search_term=$(ui_prompt "What playlist would you like to explore?" | jq -Rr '@uri')
+  search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT" | jq -Rr '@uri')
 
   url="results?search_query=$search_term&sp=EgIQAw%253D%253D"
 
