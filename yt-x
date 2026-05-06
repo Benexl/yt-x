@@ -1020,7 +1020,7 @@ __preview_fzf_create_shared_script() {
       cat <<'EOF'
 draw_divider() {
   ll=1
-  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;(( ll++ ));done;
+  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;ll=$(( ll + 1 ));done;
   echo
 }
 
@@ -1265,19 +1265,19 @@ if [ '$CONFIG_ENABLE_PREVIEW' = 'true' ];then
   if [ -s "$image_path" ];then 
     fzf_preview "$image_path" 2>/dev/null;
   else
-    printf "$TXT_FZF_PREVIEW_IMAGE_LOADING";
+    printf "$TXT_FZF_PREVIEW_IMAGE_LOADING\n";
   fi
 fi
 
 
 draw_divider
 
-printf "%s\n" $title
+printf "%s\n" $title|fold -s -w "\$FZF_PREVIEW_COLUMNS"
 
 draw_divider
 
 if ! [ $channel = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" $channel;
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" $channel|fold -s -w \$FZF_PREVIEW_COLUMNS
 fi
 
 if ! [ "$channel_follower_count" = "null" ];then
@@ -1299,11 +1299,12 @@ fi
 if ! [ "$timestamp" = "null" ];then
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "$timestamp";
 fi
-
+if ! [ $channel = "null" ] || ! [ "$channel_follower_count" = "null" ] || ! [ "$duration" = "null" ] || ! [ "$view_count" = "null" ] || ! [ "$live_status" = "null" ] || ! [ "$timestamp" = "null" ];then
 draw_divider
+fi
 
 if ! [ $description = "null" ];then
-  printf "%s\n" $description;
+  printf "%s\n" $description|fold -s -w "\$FZF_PREVIEW_COLUMNS"
 fi
 EOF
   )"
