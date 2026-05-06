@@ -1358,6 +1358,12 @@ _preview_download_imgs() {
     data_item=$(echo "$data_to_preview" | jq ".entries[$((i - 1))]")
 
     url="$(echo "$data_item" | jq '.thumbnails[-1].url' -r)"
+
+    # handle relative protocol URLs
+    case "$url" in
+    //*) url="https:$url" ;;
+    esac
+
     output_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$url" | _util_generate_hash).jpg"
 
     __preview_download_image "$url" "$output_path" &
@@ -1596,10 +1602,11 @@ _fetch_playlist() {
 
 fetch_playlist() {
   local url
-  local base_url
 
-  base_url="https://youtube.com"
-  url="$base_url/$1"
+  case "$1" in
+  http://* | https://*) url="$1" ;;
+  *) url="https://youtube.com/$1" ;;
+  esac
 
   # fetching playlist for the first time, initialize the indices
   STATE_CURRENT_PLAYLIST_START=1
@@ -1645,10 +1652,11 @@ _fetch_playlists() {
 
 fetch_playlists() {
   local url
-  local base_url
 
-  base_url="https://youtube.com"
-  url="$base_url/$1"
+  case "$1" in
+  http://* | https://*) url="$1" ;;
+  *) url="https://youtube.com/$1" ;;
+  esac
 
   # fetching playlist for the first time, initialize the indices
   STATE_CURRENT_PLAYLISTS_RESULTS_START=1
@@ -1690,10 +1698,11 @@ _fetch_channels() {
 
 fetch_channels() {
   local url
-  local base_url
 
-  base_url="https://youtube.com"
-  url="$base_url/$1"
+  case "$1" in
+  http://* | https://*) url="$1" ;;
+  *) url="https://youtube.com/$1" ;;
+  esac
 
   # fetching channels for the first time, initialize the indices
   STATE_CURRENT_CHANNEL_RESULTS_START=1
