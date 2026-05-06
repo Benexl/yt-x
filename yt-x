@@ -1219,23 +1219,24 @@ EOF
 }
 
 _preview_fzf_generate_script() {
-  local fzf_preview
   local data_to_preview
-  local lines
+  local i
+  local data_item
 
+  i=0
   data_to_preview="$1"
-  lines="$(echo "$data_to_preview" | jq '.entries[].id' -r | wc -l)"
 
   __preview_fzf_create_shared_script
-  for i in $(seq 1 "$lines"); do
-    data_item=$(echo "$data_to_preview" | jq ".entries[$((i - 1))]")
 
+  printf "%s\n" "$data_to_preview" | jq -c '.entries[]' | while IFS= read -r data_item; do
     __preview_fzf_generate_script_for_item "$data_item" &
 
+    i=$((i + 1))
     if [ $((i % 10)) -eq 0 ]; then
       wait
     fi
   done
+  wait # ensure the last batch finishes
 }
 
 __preview_download_image() {
@@ -1251,33 +1252,28 @@ __preview_download_image() {
 }
 
 _preview_download_imgs() {
-  local url
-  local lines
-  local data_item
-  local output_path
   local data_to_preview
+  local url
+  local output_path
 
   data_to_preview="$1"
-  lines="$(echo "$data_to_preview" | jq '.entries[].id' -r | wc -l)"
+  local i=0
 
-  for i in $(seq 1 "$lines"); do
-    data_item=$(echo "$data_to_preview" | jq ".entries[$((i - 1))]")
-
-    url="$(echo "$data_item" | jq '.thumbnails[-1].url' -r)"
-
+  printf "%s\n" "$data_to_preview" | jq -r '.entries[].thumbnails[-1].url' | while IFS= read -r url; do
     # handle relative protocol URLs
     case "$url" in
     //*) url="https:$url" ;;
     esac
 
-    output_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$url" | _util_generate_hash).jpg"
-
+    output_path="$CLI_PREVIEW_IMGS_DIR/$(printf "%s\n" "$url" | _util_generate_hash).jpg"
     __preview_download_image "$url" "$output_path" &
 
+    i=$((i + 1))
     if [ $((i % 10)) -eq 0 ]; then
       wait
     fi
   done
+  wait
 }
 
 _preview_fzf() {
