@@ -1223,6 +1223,7 @@ __preview_fzf_generate_script_for_item() {
   local duration
   local preview_script_path
   local script
+  local img_url
 
   shared_script_path="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
   data_item="$1"
@@ -1231,7 +1232,13 @@ __preview_fzf_generate_script_for_item() {
   title=$(echo "$data_item" | __preview_fzf_format_title)
 
   preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$data_item" | jq -r '.title' | _util_generate_hash).sh"
-  image_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$data_item" | jq '.thumbnails[-1].url' -r | _util_generate_hash).jpg"
+
+  img_url="$(echo "$data_item" | jq '.thumbnails[-1].url' -r)"
+  case "$img_url" in
+  //*) img_url="https:$img_url" ;;
+  esac
+
+  image_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$img_url" | _util_generate_hash).jpg"
 
   view_count=$(echo "$data_item" | __preview_fzf_format_view_count)
 
