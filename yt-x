@@ -277,6 +277,7 @@ __load_default_lang() {
 
   # files
   TXT_CUSTOM_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_CUSTOM_CMDS_FILE or use the ui"
+  TXT_SEARCH_HISTORY_FILE_NOT_FOUND="You dont have any search history. Start searching to generate search history or edit the file here $CLI_SEARCH_HISTORY_FILE"
 
   # main
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
@@ -306,7 +307,9 @@ __load_default_lang() {
   TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Enter channel name"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explore Playlists"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Enter playlist name"
+
   TXT_MENU_MISC_SEARCH_HISTORY="Search History"
+  TXT_MENU_MISC_SEARCH_HISTORY_PROMPT="Search for"
 
   TXT_MENU_MISC_NEW_CUSTOM_CMD="New Custom Command"
   TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
@@ -2456,15 +2459,28 @@ __menu_miscellaneous_custom_commands() {
 }
 
 __menu_miscellaneous_search_history() {
-  while true; do
-    ! [ -s "$CLI_CACHE_DIR/search_history.txt" ] && echo "No search history or disabed" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
-    search_term="$(printf "$(tac "$CLI_CACHE_DIR/search_history.txt")\nBack" | ui_launcher "Search for" | jq -Rr '@uri')"
-    [ "$search_term" = "Back" ] || [ "$search_term" = "" ] && break
-    url="https://www.youtube.com/results?search_query=$search_term&sp=EgIQAQ%253D%253D"
-    search_results=$(run_yt_dlp "$url")
-    playlist_explorer
-  done
+  local search_term
+  local url
 
+  if [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
+    while true; do
+      search_term="$(
+        printf "%s\n%s" "$(tac "$CLI_SEARCH_HISTORY_FILE")" "$TXT_MENU_BACK" |
+          ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
+      )"
+      case "$search_term" in
+      "$TXT_MENU_BACK") break ;;
+      *)
+        url="results?search_query=$search_term&sp=EgIQAQ%253D%253D"
+
+        fetch_playlist "$url"
+        menu_playlist_explorer
+        ;;
+      esac
+    done
+  else
+    ui_notify_warning "$TXT_SEARCH_HISTORY_FILE_NOT_FOUND"
+  fi
 }
 
 __menu_miscellaneous_sync_youtube_subscriptions() {
