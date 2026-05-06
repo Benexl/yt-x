@@ -93,7 +93,7 @@ __init_env_paths() {
 
   CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
   CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
-  CLI_PREVIEW_TXT_DIR="$CLI_CACHE_DIR/previews/text"
+  CLI_PREVIEW_SCRIPTS_DIR="$CLI_CACHE_DIR/previews/text"
 
   CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
   CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
@@ -121,7 +121,7 @@ __init_env_paths() {
     "$CLI_EXTENSIONS_CMDS_DIR" \
     "$CLI_CURRENT_STATE_DIR" \
     "$CLI_PREVIEW_IMGS_DIR" \
-    "$CLI_PREVIEW_TXT_DIR" \
+    "$CLI_PREVIEW_SCRIPTS_DIR" \
     "$CLI_AUTO_GEN_PLAYLISTS" \
     "$CLI_DOWNLOAD_ARCHIVE_DIR" \
     "$CLI_LOG_DIR"
@@ -148,6 +148,7 @@ __load_default_config() {
   : "${CONFIG_ENABLE_COLORS:=true}"
   : "${CONFIG_LAUNCHER:=fzf}"
   : "${CONFIG_ENABLE_PREVIEW:=false}"
+  : "${CONFIG_ENABLE_PREVIEW_IMAGES:=false}"
   : "${CONFIG_IMAGE_RENDERER:=chafa}"
   : "${CONFIG_CHAFA_ARGS:=}"
   : "${CONFIG_ICAT_ARGS:=}"
@@ -216,6 +217,7 @@ __load_env_config() {
   CONFIG_ENABLE_COLORS="${YT_X_ENABLE_COLORS:-$CONFIG_PRETTY_PRINT}"
   CONFIG_SELECTOR="${YT_X_SELECTOR:-$CONFIG_SELECTOR}"
   CONFIG_ENABLE_PREVIEW="${YT_X_ENABLE_PREVIEW:-$CONFIG_ENABLE_PREVIEW}"
+  CONFIG_ENABLE_PREVIEW_IMAGES="${YT_X_ENABLE_PREVIEW_IMAGES:-$CONFIG_ENABLE_PREVIEW_IMAGES}"
 
   # Renderer Settings
   CONFIG_IMAGE_RENDERER="${YT_X_IMAGE_RENDERER:-$CONFIG_IMAGE_RENDERER}"
@@ -268,6 +270,15 @@ __load_default_lang() {
 
   # core: launcher
   TXT_LAUNCHER_UNKNOWN="Unknown launcher"
+  TXT_LAUNCHER_PREVIEWS_UNSUPPORTED="The current launcher ($CONFIG_LAUNCHER) does not support previews. Please switch to a supported launcher or disable previews in the config."
+
+  # fzf preview
+  TXT_FZF_PREVIEW_IMAGE_LOADING="loading preview image..."
+  TXT_FZF_PREVIEW_CHANNEL="Channel"
+  TXT_FZF_PREVIEW_DURATION="Duration"
+  TXT_FZF_PREVIEW_VIEW_COUNT="Views"
+  TXT_FZF_PREVIEW_LIVE_STATUS="Live Status"
+  TXT_FZF_PREVIEW_TIMESTAMP="Uploaded"
 
   # core: rofi
   TXT_ROFI_NOT_CONFIGURED="Rofi is not configured. Please set to a valid rofi config file path in your config.sh"
@@ -478,6 +489,7 @@ CONFIG_LAUNCHER="$CONFIG_LAUNCHER"
 # Enable image/video previews within the selector
 # Options: true, false (Default: false)
 CONFIG_ENABLE_PREVIEW="$CONFIG_ENABLE_PREVIEW"
+CONFIG_ENABLE_PREVIEW_IMAGES="$CONFIG_ENABLE_PREVIEW_IMAGES"
 
 # The tool used to render previews in the terminal
 # Options: chafa, icat, imgcat (Default: chafa)
@@ -761,7 +773,7 @@ __ui_fzf_launcher_with_preview() {
   local preview_script
 
   preview_script="
-preview_txt='$CLI_PREVIEW_TXT_DIR/{3}'
+preview_txt='$CLI_PREVIEW_SCRIPTS_DIR/{1}'
 [ -s \"\$preview_txt\" ] && exec sh \"\$preview_txt\"
 "
 
@@ -775,7 +787,7 @@ preview_txt='$CLI_PREVIEW_TXT_DIR/{3}'
   IFS=" "
 
   # shellcheck disable=SC2086
-  fzf --prompt="${1}: " --preview="$preview_script" $custom_opts
+  fzf --prompt="${1}: " --delimiter '|' --with-nth "{2..}" --preview="$preview_script" $custom_opts
 
   IFS="$old_ifs"
 }
@@ -801,14 +813,15 @@ __ui_rofi_launcher_with_preview() {
 }
 
 _ui_launcher_with_preview() {
-  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] || ui_launcher "$@" && return
-
-  case "$CONFIG_LAUNCHER" in
-  rofi) __ui_rofi_launcher_with_preview "$@" ;;
-  fzf) __ui_fzf_launcher_with_preview "$@" ;;
-  *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
-  esac
-
+  if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
+    case "$CONFIG_LAUNCHER" in
+    rofi) __ui_rofi_launcher_with_preview "$@" ;;
+    fzf) __ui_fzf_launcher_with_preview "$@" ;;
+    *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
+    esac
+  else
+    ui_launcher "$@" && return
+  fi
 }
 
 ui_launcher_with_preview() {
@@ -995,19 +1008,91 @@ ui_load() {
 # ==============================================================================
 # Previews
 # ==============================================================================
-generate_text_preview() {
-  [ -z "$search_results" ] && return 1
-  ids="$(echo "$1" | jq '.entries[].id' -r 2>/dev/null)"
+__preview_fzf_create_shared_script() {
+  local shared_script_path
+  local fzf_preview
 
-  lines="$(echo "$ids" | wc -l)"
-  for i in $(seq 1 "$lines"); do
-    video=$(echo "$1" | jq ".entries[$((i - 1))]")
-    title=$(echo "$video" | jq ".title" -r | sed 's/"/\\\\"/g;s/%/%%/g;s/\$/\\\\$/g;s/^.. //g')
-    id=$(echo "$video" | jq '.id' -r)
-    preview_image=$(echo "$video" | jq '.thumbnails[-1].url' -r | generate_sha256)
+  shared_script_path="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 
-    view_count=$(
-      echo "$video" | jq -r '
+  if ! [ -s "$shared_script_path" ]; then
+    fzf_preview="$(
+      cat <<'EOF'
+draw_divider() {
+  ll=1
+  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;(( ll++ ));done;
+  echo
+}
+
+fzf_preview() {
+  file=$1
+
+  dim=${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}
+  if [ "$dim" = "x" ]; then
+    dim=$(stty size </dev/tty | awk "{print \$2 \"x\" \$1}")
+  fi
+  if ! [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$KITTY_WINDOW_ID" ] && [ "$((FZF_PREVIEW_TOP + FZF_PREVIEW_LINES))" -eq "$(stty size </dev/tty | awk "{print \$1}")" ]; then
+    dim=${FZF_PREVIEW_COLUMNS}x$((FZF_PREVIEW_LINES - 1))
+  fi
+
+  if [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$GHOSTTY_BIN_DIR" ]; then
+    if command -v kitten >/dev/null 2>&1; then
+      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    elif command -v icat >/dev/null 2>&1; then
+      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    else
+      kitty icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    fi
+
+  elif [ -n "$GHOSTTY_BIN_DIR" ]; then
+    if command -v kitten >/dev/null 2>&1; then
+      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    elif command -v icat >/dev/null 2>&1; then
+      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    else
+      chafa -s "$dim" "$file"
+    fi
+  elif command -v chafa >/dev/null 2>&1; then
+    case "$CLI_PLATFORM" in
+    android) chafa -s "$dim" "$file" ;;
+    windows) chafa -f sixel -s "$dim" "$file" ;;
+    *) chafa -s "$dim" "$file" ;;
+    esac
+    echo
+
+  elif command -v imgcat >/dev/null; then
+    imgcat -W "${dim%%x*}" -H "${dim##*x}" "$file"
+
+  else
+    echo please install a terminal image viewer
+    echo either icat for kitty terminal and wezterm or imgcat or chafa
+  fi
+}
+EOF
+    )"
+    fzf_preview="
+THEME_FZF_PREVIEW_DIVIDER=$THEME_FZF_PREVIEW_DIVIDER
+THEME_RESET=$THEME_RESET
+
+$fzf_preview
+    "
+    echo "$fzf_preview" >"$shared_script_path"
+  else
+    return
+  fi
+}
+
+__preview_fzf_format_title() {
+  jq ".title" -r |
+    sed 's/"/\\\\"/g;s/%/%%/g;s/\$/\\\\$/g;s/^.. //g'
+}
+
+__preview_fzf_format_description() {
+  jq ".description" -r |
+    sed 's/"/\\\\"/g;s/%/%%/g;s/\$/\\\\$/g'
+}
+
+__preview_fzf_format_view_count() {
+  jq -r '
       .view_count
       |tostring
       |split("")
@@ -1018,283 +1103,304 @@ generate_text_preview() {
       |reverse
       |join("")
       '
-    )
+}
 
-    live_status=$(echo "$video" | jq '.live_status' -r)
-    [ "$live_status" = "is_live" ] && live_status='Online'
-    [ "$live_status" = "was_live" ] && live_status='Offline'
-    [ "$live_status" = "null" ] && live_status='False'
+__preview_fzf_format_live_status() {
+  jq -r '
+    if .live_status == "is_live" then
+      "Online"
+    elif .live_status == "was_live" then
+      "Offline"
+    else
+      null
+    end
+  '
+}
 
-    description=$(echo "$video" | jq '.description' -r | sed "s/\"//g;s/%//g")
-    channel=$(echo "$video" | jq '.channel' -r)
-
-    # some duration calculations
-    duration=$(echo "$video" | jq '
-    try 
+__preview_fzf_format_duration() {
+  jq -r '
+    try(
       if .duration>=3600 then
         if .duration/3600|floor == 1 then 
           .duration/3600|floor|tostring + " hour" 
-        else 
+        else
           .duration/3600|floor|tostring + " hours" 
-        end 
+        end
       elif .duration>=60 then
         if .duration/60|floor == 1 then 
           .duration/60|floor|tostring + " min" 
-        else 
+        else
           .duration/60|floor|tostring + " mins" 
-        end 
-      else 
+        end
+      else
         if .duration == 1 then 
           .duration/1|floor|tostring + " sec" 
-        else 
+        else
           .duration/1|floor|tostring + " secs" 
-        end 
+        end
       end
-    catch
-      "Unknown" 
-    ' -r)
-
-    # some date calculations
-    timestamp=$(echo "$video" | jq '.timestamp' -r)
-    relative_timestamp=$((CURRENT_TIME - timestamp))
-    if [ "$relative_timestamp" -lt 60 ]; then
-      timestamp="just now"
-    elif [ "$relative_timestamp" -lt 3600 ]; then
-      timestamp=$((relative_timestamp / 60))
-      if [ "$timestamp" -eq 1 ]; then
-        timestamp="$timestamp minute ago"
-      else
-        timestamp="$timestamp minutes ago"
-      fi
-    elif [ "$relative_timestamp" -lt 86400 ]; then
-      timestamp=$((relative_timestamp / 3600))
-      if [ "$relative_timestamp" -lt 7200 ]; then
-        timestamp="1 hour ago"
-      else
-        timestamp=$((relative_timestamp / 3600))
-        timestamp="$timestamp hours ago"
-      fi
-    elif [ "$relative_timestamp" -lt 604800 ]; then
-      timestamp=$((relative_timestamp / 86400))
-      if [ "$timestamp" -eq 1 ]; then
-        timestamp="$timestamp day ago"
-      else
-        timestamp="$timestamp days ago"
-      fi
-    elif [ "$relative_timestamp" -lt 2635200 ]; then
-      timestamp=$((relative_timestamp / 604800))
-      if [ "$timestamp" -eq 1 ]; then
-        timestamp="$timestamp week ago"
-      else
-        timestamp="$timestamp weeks ago"
-      fi
-    elif [ "$relative_timestamp" -lt 31622400 ]; then
-      timestamp=$((relative_timestamp / 2635200))
-      if [ "$timestamp" -eq 1 ]; then
-        timestamp="$timestamp month ago"
-      else
-        timestamp="$timestamp months ago"
-      fi
-    else
-      timestamp=$((relative_timestamp / 31622400))
-      if [ "$timestamp" -eq 1 ]; then
-        timestamp="$timestamp year ago"
-      else
-        timestamp="$timestamp years ago"
-      fi
-    fi
-
-    printf "
-
-if [ -f \"$CLI_PREVIEW_IMAGES_CACHE_DIR/${preview_image}.jpg\" ];then fzf_preview \"$CLI_PREVIEW_IMAGES_CACHE_DIR/${preview_image}.jpg\" 2>/dev/null;
-else echo loading preview image...;
-fi
-ll=1
-while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-echo
-
-echo \"$title\"
-
-ll=1
-while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-printf \"${MAGENTA}${BOLD}Channel: ${RESET}$channel\n\";
-printf \"${MAGENTA}${BOLD}Duration: ${RESET}$duration\n\";
-printf \"${MAGENTA}${BOLD}View Count: ${RESET}$view_count views\n\";
-printf \"${MAGENTA}${BOLD}Live Status: ${RESET}$live_status\n\";
-printf \"${MAGENTA}${BOLD}Uploaded: ${RESET}$timestamp\n\";
-
-ll=1
-while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-echo
-
-
-! [ \"$description\" = \"null\" ] && echo -n \"%s\";
-
-" "$description" >"$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$video" | jq ".title" -r | generate_sha256).txt"
-
-  done
+  )catch
+      null
+    '
 }
 
-download_preview_images() {
-  local url video filename
-
-  echo generating preview in the background...
-  generate_text_preview "$1" &
-
-  ids="$(echo "$1" | jq '.entries[].id' -r 2>/dev/null)"
-  urls="$(echo "$1" | jq '.entries[].thumbnails[-1].url' -r 2>/dev/null)"
-  [ -z "$ids" ] && return 1
-  [ -z "$urls" ] && return 1
-
-  [ -f "$CLI_PREVIEW_IMAGES_CACHE_DIR/previews.txt" ] && rm "$CLI_PREVIEW_IMAGES_CACHE_DIR/previews.txt"
-  lines="$(echo "$ids" | wc -l)"
-  for i in $(seq 1 "$lines"); do
-    video=$(echo "$1" | jq ".entries[$((i - 1))]")
-    url=$(echo "$urls" | head -n $i | tail -n 1)
-    filename=$(echo "$url" | generate_sha256)
-    if ! [ -s "$CLI_PREVIEW_IMAGES_CACHE_DIR/${filename}.jpg" ]; then
-      echo "url = \"${2}${url}\"" >>"$CLI_PREVIEW_IMAGES_CACHE_DIR/previews.txt"
-      echo "output = \"$CLI_PREVIEW_IMAGES_CACHE_DIR/${filename}.jpg\"" >>"$CLI_PREVIEW_IMAGES_CACHE_DIR/previews.txt"
-    fi
-  done
-  curl -s -K "$CLI_PREVIEW_IMAGES_CACHE_DIR/previews.txt" 2>/dev/null &
+__preview_fzf_format_timestamp() {
+  jq -r '
+    try(
+      (.upload_date | tostring)
+      | strptime("%Y%m%d")
+      | mktime
+      | now - .
+      | if . < 60 then
+          "Just now"
+        elif . < 3600 then
+          (. / 60 | floor) as $mins
+          | if $mins == 1 then
+              "1 minute ago"
+            else
+              "\($mins) minutes ago"
+            end
+        elif . < 86400 then
+          (. / 3600 | floor) as $hours
+          | if $hours == 1 then
+              "1 hour ago"
+            else
+              "\($hours) hours ago"
+            end
+        elif . < 2592000 then
+          (. / 86400 | floor) as $days
+          | if $days == 1 then
+              "1 day ago"
+            else
+              "\($days) days ago"
+            end
+        elif . < 31536000 then
+          (. / 2592000 | floor) as $months
+          | if $months == 1 then
+              "1 month ago"
+            else
+              "\($months) months ago"
+            end
+        else
+          (. / 31536000 | floor) as $years
+          | if $years == 1 then
+              "1 year ago"
+            else
+              "\($years) years ago"
+            end
+        end
+  )catch
+      null
+    '
 }
 
-_preview_fzf_all() {
-  PREVIEW_SCRIPT_FOR_VIDEOS="
+__preview_fzf_format_channel_follower_count() {
+  jq -r '
+      .channel_follower_count
+      |tostring
+      |split("")
+      |reverse
+      |join("")
+      |gsub("([0-9]{3})(?=[0-9])"; "\(.),")
+      |split("")
+      |reverse
+      |join("")
+      '
+}
 
-  title={}
-  id=\$(echo {} | generate_sha256)
-  if  [ -f \"$CLI_PREVIEW_SCRIPTS_DIR/\${id}.txt\" ];then
-    . \"$CLI_PREVIEW_SCRIPTS_DIR/\${id}.txt\";
+__preview_fzf_generate_script_for_item() {
+  local shared_script_path
+  local data_item
+  local title
+  local id
+  local image_path
+  local view_count
+  local live_status
+  local description
+  local channel
+  local duration
+  local preview_script_path
+  local script
+
+  shared_script_path="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
+  data_item="$1"
+
+  id=$(echo "$data_item" | jq '.id' -r)
+  title=$(echo "$data_item" | __preview_fzf_format_title)
+
+  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$data_item" | jq '.title' | _util_generate_hash).sh"
+  image_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$data_item" | jq '.thumbnails[-1].url' -r | _util_generate_hash).jpg"
+
+  view_count=$(echo "$data_item" | __preview_fzf_format_view_count)
+
+  live_status=$(echo "$data_item" | __preview_fzf_format_live_status)
+
+  description=$(echo "$data_item" | __preview_fzf_format_description)
+
+  channel=$(echo "$data_item" | jq '.channel' -r)
+  channel_follower_count="$(echo "$data_item" | __preview_fzf_format_channel_follower_count)"
+
+  duration=$(echo "$data_item" | __preview_fzf_format_duration)
+
+  timestamp=$(echo "$data_item" | __preview_fzf_format_timestamp)
+
+  script="$(
+    cat <<EOF
+# ==============================================================================
+# This script is generated dynamically for each preview item and is executed 
+# by fzf when that item is previewed. You can customize the content and layout 
+# of the preview by modifying the way this script is generated in 
+# __preview_fzf_generate_script_for_item function. The script has access to the 
+# item's data through the variables defined at the beginning (title, image_path,
+# view_count, live_status, description, channel, duration, timestamp).
+# You can also use any utilities or functions defined in the shared script 
+# (fzf-preview.sh) to render images or format text.
+# ==============================================================================
+
+. "$shared_script_path"
+
+if [ '$CONFIG_ENABLE_PREVIEW' = 'true' ];then
+  if [ -s "$image_path" ];then 
+    fzf_preview "$image_path" 2>/dev/null;
   else
-    echo Loading Preview...
+    printf "$TXT_FZF_PREVIEW_IMAGE_LOADING";
   fi
-"
-  PREVIEW_SCRIPT_FOR_CHANNELS="
+fi
 
-  MAGENTA='\x1b[38;2;215;0;95m'
-  BOLD=\$(tput bold)
-  RESET=\$(tput sgr0)
+draw_divider
 
-  if ! [ -z {} ] && ! [ {} = \"Back\" ] && ! [ {} = \"Exit\" ] && ! [ {} = \"Main Menu\" ];then
-    channels_data=\$(cat \"\$CLI_CONFIG_DIR/subscriptions.json\")
-    title=\"\$(echo {}|sed 's/\"/\\\\\\\"/g')\"
-    video=\$(echo \"\$channels_data\" | jq -r \".entries | map(select(.title == \\\"\$title\\\" )) | .[0]\" 2>/dev/null)
+printf "$title"
 
-    id=\$(echo \$video |jq '.thumbnails[-1].url' -r | generate_sha256);
+draw_divider
 
-    channel=\$(echo \"\$video\"| jq '.channel' -r);
+if ! [ "$channel" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}$channel\n";
+fi
 
-    channel_follower_count=\$(echo \"\$video\"| jq -r '
-    .channel_follower_count
-    |tostring
-    |split(\"\")
-    |reverse
-    |join(\"\")
-    |gsub(\"(?<thousands>[0-9]\\{3})(?=[0-9])\"; \"\\(.thousands),\")
-    |split(\"\")
-    |reverse
-    |join(\"\")
-    '
-    );
-    
-    description=\$(echo \"\$video\"| jq '.description' -r);
-    
-    if [ -f \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" ];then fzf_preview \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" 2>/dev/null;
-    else echo loading preview image...;
+if ! [ "$channel_follower_count" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}$channel_follower_count\n";
+fi
+
+if ! [ "$duration" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}$duration\n";
+fi
+
+if ! [ "$view_count" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}$view_count views\n";
+fi
+
+if ! [ "$live_status" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}$live_status\n";
+fi
+
+if ! [ "$timestamp" = "null" ];then
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}$timestamp\n";
+fi
+
+draw_divider
+
+if ! [ "$description" = "null" ];then
+  printf "$description";
+fi
+EOF
+  )"
+
+  printf "%s" "$script" >"$preview_script_path"
+}
+
+_preview_fzf_generate_script() {
+  local fzf_preview
+  local data_to_preview
+  local lines
+
+  data_to_preview="$1"
+  lines="$(echo "$data_to_preview" | jq '.entries[].id' -r | wc -l)"
+
+  __preview_fzf_create_shared_script
+  for i in $(seq 1 "$lines"); do
+    data_item=$(echo "$data_to_preview" | jq ".entries[$((i - 1))]")
+
+    __preview_fzf_generate_script_for_item "$data_item" &
+
+    if [ $((i % 10)) -eq 0 ]; then
+      wait
     fi
+  done
+}
 
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-    # printf \"\${MAGENTA}\${BOLD}Id: \${RESET}\$id\n\";
-    printf \"\${MAGENTA}\${BOLD}Channel: \${RESET}\$channel\n\";
-    printf \"\${MAGENTA}\${BOLD}Follower Count: \${RESET}\$channel_follower_count followers\n\";
+__preview_download_image() {
+  local url
+  local output_path
 
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-    ! [ \"\$description\" = \"null\" ] && echo -e \"\$description\";
-  else
-    echo Loading...;
-  fi;
-"
+  url="$1"
+  output_path="$2"
 
-  PREVIEW_SCRIPT_FOR_CHANNELS_EXPLORER="
+  if ! [ -s "$output_path" ]; then
+    curl -sL "$url" -o "$output_path"
+  fi
+}
 
-  MAGENTA='\x1b[38;2;215;0;95m'
-  BOLD=\$(tput bold)
-  RESET=\$(tput sgr0)
+_preview_download_imgs() {
+  local url
+  local lines
+  local data_item
+  local output_path
+  local data_to_preview
 
-  if ! [ -z {} ] && ! [ {} = \"Back\" ] && ! [ {} = \"Exit\" ] && ! [ {} = \"Main Menu\" ];then
-    # channels_data=\$(cat \"\$CLI_CONFIG_DIR/subscriptions.json\")
-    title=\"\$(echo {}|sed 's/\"/\\\\\\\"/g')\"
-    video=\$(echo \"\$channels_data\" | jq -r \".entries | map(select(.title == \\\"\$title\\\" )) | .[0]\" 2>/dev/null)
+  data_to_preview="$1"
+  lines="$(echo "$data_to_preview" | jq '.entries[].id' -r | wc -l)"
 
-    id=\$(echo \$video | jq '.thumbnails[-1].url' -r | generate_sha256);   
+  for i in $(seq 1 "$lines"); do
+    data_item=$(echo "$data_to_preview" | jq ".entries[$((i - 1))]")
 
-    channel=\$(echo \"\$video\"| jq '.channel' -r);
+    url="$(echo "$data_item" | jq '.thumbnails[-1].url' -r)"
+    output_path="$CLI_PREVIEW_IMGS_DIR/$(echo "$url" | _util_generate_hash).jpg"
 
-    channel_follower_count=\$(echo \"\$video\"| jq -r '
-    .channel_follower_count
-    |tostring
-    |split(\"\")
-    |reverse
-    |join(\"\")
-    |gsub(\"(?<thousands>[0-9]\\{3})(?=[0-9])\"; \"\\(.thousands),\")
-    |split(\"\")
-    |reverse
-    |join(\"\")
-    '
-    );
-    
-    description=\$(echo \"\$video\"| jq '.description' -r);
-    
-    if [ -f \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" ];then fzf_preview \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" 2>/dev/null;
-    else echo loading preview image...;
+    __preview_download_image "$url" "$output_path" &
+
+    if [ $((i % 10)) -eq 0 ]; then
+      wait
     fi
+  done
+}
 
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-    # printf \"\${MAGENTA}\${BOLD}Id: \${RESET}\$id\n\";
-    printf \"\${MAGENTA}\${BOLD}Channel: \${RESET}\$channel\n\";
-    printf \"\${MAGENTA}\${BOLD}Follower Count: \${RESET}\$channel_follower_count followers\n\";
-
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-    ! [ \"\$description\" = \"null\" ] && echo -e \"\$description\";
-  else
-    echo Loading...;
-  fi;
-"
-  PREVIEW_SCRIPT_FOR_PLAYLISTS_EXPLORER="
-
-  MAGENTA='\x1b[38;2;215;0;95m'
-  BOLD=\$(tput bold)
-  RESET=\$(tput sgr0)
-
-  if ! [ -z {} ] && ! [ {} = \"Back\" ] && ! [ {} = \"Exit\" ] && ! [ {} = \"Main Menu\" ];then
-    # channels_data=\$(cat \"\$CLI_CONFIG_DIR/subscriptions.json\")
-    title=\"\$(echo {}|sed 's/\"/\\\\\\\"/g')\"
-    video=\$(echo \"\$playlist_results\" | jq -r \".entries | map(select(.title == \\\"\$title\\\" )) | .[0]\" 2>/dev/null)
-    title=\"\$(echo \"\$title\"|sed 's/^.. //g')\"
-
-    id=\$(echo \$video | jq '.thumbnails[-1].url' -r | generate_sha256);   
-
-    
-    if [ -f \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" ];then fzf_preview \"$CLI_PREVIEW_IMAGES_CACHE_DIR/\${id}.jpg\" 2>/dev/null;
-    else echo loading preview image...;
+_preview_fzf() {
+  while IFS= read -r line; do
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
+      echo "$(echo "$line" | _util_generate_hash).sh|$line"
+    else
+      echo "$line"
     fi
+  done
 
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-      echo \"\$title\";
-    ll=1
-    while [ \$ll -le \$FZF_PREVIEW_COLUMNS ];do echo -n -e \"─\" ;(( ll++ ));done;
-  else
-    echo Loading...;
-  fi;
-"
+  local data_to_preview
+  data_to_preview="$1"
 
+  if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
+    local log_base_path
+    log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+    ! [ -d "$log_base_path" ] && log_base_path="$CLI_CURRENT_STATE_DIR"
+
+    _preview_fzf_generate_script "$data_to_preview" >"$log_base_path/fzf-preview-sh.log" 2>&1 &
+    if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
+      _preview_download_imgs "$data_to_preview" >"$log_base_path/fzf-preview-img.log" 2>&1 &
+    fi
+  fi
+}
+
+preview_fzf() {
+  _preview_fzf "$@"
+}
+
+_preview() {
+  case "$CONFIG_LAUNCHER" in
+  fzf) preview_fzf "$@" ;;
+  *) ui_notify_warning "$TXT_LAUNCHER_PREVIEWS_UNSUPPORTED" ;;
+  esac
+}
+
+preview() {
+  _preview "$@"
 }
 
 # ==============================================================================
@@ -1750,6 +1856,8 @@ __cached_mix_path() {
       _title=$(echo "$_video" | jq ".title" -r)
       _channel=$(echo "$_video" | jq '.channel' -r)
       _url=$(echo "$_video" | jq '.url' -r)
+
+      # shellcheck disable=SC2129
       echo "#EXTINF:-1,$_title" >>"$cached_mix_path"
       echo "$_url" >>"$cached_mix_path"
 
@@ -2310,6 +2418,7 @@ $TXT_MENU_EXIT"
     titles=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
     choice="$(
       printf "%s\n%s" "$titles" "$other_choices" |
+        preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
         ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT" |
         tr -d '\n' | sed 's/"/\\"/g'
     )"
@@ -2372,6 +2481,7 @@ $TXT_MENU_EXIT"
     titles=$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.entries[].title' -r)
     choice="$(
       printf "%s\n%s" "$titles" "$other_choices" |
+        preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
         ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT" |
         tr -d '\n' | sed 's/"/\\"/g'
     )"
@@ -2542,6 +2652,7 @@ $TXT_MENU_EXIT"
     channels=$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].channel' -r)
     choice="$(
       printf "%s\n%s" "$channels" "$other_choices" |
+        preview "$STATE_CURRENT_CHANNEL_RESULTS" |
         ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
     )"
     case "$choice" in
@@ -2611,6 +2722,7 @@ __menu_miscellaneous_new_custom_command() {
     # TODO: maybe switch to a map
     echo "$custom_cmds" | jq ".+=[$custom_cmd]" >"$CLI_CUSTOM_CMDS_FILE"
 
+    # shellcheck disable=SC2086
     _fetch_playlist "$custom_cmd_url" $custom_cmd_yt_dlp_opts
     STATE_CURRENT_PLAYLIST_START=1
     STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
@@ -2842,17 +2954,20 @@ __menu_main_trending() {
 
 __menu_main_channels_explorer() {
   local channel
+  local channels
   local url
 
   if [ -s "$CLI_SUBSCRIPTIONS_FILE" ]; then
+    channels="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
     while true; do
       channel=$(
-        printf "%s\n%s" "$(jq -r '.entries[].channel' "$CLI_SUBSCRIPTIONS_FILE")" "$TXT_MENU_BACK" |
+        printf "%s\n%s" "$(echo "$channels" | jq -r '.entries[].channel')" "$TXT_MENU_BACK" |
+          preview "$channels" |
           ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
       )
 
       case "$channel" in
-      "$TXT_MENU_BACK") break ;;
+      "$TXT_MENU_BACK" | "") break ;;
       *)
         url=$(
           jq -r "
@@ -3088,6 +3203,12 @@ _app_core_dep_ch() {
   ! _dep_ch "fzf" && ui_notify_critical "fzf is not installed and is a core dep please install it to proceed"
 }
 
+_app_clean_up() {
+  rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
+  # shellcheck disable=SC2046
+  kill $(jobs -p) 2>/dev/null
+}
+
 # ==============================================================================
 # APP: usage
 # ==============================================================================
@@ -3181,7 +3302,7 @@ complete -c $CLI_NAME --no-files --short-option v --long-option version --descri
 complete -c $CLI_NAME --no-files --short-option e --long-option edit-config --description 'Edit $CLI_NAME config file' --condition 'not __fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option U --long-option update --description 'update the script' --condition 'not __fish_seen_subcommand_from completions'
 complete -c $CLI_NAME --no-files --short-option p --long-option player --description 'the video player to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'mpv vlc tplay'
-complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments \"(command ls $CLI_EXTENSION_DIR)\"
+complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments \"(command ls $CLI_EXTENSIONS_DIR)\"
 complete -c $CLI_NAME --no-files --short-option s --long-option preferred-selector --description 'your preferred selector' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'fzf rofi'
 complete -c $CLI_NAME --no-files --short-option E --long-option generate-desktop-entry --description 'generate desktop entry info' --condition 'not __fish_seen_subcommand_from completions' 
 
@@ -3227,7 +3348,7 @@ __app_cmd_line_parser_extensions() {
   if [ "${2#/}" != "$2" ]; then
     . "$2"
   else
-    . "$CLI_EXTENSION_DIR/$2"
+    . "$CLI_EXTENSIONS_DIR/$2"
   fi
   shift
 
@@ -3313,7 +3434,7 @@ _app_cmd_line_parser() {
 # App
 # ==============================================================================
 main() {
-  trap _util_byebye INT TERM
+  trap _app_clean_up INT TERM
   _init_env
   _load_config
   _app_cmd_line_parser "$@"
