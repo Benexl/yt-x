@@ -3228,7 +3228,8 @@ _app_core_dep_ch() {
 _app_clean_up() {
   rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
   # shellcheck disable=SC2046
-  kill $(jobs -p) 2>/dev/null
+  job_pids=$(jobs -p)
+  [ -n "$job_pids" ] && kill $job_pids 2>/dev/null
 }
 
 # ==============================================================================
@@ -3456,7 +3457,7 @@ _app_cmd_line_parser() {
 # App
 # ==============================================================================
 main() {
-  trap _app_clean_up INT TERM
+  trap _app_clean_up EXIT INT TERM
   _init_env
   _load_config
   _app_cmd_line_parser "$@"
