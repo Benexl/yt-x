@@ -1876,14 +1876,15 @@ _update_saved_playlists() {
 
   custom_playlists="[]"
   [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ] && custom_playlists=$(cat "$CLI_CUSTOM_PLAYLISTS_FILE")
+
   playlist_name=$(ui_prompt "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST" "$STATE_CURRENT_PLAYLIST_TITLE")
-  playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_URL" | sed 's/.*list=//g')
+  playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq -r ".id")
+
   custom_playlist="
     {
       \"id\": \"$id\"
       \"name\": \"$playlist_name\",
-      \"playlistUrl\": \"https://www.youtube.com/playlist?list=$playlist_id\",
-      \"playlistWatchUrl\": \"https://www.youtube.com/watch?list=$playlist_id\"
+      \"url\": \"$STATE_CURRENT_PLAYLIST_URL\",
     }
   "
   echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CUSTOM_PLAYLISTS_FILE"
@@ -2666,15 +2667,37 @@ __menu_main_trending() {
 }
 
 __menu_main_custom_playlists() {
-  ! [ -s "$CUSTOM_PLAYLISTS" ] && echo "You don't have any custom playlists. Create them here: <$CUSTOM_PLAYLISTS>" && sleep "$CONFIG_NOTIFICATION_DURATION" && main
-  while true; do
-    playlist_title=$(printf "%s\nBack" "$(jq -r '.|reverse|.[].name' "$CUSTOM_PLAYLISTS")" | ui_launcher "Select Custom Playlist To Play")
-    [ "$playlist_title" = "Back" ] || [ "$playlist_title" = "" ] && break
-    url=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistWatchUrl" "$CUSTOM_PLAYLISTS")
-    urlForAll=$(jq -r ". | map(select(.name == \"$playlist_title\" )) | .[0].playlistUrl" "$CUSTOM_PLAYLISTS")
-    search_results=$(run_yt_dlp "$url")
-    playlist_explorer
-  done
+  local playlist_title
+  local url
+
+  if [ -s "$CLI_CUSTOM_CMDS_FILE" ]; then
+    while true; do
+      playlist_title=$(
+        printf "%s\n%s" "$(jq -r '.|reverse|.[].name' "$CLI_CUSTOM_PLAYLISTS_FILE")" "$TXT_MENU_BACK" |
+          ui_launcher "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT"
+      )
+      case "$playlist_title" in
+      "$TXT_MENU_BACK") break ;;
+      *)
+        url=$(
+          jq -r "
+          .
+          | map(select(.name == \"$playlist_title\" )) 
+          | .[0].url" "$CLI_CUSTOM_PLAYLISTS_FILE"
+        )
+
+        _fetch_playlist "$url"
+        STATE_CURRENT_PLAYLIST_START=1
+        STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+        _state_push
+
+        menu_playlist_explorer
+        ;;
+      esac
+    done
+  else
+    ui_notify_warning "$TXT_CUSTOM_CMDS_FILE_NOT_FOUND"
+  fi
 }
 
 __menu_main_saved_videos() {
