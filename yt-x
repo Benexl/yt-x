@@ -275,6 +275,9 @@ __load_default_lang() {
   TXT_MENU_INVALID_ACTION="Invalid Action"
   TXT_EDITOR_NOT_FOUND="No suitable editor found. Please set CONFIG_EDITOR to a valid text editor command or ensure \$EDITOR is set."
 
+  # files
+  TXT_CUSTOM_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_CUSTOM_CMDS_FILE or use the ui"
+
   # main
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
   TXT_MENU_MAIN="Main Menu"
@@ -298,13 +301,41 @@ __load_default_lang() {
   TXT_MENU_PROMPT_SEARCH="Enter search query"
 
   # miscellaneous
+  TXT_MENU_MISC_PROMPT="Select an action"
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
   TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Enter channel name"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explore Playlists"
   TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Enter playlist name"
   TXT_MENU_MISC_SEARCH_HISTORY="Search History"
+
   TXT_MENU_MISC_NEW_CUSTOM_CMD="New Custom Command"
+  TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
+    cat <<EOF
+# ==============================================================================
+# YT-X CUSTOM COMMANDS
+# ==============================================================================
+Create a custom command that executes a URL with yt-dlp options.
+You can use this to create custom searches or actions on specific sites.
+For example, you can create a custom command that searches for a query
+on a specific site and returns the results in the launcher.
+NOTE: There are base options which are given to yt-dlp but can be overriden
+    DEFAULT OPTS:
+      --dump-single-json
+      --flat-playlist
+      --playlist-start 1
+      --playlist-end $CONFIG_PER_PAGE
+      --cookies-from-browser $CONFIG_BROWSER (Dependent on CONFIG_BROWSER)
+    Don't recommend to override the first two will break the display logic
+# ==============================================================================
+# ==============================================================================
+EOF
+  )"
+  TXT_MENU_MISC_NEW_CUSTOM_CMD_NAME_PROMPT="Enter a name for the custom command"
+  TXT_MENU_MISC_NEW_CUSTOM_CMD_URL_PROMPT="Enter the URL for the custom command"
+  TXT_MENU_MISC_NEW_CUSTOM_CMD_YT_DLP_OPTS_PROMPT="Enter any extra yt-dlp options for the custom command (optional)"
   TXT_MENU_MISC_CUSTOM_CMDS="Custom Commands"
+  TXT_MENU_MISC_CUSTOM_CMDS_PROMPT="Enter the name of the custom command to execute"
+
   TXT_MENU_MISC_EDIT_SEARCH_HISTORY="Edit Search History"
   TXT_MENU_MISC_EDIT_CUSTOM_PLAYLISTS="Edit Custom Playlists"
   TXT_MENU_MISC_EDIT_MPV_CONFIG="Edit MPV Config"
@@ -1367,24 +1398,35 @@ __fetch_audio_url() {
 }
 
 _fetch_media() {
-  local custom_opts
   local url
+  local playlist_start
+  local playlist_end
+  local custom_opts
 
   [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
 
   url="$1"
+  playlist_start="$2"
+  playlist_end="$3"
   shift
+  shift
+  shift
+  custom_opts="$custom_opts $*"
 
   # shellcheck disable=SC2086
-  __fetch_yt_dlp "$url" "$@" --extractor-args youtubetab:approximate_date $custom_opts
+  __fetch_yt_dlp "$url" "$playlist_start" "$playlist_end" --extractor-args youtubetab:approximate_date $custom_opts
 }
 
 _fetch_playlist() {
   local url
+  local custom_opts
   url="$1"
+  shift
+  custom_opts="$*"
 
+  # shellcheck disable=SC2086
   STATE_CURRENT_PLAYLIST_RESULTS="$(
-    _fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END" |
+    _fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END" $custom_opts |
       jq "
           .entries=(.entries 
           | to_entries
@@ -2339,24 +2381,78 @@ __menu_miscellaneous_explore_playlists() {
   menu_playlist_explorer
 }
 
-__menu_miscellaneous_custom_commands() {
-  ! [ -s "$F_CUSTOM_CMDS" ] && send_notification "You dont have any custom cmds. Create them here: <$F_CUSTOM_CMDS>"
-  while true; do
-    custom_cmd_name=$(printf "%s\nBack" "$(jq -r '.[].name' "$F_CUSTOM_CMDS")" | ui_launcher "Select Custom Data Loader Command To Run")
-    [ "$custom_cmd_name" = "Back" ] || [ "$custom_cmd_name" = "" ] && break
-    custom_yt_dlp_cmd=$(jq -r ". | map(select(.name == \"$custom_cmd_name\" )) | .[0].cmd" "$F_CUSTOM_CMDS")
-    echo Running custom command...
-    search_results=$(
-      if _dep_ch gum; then
-        gum spin --show-output --show-error -- $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-      else
-        echo "Loading..." >/dev/stderr
-        $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-      fi
-    )
-    playlist_explorer
-  done
+__menu_miscellaneous_new_custom_command() {
+  local custom_cmd_name
+  local custom_cmd_url
+  local custom_cmd_yt_dlp_opts
+  local custom_cmds
 
+  printf "%s" "$TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC"
+
+  custom_cmd_name=$(ui_prompt "$TXT_MENU_MISC_NEW_CUSTOM_CMD_NAME_PROMPT")
+  custom_cmd_url=$(ui_prompt "$TXT_MENU_MISC_NEW_CUSTOM_CMD_URL_PROMPT")
+  custom_cmd_yt_dlp_opts=$(ui_prompt "$TXT_MENU_MISC_NEW_CUSTOM_CMD_YT_DLP_OPTS_PROMPT")
+
+  if [ -n "$custom_cmd_name" ] && [ -n "$custom_cmd_url" ]; then
+    custom_cmds="[]"
+    [ -s "$CLI_CUSTOM_CMDS_FILE" ] && custom_cmds=$(cat "$CLI_CUSTOM_CMDS_FILE")
+
+    custom_cmd="
+      {
+        \"name\": \"$custom_cmd_name\",
+        \"url\": \"$custom_cmd_url\",
+        \"yt-dlp-opts\": \"$custom_cmd_yt_dlp_opts\"
+    }"
+
+    # TODO: maybe switch to a map
+    echo "$custom_cmds" | jq ".+=[$custom_cmd]" >"$CLI_CUSTOM_CMDS_FILE"
+
+    _fetch_playlist "$custom_cmd_url" $custom_cmd_yt_dlp_opts
+    STATE_CURRENT_PLAYLIST_START=1
+    STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+    _state_push
+
+    menu_playlist_explorer
+  fi
+}
+
+__menu_miscellaneous_custom_commands() {
+  local custom_cmd_name
+  local url
+  local yt_dlp_opts
+
+  if [ -s "$CLI_CUSTOM_CMDS_FILE" ]; then
+    while true; do
+      custom_cmd_name=$(
+        printf "%s\n$TXT_MENU_BACK" "$(jq -r '.[].name' "$CLI_CUSTOM_CMDS_FILE")" |
+          ui_launcher "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT"
+      )
+      case "$custom_cmd_name" in
+      "$TXT_MENU_BACK") break ;;
+      *)
+        custom_cmd=$(
+          jq -r "
+      .
+      | map(select(.name == \"$custom_cmd_name\" )) 
+      | .[0]" "$CLI_CUSTOM_CMDS_FILE"
+        )
+
+        url="$(echo "$custom_cmd" | jq -r ".url")"
+        yt_dlp_opts="$(echo "$custom_cmd" | jq -r '.["yt-dlp-opts"]')"
+
+        # shellcheck disable=SC2086
+        _fetch_playlist "$url" $yt_dlp_opts
+        STATE_CURRENT_PLAYLIST_START=1
+        STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+        _state_push
+
+        menu_playlist_explorer
+        ;;
+      esac
+    done
+  else
+    ui_notify_warning "$TXT_CUSTOM_CMDS_FILE_NOT_FOUND"
+  fi
 }
 
 __menu_miscellaneous_search_history() {
@@ -2368,33 +2464,6 @@ __menu_miscellaneous_search_history() {
     search_results=$(run_yt_dlp "$url")
     playlist_explorer
   done
-
-}
-
-__menu_miscellaneous_new_custom_command() {
-  custom_yt_dlp_cmd=$(prompt "Enter the custom yt-dlp command" "yt-dlp -J --flat-playlist --extractor-args youtubetab:approximate_date $PREFERRED_BROWSER https://youtube.com")
-  custom_cmds="[]"
-  [ -s "$F_CUSTOM_CMDS" ] && custom_cmds=$(cat "$F_CUSTOM_CMDS")
-  custom_cmd_name=$(prompt "Enter the name of the new custom command")
-  custom_cmd="
-          {
-            \"name\": \"$custom_cmd_name\",
-            \"cmd\": \"$custom_yt_dlp_cmd\"
-          }
-        "
-  echo "$custom_cmds" | jq ".+=[$custom_cmd]" >"$F_CUSTOM_CMDS" && send_notification "successfully added to custom cmds" || send_notification "Failed to add to custom cmds"
-
-  echo Running new custom command...
-  search_results=$(
-    if command -v "gum" >/dev/null 2>&1; then
-      gum spin --show-output --show-error -- $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-    else
-      echo "Loading..." >/dev/stderr
-      $custom_yt_dlp_cmd || send_notification "Failed to fetch data : ("
-    fi
-  )
-
-  playlist_explorer
 
 }
 
@@ -2453,7 +2522,6 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   while true; do
     action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
-    clear
 
     case "$action" in
     "$TXT_MENU_MISC_EXPLORE_CHANNELS") __menu_miscellaneous_explore_channels ;;
