@@ -1978,7 +1978,7 @@ __player_vlc() {
       url="$(__fetch_video_url "$1")"
       ;;
     esac
-    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$title" >/dev/null 2>&1 &
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$STATE_CURRENT_VIDEO_TITLE" >/dev/null 2>&1 &
     ;;
   *)
     url="$1"
