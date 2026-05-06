@@ -2543,7 +2543,7 @@ __menu_channel_actions_subscribe() {
 
   channel="$(
     echo "$STATE_CURRENT_CHANNEL_RESULTS" |
-      jq ".entries|map(select(.title == \"$STATE_CURRENT_CHANNEL_TITLE\"))|.[0]"
+      jq --arg title "$STATE_CURRENT_CHANNEL_TITLE" '.entries | map(select(.title == $title)) | .[0]'
   )"
 
   id=$(echo "$channel" | jq '.id' -r)
