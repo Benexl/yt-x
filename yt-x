@@ -275,6 +275,9 @@ __load_default_lang() {
   TXT_MENU_INVALID_ACTION="Invalid Action"
   TXT_EDITOR_NOT_FOUND="No suitable editor found. Please set CONFIG_EDITOR to a valid text editor command or ensure \$EDITOR is set."
 
+  # config
+  TXT_CONFIG_BROWSER_NOT_SET="Please set CONFIG_BROWSER to proceed"
+
   # files
   TXT_CUSTOM_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_CUSTOM_CMDS_FILE or use the ui"
   TXT_SEARCH_HISTORY_FILE_NOT_FOUND="You dont have any search history. Start searching to generate search history or edit the file here $CLI_SEARCH_HISTORY_FILE"
@@ -344,7 +347,12 @@ EOF
   TXT_MENU_MISC_EDIT_MPV_CONFIG="Edit MPV Config"
   TXT_MENU_MISC_EDIT_YTDLP_CONFIG="Edit yt-dlp Config"
   TXT_MENU_MISC_EDIT_CUSTOM_CMDS="Edit Custom Commands"
+
   TXT_MENU_MISC_SYNC_SUBS="Sync YouTube Subscriptions"
+  TXT_MENU_MISC_SYNC_SUBS_CONFIRM="This will erase your local subs, proceed?"
+  TXT_MENU_MISC_SYNC_SUBS_START="Syncing subscriptions..."
+  TXT_MENU_MISC_SYNC_SUBS_FAILED="Failed to sync subs"
+
   TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Clear Search History"
 
   # channels explorer
@@ -2484,15 +2492,22 @@ __menu_miscellaneous_search_history() {
 }
 
 __menu_miscellaneous_sync_youtube_subscriptions() {
-  if confirm "This will erase your local subs, proceed?"; then
-    echo "Syncing subscriptions..."
-    [ -n "$PREFERRED_BROWSER" ] && channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist $PREFERRED_BROWSER -J) || send_notification "Failed to fetch subscriptions (please set preferred browser in config"
-    download_preview_images "$channels_data" "https:"
-    [ -n "$channels_data" ] && ! [ "$channels_data" = "null" ] && echo "$channels_data" >"$CLI_CONFIG_DIR/subscriptions.json" && send_notification "successfully imported yt subs" || send_notification "Failed to fetch subscriptions"
-  else
-    send_notification "Sync cancelled"
-  fi
+  local channels_data
 
+  if [ -z "$CONFIG_BROWSER" ]; then
+    ui_notify_warning "$TXT_CONFIG_BROWSER_NOT_SET"
+    return
+  fi
+  if ui_confirm "$TXT_MENU_MISC_SYNC_SUBS_CONFIRM"; then
+    ui_notify "$TXT_MENU_MISC_SYNC_SUBS_START"
+
+    channels_data=$(yt-dlp "https://www.youtube.com/feed/channels" --flat-playlist --dump-single-json --cookies-from-browser "$CONFIG_BROWSER")
+    if [ -n "$channels_data" ]; then
+      echo "$channels_data" >"$CLI_SUBSCRIPTIONS_FILE"
+    else
+      ui_notify_error "$TXT_MENU_MISC_SYNC_SUBS_FAILED"
+    fi
+  fi
 }
 
 __menu_miscellaneous_clear_search_history() {
