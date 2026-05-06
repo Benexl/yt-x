@@ -746,7 +746,7 @@ __ui_rofi_launcher() {
   selection=$(
     while read -r line; do
       echo "$line" |
-        sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
+        sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
     done | rofi -config "$CONFIG_ROFI_THEME_MAIN" $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
