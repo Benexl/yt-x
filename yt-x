@@ -1679,12 +1679,13 @@ _fetch_channels() {
       jq "
           .entries=(.entries 
           | to_entries
-          | map(.value.channel=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.channel) 
+          | map(.value.title=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.title) 
           |map(.value))
           "
   )"
 
   STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.webpage_url' -r)"
+  STATE_CURRENT_CHANNEL_RESULTS_TITLE="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.title' -r)"
 }
 
 fetch_channels() {
@@ -2525,7 +2526,7 @@ __menu_channel_actions_subscribe() {
 
   channel="$(
     echo "$STATE_CURRENT_CHANNEL_RESULTS" |
-      jq ".entries|map(select(.channel == \"$STATE_CURRENT_CHANNEL_TITLE\"))|.[0]"
+      jq ".entries|map(select(.title == \"$STATE_CURRENT_CHANNEL_TITLE\"))|.[0]"
   )"
 
   id=$(echo "$channel" | jq '.id' -r)
@@ -2603,7 +2604,6 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify "$TXT_MENU_INVALID_ACTION" ;;
     esac
-    clear
   done
 
 }
@@ -2631,11 +2631,11 @@ __menu_channels_explorer() {
 
   channel="$(
     echo "$STATE_CURRENT_CHANNEL_RESULTS" |
-      jq ".entries|map(select(.channel == \"$channel_name\"))|.[0]"
+      jq ".entries|map(select(.title == \"$channel_name\"))|.[0]"
   )"
 
   STATE_CURRENT_CHANNEL_URL="$(echo "$STATE_CURRENT_CHANNEL" | jq '.uploader_url' -r)"
-  STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel" | jq '.channel' -r)"
+  STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel" | jq '.title' -r)"
   _state_push
 
   menu_channel_actions
@@ -2653,7 +2653,7 @@ $TXT_MENU_BACK
 $TXT_MENU_EXIT"
 
   while true; do
-    channels=$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].channel' -r)
+    channels=$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].title' -r)
     choice="$(
       printf "%s\n%s" "$channels" "$other_choices" |
         preview "$STATE_CURRENT_CHANNEL_RESULTS" |
@@ -2867,7 +2867,6 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
     esac
-    clear
   done
 
 }
@@ -2965,7 +2964,7 @@ __menu_main_channels_explorer() {
     channels="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
     while true; do
       channel=$(
-        printf "%s\n%s" "$(echo "$channels" | jq -r '.entries[].channel')" "$TXT_MENU_BACK" |
+        printf "%s\n%s" "$(echo "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
           preview "$channels" |
           ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
       )
@@ -2976,7 +2975,7 @@ __menu_main_channels_explorer() {
         url=$(
           jq -r "
           .entries
-          | map(select(.channel == \"$channel\" )) 
+          | map(select(.title == \"$channel\" )) 
           | .[0].uploader_url" "$CLI_SUBSCRIPTIONS_FILE"
         )
 
