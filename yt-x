@@ -1306,11 +1306,17 @@ _state_init() {
   STATE_CURRENT_CHANNEL_URL=""
   STATE_CURRENT_CHANNEL_TITLE=""
 
-  STATE_CURRENT_PLAYLIST_START=1
-  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+  STATE_CURRENT_PLAYLISTS_RESULTS=""
+  STATE_CURRENT_PLAYLISTS_RESULTS_URL=""
+  STATE_CURRENT_PLAYLISTS_RESULTS_TITLE=""
+  STATE_CURRENT_PLAYLISTS_RESULTS_START=1
+  STATE_CURRENT_PLAYLISTS_RESULTS_END="$CONFIG_PER_PAGE"
+
   STATE_CURRENT_PLAYLIST_RESULTS=""
   STATE_CURRENT_PLAYLIST_URL=""
   STATE_CURRENT_PLAYLIST_TITLE=""
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
 
   STATE_CURRENT_VIDEO=""
   STATE_CURRENT_VIDEO_URL=""
@@ -1328,14 +1334,21 @@ _state_push() {
   echo "$STATE_CURRENT_CHANNEL_RESULTS_URL" >"$current_state_dir/channel_results_url"
   echo "$STATE_CURRENT_CHANNEL_RESULTS_START" >"$current_state_dir/channel_results_start"
   echo "$STATE_CURRENT_CHANNEL_RESULTS_END" >"$current_state_dir/channel_results_end"
+
   echo "$STATE_CURRENT_CHANNEL_URL" >"$current_state_dir/channel_url"
   echo "$STATE_CURRENT_CHANNEL_TITLE" >"$current_state_dir/channel_title"
 
-  echo "$STATE_CURRENT_PLAYLIST_START" >"$current_state_dir/playlist_start"
-  echo "$STATE_CURRENT_PLAYLIST_END" >"$current_state_dir/playlist_end"
+  echo "$STATE_CURRENT_PLAYLISTS_RESULTS" >"$current_state_dir/playlists_results"
+  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_URL" >"$current_state_dir/playlists_results_url"
+  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_TITLE" >"$current_state_dir/playlists_results_title"
+  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_START" >"$current_state_dir/playlists_results_start"
+  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_END" >"$current_state_dir/playlists_results_end"
+
   echo "$STATE_CURRENT_PLAYLIST_RESULTS" >"$current_state_dir/playlist_results"
   echo "$STATE_CURRENT_PLAYLIST_URL" >"$current_state_dir/playlist_url"
   echo "$STATE_CURRENT_PLAYLIST_TITLE" >"$current_state_dir/playlist_title"
+  echo "$STATE_CURRENT_PLAYLIST_START" >"$current_state_dir/playlist_start"
+  echo "$STATE_CURRENT_PLAYLIST_END" >"$current_state_dir/playlist_end"
 
   echo "$STATE_CURRENT_VIDEO" >"$current_state_dir/video"
   echo "$STATE_CURRENT_VIDEO_URL" >"$current_state_dir/video_url"
@@ -1357,14 +1370,21 @@ _state_pop() {
   STATE_CURRENT_CHANNEL_RESULTS_URL="$(cat "$current_state_dir/channel_results_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_RESULTS_START="$(cat "$current_state_dir/channel_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_RESULTS_END="$(cat "$current_state_dir/channel_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+
   STATE_CURRENT_CHANNEL_URL="$(cat "$current_state_dir/channel_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_CHANNEL_TITLE="$(cat "$current_state_dir/channel_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 
-  STATE_CURRENT_PLAYLIST_START="$(cat "$current_state_dir/playlist_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLIST_END="$(cat "$current_state_dir/playlist_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLISTS_RESULTS="$(cat "$current_state_dir/playlists_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLISTS_RESULTS_URL="$(cat "$current_state_dir/playlists_results_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLISTS_RESULTS_TITLE="$(cat "$current_state_dir/playlists_results_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLISTS_RESULTS_START="$(cat "$current_state_dir/playlists_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLISTS_RESULTS_END="$(cat "$current_state_dir/playlists_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+
   STATE_CURRENT_PLAYLIST_RESULTS="$(cat "$current_state_dir/playlist_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_PLAYLIST_URL="$(cat "$current_state_dir/playlist_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_PLAYLIST_TITLE="$(cat "$current_state_dir/playlist_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLIST_START="$(cat "$current_state_dir/playlist_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  STATE_CURRENT_PLAYLIST_END="$(cat "$current_state_dir/playlist_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 
   STATE_CURRENT_VIDEO="$(cat "$current_state_dir/video")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
   STATE_CURRENT_VIDEO_URL="$(cat "$current_state_dir/video_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
@@ -1478,6 +1498,55 @@ fetch_playlist_next() {
 
 fetch_playlist_prev() {
   [ "$((STATE_CURRENT_PLAYLIST_START - 1))" -gt 1 ] && _state_pop
+}
+
+_fetch_playlists() {
+  local url
+  local custom_opts
+  url="$1"
+  shift
+  custom_opts="$*"
+
+  # shellcheck disable=SC2086
+  STATE_CURRENT_PLAYLISTS_RESULTS="$(
+    _fetch_media "$url" "$STATE_CURRENT_PLAYLISTS_RESULTS_START" "$STATE_CURRENT_PLAYLISTS_RESULTS_END" $custom_opts |
+      jq "
+          .entries=(.entries 
+          | to_entries
+          | map(.value.title=\"\(.key+1|tostring| if (.|length) < 2 then \"0\" + . else . end) \"+.value.title) 
+          |map(.value))
+          "
+  )"
+
+  STATE_CURRENT_PLAYLISTS_RESULTS_URL="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.original_url' -r)"
+  STATE_CURRENT_PLAYLISTS_RESULTS_TITLE="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.title' -r)"
+}
+
+fetch_playlists() {
+  local url
+  local base_url
+
+  base_url="https://youtube.com"
+  url="$base_url/$1"
+
+  # fetching playlist for the first time, initialize the indices
+  STATE_CURRENT_PLAYLISTS_RESULTS_START=1
+  STATE_CURRENT_PLAYLISTS_RESULTS_END="$CONFIG_PER_PAGE"
+
+  _fetch_playlists "$url"
+  _state_push
+}
+
+fetch_playlists_next() {
+  STATE_CURRENT_PLAYLISTS_RESULTS_START="$((STATE_CURRENT_PLAYLISTS_RESULTS_END + 1))"
+  STATE_CURRENT_PLAYLISTS_RESULTS_END="$((STATE_CURRENT_PLAYLISTS_RESULTS_END + CONFIG_PER_PAGE))"
+
+  _fetch_playlists "$STATE_CURRENT_PLAYLISTS_RESULTS_URL"
+  _state_push
+}
+
+fetch_playlists_prev() {
+  [ "$((STATE_CURRENT_PLAYLISTS_RESULTS_START - 1))" -gt 1 ] && _state_pop
 }
 
 _fetch_channels() {
