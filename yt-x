@@ -2004,9 +2004,11 @@ __player_vlc() {
 
 __player_tplay() {
   local url
+  local mode
   local opts
   local tplay_cmd
 
+  mode="$2"
   opts="$CONFIG_TPLAY_ARGS"
 
   case "$CLI_PLATFORM" in
