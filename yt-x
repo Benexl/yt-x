@@ -2799,7 +2799,9 @@ __menu_miscellaneous_search_history() {
   if [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
     while true; do
       search_term="$(
-        printf "%s\n%s" "$(tac "$CLI_SEARCH_HISTORY_FILE")" "$TXT_MENU_BACK" |
+        printf "%s\n%s" "$(
+          awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' "$CLI_SEARCH_HISTORY_FILE"
+        )" "$TXT_MENU_BACK" |
           ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
       )"
       case "$search_term" in
