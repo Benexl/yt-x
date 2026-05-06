@@ -2380,8 +2380,7 @@ $TXT_MENU_EXIT"
     choice="$(
       printf "%s\n%s" "$titles" "$other_choices" |
         preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT" |
-        tr -d '\n' | sed 's/"/\\"/g'
+        ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
     )"
 
     case "$choice" in
