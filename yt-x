@@ -1359,29 +1359,31 @@ _state_push() {
   current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
   mkdir -p "$current_state_dir"
 
-  echo "$STATE_CURRENT_CHANNEL_RESULTS" >"$current_state_dir/channel_results"
-  echo "$STATE_CURRENT_CHANNEL_RESULTS_URL" >"$current_state_dir/channel_results_url"
-  echo "$STATE_CURRENT_CHANNEL_RESULTS_START" >"$current_state_dir/channel_results_start"
-  echo "$STATE_CURRENT_CHANNEL_RESULTS_END" >"$current_state_dir/channel_results_end"
+  # Dump variables safely into one file
+  cat <<EOF >"$current_state_dir/state.env"
+STATE_CURRENT_CHANNEL_RESULTS='$(printf "%s" "$STATE_CURRENT_CHANNEL_RESULTS" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_CHANNEL_RESULTS_URL='$(printf "%s" "$STATE_CURRENT_CHANNEL_RESULTS_URL" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_CHANNEL_RESULTS_START='$STATE_CURRENT_CHANNEL_RESULTS_START'
+STATE_CURRENT_CHANNEL_RESULTS_END='$STATE_CURRENT_CHANNEL_RESULTS_END'
+STATE_CURRENT_CHANNEL_URL='$(printf "%s" "$STATE_CURRENT_CHANNEL_URL" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_CHANNEL_TITLE='$(printf "%s" "$STATE_CURRENT_CHANNEL_TITLE" | sed "s/'/'\\\\''/g")'
 
-  echo "$STATE_CURRENT_CHANNEL_URL" >"$current_state_dir/channel_url"
-  echo "$STATE_CURRENT_CHANNEL_TITLE" >"$current_state_dir/channel_title"
+STATE_CURRENT_PLAYLISTS_RESULTS='$(printf "%s" "$STATE_CURRENT_PLAYLISTS_RESULTS" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLISTS_RESULTS_URL='$(printf "%s" "$STATE_CURRENT_PLAYLISTS_RESULTS_URL" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLISTS_RESULTS_TITLE='$(printf "%s" "$STATE_CURRENT_PLAYLISTS_RESULTS_TITLE" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLISTS_RESULTS_START='$STATE_CURRENT_PLAYLISTS_RESULTS_START'
+STATE_CURRENT_PLAYLISTS_RESULTS_END='$STATE_CURRENT_PLAYLISTS_RESULTS_END'
 
-  echo "$STATE_CURRENT_PLAYLISTS_RESULTS" >"$current_state_dir/playlists_results"
-  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_URL" >"$current_state_dir/playlists_results_url"
-  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_TITLE" >"$current_state_dir/playlists_results_title"
-  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_START" >"$current_state_dir/playlists_results_start"
-  echo "$STATE_CURRENT_PLAYLISTS_RESULTS_END" >"$current_state_dir/playlists_results_end"
+STATE_CURRENT_PLAYLIST_RESULTS='$(printf "%s" "$STATE_CURRENT_PLAYLIST_RESULTS" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLIST_URL='$(printf "%s" "$STATE_CURRENT_PLAYLIST_URL" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLIST_TITLE='$(printf "%s" "$STATE_CURRENT_PLAYLIST_TITLE" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_PLAYLIST_START='$STATE_CURRENT_PLAYLIST_START'
+STATE_CURRENT_PLAYLIST_END='$STATE_CURRENT_PLAYLIST_END'
 
-  echo "$STATE_CURRENT_PLAYLIST_RESULTS" >"$current_state_dir/playlist_results"
-  echo "$STATE_CURRENT_PLAYLIST_URL" >"$current_state_dir/playlist_url"
-  echo "$STATE_CURRENT_PLAYLIST_TITLE" >"$current_state_dir/playlist_title"
-  echo "$STATE_CURRENT_PLAYLIST_START" >"$current_state_dir/playlist_start"
-  echo "$STATE_CURRENT_PLAYLIST_END" >"$current_state_dir/playlist_end"
-
-  echo "$STATE_CURRENT_VIDEO" >"$current_state_dir/video"
-  echo "$STATE_CURRENT_VIDEO_URL" >"$current_state_dir/video_url"
-  echo "$STATE_CURRENT_VIDEO_TITLE" >"$current_state_dir/video_title"
+STATE_CURRENT_VIDEO='$(printf "%s" "$STATE_CURRENT_VIDEO" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_VIDEO_URL='$(printf "%s" "$STATE_CURRENT_VIDEO_URL" | sed "s/'/'\\\\''/g")'
+STATE_CURRENT_VIDEO_TITLE='$(printf "%s" "$STATE_CURRENT_VIDEO_TITLE" | sed "s/'/'\\\\''/g")'
+EOF
 }
 
 _state_pop() {
@@ -1395,29 +1397,8 @@ _state_pop() {
   current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
   ! [ -d "$current_state_dir" ] && ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 
-  STATE_CURRENT_CHANNEL_RESULTS="$(cat "$current_state_dir/channel_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_CHANNEL_RESULTS_URL="$(cat "$current_state_dir/channel_results_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_CHANNEL_RESULTS_START="$(cat "$current_state_dir/channel_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_CHANNEL_RESULTS_END="$(cat "$current_state_dir/channel_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-
-  STATE_CURRENT_CHANNEL_URL="$(cat "$current_state_dir/channel_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_CHANNEL_TITLE="$(cat "$current_state_dir/channel_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-
-  STATE_CURRENT_PLAYLISTS_RESULTS="$(cat "$current_state_dir/playlists_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLISTS_RESULTS_URL="$(cat "$current_state_dir/playlists_results_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLISTS_RESULTS_TITLE="$(cat "$current_state_dir/playlists_results_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLISTS_RESULTS_START="$(cat "$current_state_dir/playlists_results_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLISTS_RESULTS_END="$(cat "$current_state_dir/playlists_results_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-
-  STATE_CURRENT_PLAYLIST_RESULTS="$(cat "$current_state_dir/playlist_results")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLIST_URL="$(cat "$current_state_dir/playlist_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLIST_TITLE="$(cat "$current_state_dir/playlist_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLIST_START="$(cat "$current_state_dir/playlist_start")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_PLAYLIST_END="$(cat "$current_state_dir/playlist_end")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-
-  STATE_CURRENT_VIDEO="$(cat "$current_state_dir/video")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_VIDEO_URL="$(cat "$current_state_dir/video_url")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
-  STATE_CURRENT_VIDEO_TITLE="$(cat "$current_state_dir/video_title")" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
+  # shellcheck disable=SC1091
+  . "$current_state_dir/state.env" || ui_notify_critical "$TXT_STATE_MALFORMED_CURRENT"
 }
 
 # ==============================================================================
