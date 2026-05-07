@@ -57,12 +57,12 @@ Plus other sites yt-dlp supports.
 - **Download Management**: Download videos, audio, and playlists using `yt-dlp`.
 - **History & Recents**: Track your recent videos and search history.
 - **Configuration Management**: Customize and manage configurations for yt-x, mpv and yt-dlp with ease.
-- **Extensions:** Extend yt-x with your own custom ui and preview logic allowing more precise coverage of other sites that yt-dlp supports🥳
+- **Extensions:** Extend yt-x with your own custom ui and preview logic allowing more precise coverage of other sites that yt-dlp supports
 - **Custom Commands:** Basically a simple way to achieve the same thing with extensions. A custom command is just a yt-dlp command that loads a playlist or playlist like json.
 - **Multi language support:** through lang extensions
 - **Muli site support:** though site extensions
 - **themable:** rice yt-x to your hearts content and make it yours through theme extensions and the config with nice defualts (tokyo night)
-- **intuitive code architecture:** an easy to understand to codebase with intuitive state management
+- **intuitive code architecture:** an easy to understand to codebase with intuitive state management. yes even if its over 3.5k line lol
 - **Miscellaneous Features**:
   - Shell completions for `bash`, `zsh`, and `fish`.
   - Desktop entry generation for easy access.
