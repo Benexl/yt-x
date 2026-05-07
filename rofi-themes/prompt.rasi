@@ -1,0 +1,86 @@
+/**
+ * Rofi Theme: Viu "Tokyo Night" Input
+ * Author: Gemini ft Benexl
+ * Description: A compact, modern modal dialog for text input that correctly displays the prompt.
+ */
+
+/*****----- Configuration -----*****/
+configuration {
+    font:           "JetBrains Mono Nerd Font 14";
+}
+
+/*****----- Global Properties -----*****/
+* {
+    /* Tokyo Night Color Palette */
+    bg-col:       #1a1b26ff;
+    bg-alt:       #24283bff;
+    fg-col:       #c0caf5ff;
+    fg-alt:       #a9b1d6ff;
+    accent:       #bb9af7ff;
+    blue:         #7aa2f7ff;
+
+    background-color: transparent;
+    text-color:       @fg-col;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:     "real";
+    location:         center;
+    anchor:           center;
+    fullscreen:       false;
+    width:            500px;
+    
+    border:           2px;
+    border-color:     @blue;
+    border-radius:    8px;
+    padding:          20px;
+    background-color: @bg-col;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    children:         [ message, inputbar ];
+    spacing:          20px;
+    background-color: transparent;
+}
+
+/*****----- Message (The Main Question, uses -mesg) -----*****/
+message {
+    padding:          10px;
+    border-radius:    8px;
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+}
+
+textbox {
+    font:             "JetBrains Mono Nerd Font Bold 14";
+    horizontal-align: 0.5; /* Center the prompt text */
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+/*****----- Inputbar (Contains the title and entry field) -----*****/
+inputbar {
+    padding:          8px 12px;
+    border:           1px;
+    border-radius:    6px;
+    border-color:     @accent;
+    background-color: @bg-alt;
+    spacing:          10px;
+    children:         [ prompt, entry ];
+}
+
+/* This is the title from the -p flag */
+prompt {
+    background-color: transparent;
+    text-color:       @accent;
+}
+
+/* This is where the user types */
+entry {
+    background-color:  transparent;
+    text-color:        @fg-col;
+    placeholder:       "Type here...";
+    placeholder-color: @fg-alt;
+}

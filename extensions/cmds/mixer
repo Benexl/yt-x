@@ -1,0 +1,179 @@
+#!/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
+
+# Setup dedicated local cache & config directories
+CLI_LOCAL_PREVIEWS_MIX_CREATOR="$CLI_CACHE_DIR/local_previews_mix_creator"
+! [ -d "$CLI_LOCAL_PREVIEWS_MIX_CREATOR" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_CREATOR"
+
+CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes"
+! [ -d "$CLI_MIXES_DIR/audio" ] && mkdir -p "$CLI_MIXES_DIR/audio"
+! [ -d "$CLI_MIXES_DIR/video" ] && mkdir -p "$CLI_MIXES_DIR/video"
+
+# ==============================================================================
+# Playback Helper (For FZF ctrl-j / ctrl-o binds)
+# ==============================================================================
+_setup_mix_creator_play_helper() {
+  local helper="$CLI_CACHE_DIR/ytx_mix_play_helper.sh"
+  
+  cat << 'EOF' > "$helper"
+#!/bin/sh
+mode="$1"
+base_dir="$2"
+shift 2
+
+[ $# -eq 0 ] && exit 0
+
+# cd into the directory so relative paths from FZF work natively with mpv
+cd "$base_dir" || exit 1
+
+if [ "$mode" = "listen" ]; then
+    nohup mpv --no-video "$@" >/dev/null 2>&1 &
+else
+    nohup mpv "$@" >/dev/null 2>&1 &
+fi
+EOF
+  
+  chmod +x "$helper"
+  echo "$helper"
+}
+
+# ==============================================================================
+# Preview Generator
+# ==============================================================================
+_preview_local_mix_creator() {
+  local base_dir="$1"
+  
+  while IFS= read -r line; do
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+      local hash script_path full_path escaped_full_path
+      hash="$(_util_generate_hash "mixcreate-$line")"
+      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
+      full_path="$base_dir/$line"
+      escaped_full_path="$(printf "%s" "$full_path" | sed "s/'/'\\\\''/g")"
+      
+      echo "$hash.sh|$line"
+      
+      if [ ! -s "$script_path" ]; then
+        cat <<EOF >"$script_path"
+. "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
+full_path='$escaped_full_path'
+dest_file="$CLI_LOCAL_PREVIEWS_MIX_CREATOR/\$(_util_generate_hash "\$full_path").jpg"
+if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+  ffmpegthumbnailer -i "\$full_path" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+fi
+[ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
+EOF
+      fi
+    else
+      echo "$line"
+    fi
+  done
+}
+
+# ==============================================================================
+# Main Loop Override
+# ==============================================================================
+_menu_main() {
+  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
+  local play_helper
+  play_helper=$(_setup_mix_creator_play_helper)
+
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
+
+  while true; do
+    local media_type search_path play_mode
+    
+    # 1. Select Media Type
+    media_type=$(printf "audio\nvideo\n%s" "$TXT_MENU_EXIT" | ui_launcher "Create mix for which media type?")
+    
+    case "$media_type" in
+      audio) search_path="$CONFIG_DOWNLOAD_DIR/audio"; play_mode="listen" ;;
+      video) search_path="$CONFIG_DOWNLOAD_DIR/video"; play_mode="watch" ;;
+      "$TXT_MENU_EXIT"|"") _util_byebye ;;
+      *) continue ;;
+    esac
+    
+    if ! [ -d "$search_path" ]; then
+      ui_notify_warning "Directory not found: $search_path"
+      continue
+    fi
+    
+    # 2. Fetch Files (Relative to search_path)
+    local prev_dir="$PWD"
+    cd "$search_path" || continue
+    
+    local files
+    if [ "$media_type" = "audio" ]; then
+      files=$(find . -type f \( -iname '*.mp3' -o -iname '*.flac' -o -iname '*.aac' -o -iname '*.ogg' -o -iname '*.opus' -o -iname '*.wav' -o -iname '*.m4a' \) 2>/dev/null | sed 's|^\./||')
+    else
+      files=$(find . -type f \( -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' -o -iname '*.avi' -o -iname '*.mov' -o -iname '*.flv' \) 2>/dev/null | sed 's|^\./||')
+    fi
+    
+    if [ -z "$files" ]; then
+      ui_notify_warning "No $media_type files found in $search_path."
+      cd "$prev_dir" || continue
+      continue
+    fi
+    
+    # 3. Setup Custom FZF Binds & Select Files
+    local OLD_FZF_OPTS="$CONFIG_FZF_OPTS"
+    if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+      # {2..} grabs the relative path, bypassing the hash.sh prefix
+      # {+2..} grabs ALL selected relative paths
+      CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --bind \"ctrl-j:execute-silent($play_helper $play_mode \\\"$search_path\\\" {2..})\""
+      CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --bind \"ctrl-o:execute-silent($play_helper $play_mode \\\"$search_path\\\" {+2..})\""
+      CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --header=\"TAB: Select | ENTER: Confirm | CTRL-J: Play Highlighted | CTRL-O: Play Selected\""
+    fi
+    
+    local selected_files
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+      selected_files=$(printf "%s" "$files" | _preview_local_mix_creator "$search_path" | ui_launcher_with_preview "Select files for '$media_type' mix" "multi")
+    else
+      selected_files=$(printf "%s" "$files" | ui_launcher "Select files for '$media_type' mix" "multi")
+    fi
+    
+    CONFIG_FZF_OPTS="$OLD_FZF_OPTS"
+    cd "$prev_dir" || continue
+    
+    if [ -z "$selected_files" ]; then
+      ui_notify "Mix creation cancelled."
+      continue
+    fi
+    
+    # 4. Prompt for Mix Name
+    local mix_name sane_mix_filename m3u8_file_path
+    mix_name=$(ui_prompt "Enter a name for your '$media_type' mix")
+    [ -z "$mix_name" ] && continue
+    
+    sane_mix_filename=$(echo "$mix_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+    [ -z "$sane_mix_filename" ] && sane_mix_filename="unnamed_mix_$(date +%s)"
+    m3u8_file_path="$CLI_MIXES_DIR/$media_type/$sane_mix_filename.m3u8"
+    
+    if [ -f "$m3u8_file_path" ]; then
+      ui_confirm "Mix '$mix_name' already exists. Overwrite?" || continue
+    fi
+    
+    # 5. Write .m3u8 File
+    echo "#EXTM3U" > "$m3u8_file_path"
+    
+    # Read the natively returned selection paths, split by newline
+    echo "$selected_files" | while IFS= read -r file; do
+      if [ -n "$file" ]; then
+        local title
+        title=$(basename "$file")
+        title="${title%.*}"
+        echo "#EXTINF:-1,$title" >> "$m3u8_file_path"
+        echo "$search_path/$file" >> "$m3u8_file_path"
+      fi
+    done
+    
+    if [ -s "$m3u8_file_path" ]; then
+      ui_notify "Mix '$mix_name' created successfully!"
+    else
+      ui_notify_error "Failed to create mix '$mix_name'."
+    fi
+  done
+}

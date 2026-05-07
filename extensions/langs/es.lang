@@ -1,0 +1,179 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+# ==============================================================================
+# yt-x Spanish Language Extension (es.lang)
+# ==============================================================================
+
+# core
+TXT_BYEBYE="Que tengas un buen día"
+
+# core: state
+TXT_STATE_MALFORMED_CURRENT="Estado mal formado. Confirma el contenido de: $CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+
+# core: navigation
+TXT_MENU_NEXT="Siguiente"
+TXT_MENU_PREVIOUS="Anterior"
+TXT_MENU_BACK="Atrás"
+TXT_MENU_EXIT="Salir"
+
+# core: launcher
+TXT_LAUNCHER_UNKNOWN="Lanzador desconocido"
+TXT_LAUNCHER_PREVIEWS_UNSUPPORTED="El lanzador actual ($CONFIG_LAUNCHER) no soporta previsualizaciones. Por favor, cambia a un lanzador soportado o deshabilita las previsualizaciones en la configuración."
+
+# fzf preview
+TXT_FZF_PREVIEW_IMAGE_LOADING="cargando imagen de previsualización..."
+TXT_FZF_PREVIEW_CHANNEL="Canal"
+TXT_FZF_PREVIEW_DURATION="Duración"
+TXT_FZF_PREVIEW_VIEW_COUNT="Vistas"
+TXT_FZF_PREVIEW_LIVE_STATUS="Estado en Vivo"
+TXT_FZF_PREVIEW_TIMESTAMP="Subido"
+TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS="Seguidores"
+
+# core: rofi
+TXT_ROFI_NOT_CONFIGURED="Rofi no está configurado. Por favor, establece una ruta válida al archivo de configuración de rofi en tu config.sh"
+TXT_ROFI_PAGER_MESSAGE="Presiona [Esc] para salir del paginador"
+TXT_ROFI_PAGER_PROMPT="Escribe para filtrar líneas..."
+
+# core: others
+TXT_MENU_INVALID_ACTION="Acción inválida"
+TXT_EDITOR_NOT_FOUND="No se encontró un editor adecuado. Por favor establece CONFIG_EDITOR a un comando de editor de texto válido o asegúrate de que \$EDITOR esté configurado."
+
+# config
+TXT_CONFIG_BROWSER_NOT_SET="Por favor establece CONFIG_BROWSER para proceder"
+
+# files
+TXT_CUSTOM_CMDS_FILE_NOT_FOUND="No tienes comandos personalizados. Créalos aquí $CLI_CUSTOM_CMDS_FILE o usa la interfaz"
+TXT_SEARCH_HISTORY_FILE_NOT_FOUND="No tienes historial de búsqueda. Empieza a buscar para generar el historial o edita el archivo aquí $CLI_SEARCH_HISTORY_FILE"
+TXT_SAVED_VIDEOS_FILE_NOT_FOUND="No tienes videos guardados. Empieza a guardar videos para generar este archivo o edítalo aquí $CLI_SAVED_VIDEOS_FILE"
+TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND="No tienes listas de reproducción personalizadas. Empieza a guardarlas para generar este archivo o edítalo aquí $CLI_CUSTOM_PLAYLISTS_FILE"
+TXT_SUBS_FILE_NOT_FOUND="No tienes suscripciones a canales. Por favor, usa el menú misceláneo para añadir suscripciones a $CLI_SUBSCRIPTIONS_FILE"
+TXT_RECENT_FILE_NOT_FOUND="No tienes videos recientes. Intenta ver algo primero : ). Y se creará una entrada en $CLI_RECENT_FILE"
+
+# main
+TXT_MENU_MAIN_PROMPT_ACTION="Selecciona una acción"
+TXT_MENU_MAIN="Menú Principal"
+TXT_MENU_MAIN_FEED="Tu Feed"
+TXT_MENU_MAIN_TRENDING="Tendencias"
+TXT_MENU_MAIN_PLAYLISTS="Listas de Reproducción"
+TXT_MENU_MAIN_SEARCH="Buscar"
+TXT_MENU_MAIN_WATCH_LATER="Ver Más Tarde"
+TXT_MENU_MAIN_SUBS_FEED="Feed de Suscripciones"
+
+TXT_MENU_MAIN_CHANNELS="Canales"
+TXT_MENU_MAIN_CHANNELS_PROMPT="Seleccionar Canal"
+
+TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Listas de Reproducción Personalizadas"
+TXT_MENU_MAIN_LIKED="Videos que me gustan"
+TXT_MENU_MAIN_SAVED="Videos Guardados"
+TXT_MENU_MAIN_HISTORY="Historial de Reproducción"
+TXT_MENU_MAIN_RECENT="Recientes"
+TXT_MENU_MAIN_CLIPS="Clips"
+TXT_MENU_MAIN_EDIT_CONFIG="Editar Configuración"
+TXT_MENU_MAIN_MISC="Misceláneo"
+
+# other menus
+TXT_MENU_PROMPT_SEARCH="Ingresa la consulta de búsqueda"
+
+# miscellaneous
+TXT_MENU_MISC_PROMPT="Selecciona una acción"
+TXT_MENU_MISC_EXPLORE_CHANNELS="Explorar Canales"
+TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Ingresa el nombre del canal"
+TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explorar Listas de Reproducción"
+TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Ingresa el nombre de la lista de reproducción"
+
+TXT_MENU_MISC_SEARCH_HISTORY="Historial de Búsqueda"
+TXT_MENU_MISC_SEARCH_HISTORY_PROMPT="Buscar por"
+TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Borrar Historial de Búsqueda"
+TXT_MENU_MISC_CLEAR_SEARCH_HISTORY_PROMPT="¿Estás seguro de que deseas borrar tu historial de búsqueda en $CLI_SEARCH_HISTORY_FILE?"
+
+TXT_MENU_MISC_NEW_CUSTOM_CMD="Nuevo Comando Personalizado"
+TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
+  cat <<EOF
+# ==============================================================================
+# COMANDOS PERSONALIZADOS DE YT-X
+# ==============================================================================
+Crea un comando personalizado que ejecuta una URL con opciones de yt-dlp.
+Puedes usar esto para crear búsquedas personalizadas o acciones en sitios específicos.
+Por ejemplo, puedes crear un comando que busque una consulta
+en un sitio específico y devuelva los resultados en el lanzador.
+NOTA: Hay opciones base que se le dan a yt-dlp pero pueden ser anuladas.
+    OPCIONES PREDETERMINADAS:
+      --dump-single-json
+      --flat-playlist
+      --playlist-start 1
+      --playlist-end $CONFIG_PER_PAGE
+      --cookies-from-browser $CONFIG_BROWSER (Dependiente de CONFIG_BROWSER)
+    No se recomienda anular las dos primeras, ya que romperá la lógica de visualización.
+# ==============================================================================
+# ==============================================================================
+EOF
+)"
+TXT_MENU_MISC_NEW_CUSTOM_CMD_NAME_PROMPT="Ingresa un nombre para el comando personalizado"
+TXT_MENU_MISC_NEW_CUSTOM_CMD_URL_PROMPT="Ingresa la URL para el comando personalizado"
+TXT_MENU_MISC_NEW_CUSTOM_CMD_YT_DLP_OPTS_PROMPT="Ingresa cualquier opción extra de yt-dlp (opcional)"
+TXT_MENU_MISC_CUSTOM_CMDS="Comandos Personalizados"
+TXT_MENU_MISC_CUSTOM_CMDS_PROMPT="Ingresa el nombre del comando a ejecutar"
+
+TXT_MENU_MISC_EDIT_SEARCH_HISTORY="Editar Historial de Búsqueda"
+TXT_MENU_MISC_EDIT_CUSTOM_PLAYLISTS="Editar Listas Personalizadas"
+TXT_MENU_MISC_EDIT_MPV_CONFIG="Editar Configuración de MPV"
+TXT_MENU_MISC_EDIT_YTDLP_CONFIG="Editar Configuración de yt-dlp"
+TXT_MENU_MISC_EDIT_CUSTOM_CMDS="Editar Comandos Personalizados"
+
+TXT_MENU_MISC_SYNC_SUBS="Sincronizar Suscripciones de YouTube"
+TXT_MENU_MISC_SYNC_SUBS_CONFIRM="Esto borrará tus suscripciones locales, ¿proceder?"
+TXT_MENU_MISC_SYNC_SUBS_START="Sincronizando suscripciones..."
+TXT_MENU_MISC_SYNC_SUBS_FAILED="Fallo al sincronizar suscripciones"
+
+# channels explorer
+TXT_MENU_CHANNELS_EXPLORER_PROMPT="Selecciona un canal"
+
+# channel actions
+TXT_MENU_CHANNEL_ACTIONS_PROMPT="Seleccionar acción"
+TXT_MENU_CHANNEL_ACTIONS_VIDEOS="Videos"
+TXT_MENU_CHANNEL_ACTIONS_FEATURED="Destacados"
+TXT_MENU_CHANNEL_ACTIONS_SEARCH="Buscar"
+TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT="Buscar por"
+TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS="Listas de Reproducción"
+TXT_MENU_CHANNEL_ACTIONS_SHORTS="Shorts"
+TXT_MENU_CHANNEL_ACTIONS_STREAMS="Transmisiones"
+TXT_MENU_CHANNEL_ACTIONS_PODCASTS="Podcasts"
+TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE="Suscribirse"
+TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM="¿Te gustaría importar tus suscripciones de YouTube primero? No podrás hacerlo de nuevo a menos que borres $CLI_SUBSCRIPTIONS_FILE"
+
+# playlists
+TXT_MENU_PLAYLISTS_EXPLORER_PROMPT="Seleccionar Lista"
+
+# playlist explorer
+TXT_MENU_PLAYLIST_EXPLORER_PROMPT="Seleccionar Medio"
+
+# Playlist actions
+TXT_MENU_PLAYLIST_PROMPT_ACTION="Seleccionar Acción de Medio"
+TXT_MENU_PLAYLIST_ACTIONS_WATCH="Ver"
+TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL="Reproducir Todo"
+TXT_MENU_PLAYLIST_ACTIONS_LISTEN="Escuchar"
+TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL="Escuchar Todo"
+TXT_MENU_PLAYLIST_ACTIONS_MIX="Mix"
+TXT_MENU_PLAYLIST_ACTIONS_SAVE="Guardar"
+TXT_MENU_PLAYLIST_ACTIONS_UNSAVE="Dejar de Guardar"
+TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST="Guardar Lista de Reproducción"
+TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST="Dejar de Guardar Lista"
+TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE="Suscribirse al Canal"
+TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD="Descargar"
+TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL="Descargar Todo"
+TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO="Descargar (Solo Audio)"
+TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO="Descargar Todo (Solo Audio)"
+TXT_MENU_PLAYLIST_ACTIONS_BROWSER="Abrir en el Navegador"
+TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM="Alternar Enumerar Descargas"
+TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
+
+TXT_ENTER_PLAYLIST_TITLE="Ingresa el título de la lista"
+
+# player
+TXT_PLAYER_START_WATCHING="Viendo Ahora"
+TXT_PLAYER_START_LISTENING="Escuchando Ahora"
+TXT_PLAYER_NOT_FOUND="No se encontró un reproductor adecuado. Establece CONFIG_PLAYER a un reproductor válido. Actualmente: $CONFIG_PLAYER"
+TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST="Ingresa el nombre de la lista de reproducción"
+
+# others
+TXT_DOWNLOAD_COMPLETED="Descarga completada de "

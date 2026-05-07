@@ -1,0 +1,109 @@
+/**
+ * Rofi Theme: Viu "Tokyo Night" Horizontal Strip
+ * Author: Gemini ft Benexl
+ * Description: A fullscreen, horizontal, icon-centric theme for previews.
+ */
+
+/*****----- Configuration -----*****/
+configuration {
+    font:           "JetBrains Mono Nerd Font 12";
+    show-icons:     true;
+}
+
+/*****----- Global Properties -----*****/
+* {
+    /* Tokyo Night Color Palette */
+    bg-col:       #1a1b26;
+    bg-alt:       #24283b; /* Slightly lighter for elements */
+    fg-col:       #c0caf5;
+    fg-alt:       #a9b1d6;
+
+    blue:         #7aa2f7;
+    cyan:         #7dcfff;
+    magenta:      #bb9af7;
+
+    background-color: transparent;
+    text-color:       @fg-col;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:     "real";
+    background-color: @bg-col;
+    fullscreen:       true;
+    padding:          2%;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    children:         [ inputbar, listview ];
+    spacing:          3%;
+    background-color: transparent;
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    spacing:          15px;
+    padding:          12px 16px;
+    border-radius:    10px;
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+    margin:           0% 20%; /* Center the input bar */
+    children:         [ prompt, entry ];
+}
+
+prompt {
+    text-color:       @magenta;
+    background-color: transparent;
+}
+
+entry {
+    background-color: transparent;
+    placeholder:      "Select an option...";
+    placeholder-color: @fg-alt;
+}
+
+/*****----- List of items -----*****/
+listview {
+    layout:           horizontal; 
+    columns:          5;          
+    spacing:          20px;
+    fixed-height:     true;
+    background-color: transparent;
+}
+
+/*****----- Elements -----*****/
+element {
+    orientation:      vertical;
+    padding:          30px 20px;  
+    border-radius:    12px;
+    spacing:          20px;       
+    background-color: @bg-alt;
+    cursor:           pointer;
+    width:            200px;  /* Width of each element */
+    height:           50px;  /* Height of each element */
+}
+
+element-icon {
+    size:             33%; 
+    horizontal-align: 0.5;
+    background-color: transparent;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+/* Default state of elements */
+element normal.normal {
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+}
+
+/* Selected entry in the list */
+element selected.normal {
+    background-color: @blue;
+    text-color:       @bg-col; /* Invert text color for contrast */
+}

@@ -1,0 +1,63 @@
+#!/bin/sh
+# shellcheck disable=SC2034
+
+# ==============================================================================
+# yt-x Theme Extension: Catppuchin Mocha
+# ==============================================================================
+
+if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
+  # Catppuchin Mocha: Mauve (#cba6f7)
+  THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;203;166;247m')"
+
+  # Catppuchin Mocha: Overlay1 (#7f849c)
+  THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;127;132;156m')"
+
+  # Catppuchin Mocha: Peach (#fab387)
+  THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;250;179;135m')"
+
+  # Catppuchin Mocha: Red (#f38ba8)
+  THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;243;139;168m')"
+
+  # Catppuchin Mocha: Blue (#89b4fa)
+  THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;137;180;250m')"
+
+  # Catppuchin Mocha: Surface2 (#585b70)
+  THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;88;91;112m')"
+
+  # Catppuchin Mocha: Green (#a6e3a1)
+  THEME_PLAYER_START="$(printf '\033[38;2;166;227;161m')"
+
+  # Text formatting
+  THEME_BOLD="$(printf '\033[1m')"
+  THEME_RESET="$(printf '\033[0m')"
+
+  CONFIG_FZF_OPTS="
+    --ansi
+    --border=rounded
+    --layout=reverse
+    --prompt='❯ '
+    --pointer='󰄵 '
+    --marker='󰄵 '
+    --color=bg:#1e1e2e,bg+:#181825
+    --color=fg:#cdd6f4,fg-:#a6adc8
+    --color=hl:#cba6f7,hl+:#cba6f7
+    --color=header:#74c7ec
+    --color=pointer:#f5c2e7
+    --color=marker:#f5c2e7
+    --color=prompt:#cba6f7
+    --color=border:#7f849c
+    --color=gutter:#1e1e2e
+    --color=scrollbar:#6c7086
+    --color=separator:#6c7086
+    --color=spinner:#cba6f7
+    --color=info:#bac2de
+    --height=100%
+    --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+    --no-margin
+    +m
+    -i
+    --exact
+    --tabstop=1
+    --preview-window=border-rounded,left,35%,wrap
+    --wrap"
+fi
