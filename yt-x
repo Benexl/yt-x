@@ -869,9 +869,17 @@ __ui_default_prompt() {
 }
 
 __ui_rofi_prompt() {
-  ! [ -s "$CONFIG_ROFI_THEME_PROMPT" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PROMPT=\"$CONFIG_ROFI_THEME_PROMPT\""
+  # $1 = prompt label, $2 = optional header/message
+  [ -s "$CONFIG_ROFI_THEME_PROMPT" ] ||
+    ui_notify_critical "Rofi prompt theme not set: $CONFIG_ROFI_THEME_PROMPT"
 
-  rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" -dmenu -i -p "$1: "
+  if [ -n "$2" ]; then
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
+      -dmenu -p "$1: " -mesg "$2"
+  else
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
+      -dmenu -p "$1: "
+  fi
 }
 
 _ui_prompt() {
