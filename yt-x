@@ -3289,33 +3289,46 @@ Example:
 # APP: completions
 # ==============================================================================
 _app_completions_fish() {
-  local completions
-  completions="\
-# --- completions ---
-complete -c $CLI_NAME --no-files --arguments \"completions\" --condition 'not __fish_contains_opt sort-by S e edit-config s preferred-selector  E generate-desktop-entry rofi-theme'
+  local ext_dir
+  ext_dir="$HOME/.config/$CLI_NAME/extensions"
 
-complete -c $CLI_NAME --no-files --short-option h --long-option help --description 'Print a short help text and exit'
-complete -c $CLI_NAME --no-files --short-option v --long-option version --description 'Print a short version string and exit' --condition 'not __fish_seen_subcommand_from completions'
+  cat <<EOF
+# Fish completions for $CLI_NAME
 
-complete -c $CLI_NAME --no-files --short-option e --long-option edit-config --description 'Edit $CLI_NAME config file' --condition 'not __fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option U --long-option update --description 'update the script' --condition 'not __fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option p --long-option player --description 'the video player to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'mpv vlc tplay'
-complete -c $CLI_NAME --no-files --short-option x --long-option extension --description 'The extension to use' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments \"(command ls $CLI_EXTENSIONS_DIR)\"
-complete -c $CLI_NAME --no-files --short-option s --long-option preferred-selector --description 'your preferred selector' --condition 'not __fish_seen_subcommand_from completions' --exclusive --arguments 'fzf rofi'
-complete -c $CLI_NAME --no-files --short-option E --long-option generate-desktop-entry --description 'generate desktop entry info' --condition 'not __fish_seen_subcommand_from completions' 
+# Global options (only when no subcommand is active)
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s h -l help -d "Show help and exit"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show version and exit"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s S -l search -d "Search for videos" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s l -l launcher -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s p -l player -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview -d "Enable preview window"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-preview -d "Disable preview window"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-streaming-process -d "Disown streaming process"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-streaming-process -d "Do not disown streaming"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-downloading-process -d "Disown downloading process"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-downloading-process -d "Do not disown downloading"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-main -d "Rofi main theme path" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-preview -d "Rofi preview theme path" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-prompt -d "Rofi prompt theme path" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-confirm -d "Rofi confirm theme path" --require-parameter
 
-complete -c $CLI_NAME --no-files --long-option preview --description 'enable preview window' --condition 'not __fish_seen_subcommand_from completions' 
-complete -c $CLI_NAME --no-files --long-option no-preview --description 'disable preview window' --condition 'not __fish_seen_subcommand_from completions' 
+# Extensions – list all files in the extensions directory tree, return relative paths
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extensions -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
 
-complete -c $CLI_NAME --force-files --long-option rofi-theme --description 'the path to your rofi config file' --condition 'not __fish_seen_subcommand_from completions' 
+# Subcommands
+complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
 
-complete -c $CLI_NAME --no-files --short-option S --long-option search --description 'the terms you want to search' --condition 'not __fish_seen_subcommand_from completions' 
+# Completions sub‑options
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s f -l fish -d "Print fish completions"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s b -l bash -d "Print bash completions"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s z -l zsh -d "Print zsh completions"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s h -l help -d "Show help for completions"
+EOF
 
-complete -c $CLI_NAME --no-files --short-option z --long-option zsh --description 'print zsh completions' --condition '__fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option b --long-option bash --description 'print bash completions' --condition '__fish_seen_subcommand_from completions'
-complete -c $CLI_NAME --no-files --short-option f --long-option fish --description 'print fish completions' --condition '__fish_seen_subcommand_from completions'"
-  printf "%s\n" "$completions"
-  exit 1
+  exit 0
 }
 
 # ==============================================================================
