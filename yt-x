@@ -2032,7 +2032,7 @@ _update_saved_playlists() {
     {
       \"id\": \"$playlist_id\",
       \"name\": \"$playlist_name\",
-      \"url\": \"$STATE_CURRENT_PLAYLIST_URL\",
+      \"url\": \"$STATE_CURRENT_PLAYLIST_URL\"
     }
   "
   echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CUSTOM_PLAYLISTS_FILE"
