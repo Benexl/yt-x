@@ -26,27 +26,30 @@ _preview_local_mix() {
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 
 # Extract first valid media file from the playlist
-first_media=\$(grep -v "^#" "$mix_full_path" | while read -r f; do if [ -f "\$f" ]; then echo "\$f"; break; fi; done)
+ first_media=\$(grep -v "^#" "$mix_full_path" | while read -r f; do if [ -f "\$f" ]; then echo "\$f"; break; fi; done)
 
 if [ -n "\$first_media" ]; then
     dest_file="$CLI_LOCAL_PREVIEWS_MIX_EXPLORER/\$(_util_generate_hash "\$first_media").jpg"
-    ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$first_media" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+      ffmpegthumbnailer -i "\$first_media" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    fi
     [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
 fi
 
-draw_divider
-echo "${THEME_BOLD}Mix:${THEME_RESET} \$(basename "$line" .m3u8)"
+ draw_divider
+ mix_name=\$(basename "$mix_full_path" .m3u8)
+ printf "${THEME_BOLD}Mix:${THEME_RESET} %s\n" "\$mix_name"
 
-if [ -n "\$first_media" ]; then
-    echo "${THEME_FZF_PREVIEW_KEY}Previewing:${THEME_RESET} \$(basename "\$first_media")"
-else
-    echo "No previewable item found in mix."
-fi
+ if [ -n "\$first_media" ]; then
+     printf "${THEME_FZF_PREVIEW_KEY}Previewing:${THEME_RESET} %s\n" "\$(basename "\$first_media")"
+ else
+     echo "No previewable item found in mix."
+ fi
 
-draw_divider
-echo "${THEME_BOLD}--- First 5 Tracks ---${THEME_RESET}"
-grep "^#EXTINF" "$mix_full_path" | head -n 5 | sed 's/#EXTINF:-1,//;s/^/• /'
-EOF
+ draw_divider
+ echo "${THEME_BOLD}--- First 5 Tracks ---${THEME_RESET}"
+ grep "^#EXTINF" "$mix_full_path" | head -n 5 | sed 's/#EXTINF:-1,//;s/^/• /'
+ EOF
       fi
     else
       echo "$line"
@@ -64,6 +67,10 @@ _menu_main() {
   if ! _dep_ch fd; then
     ui_notify_warning "Error: 'fd' missing."
     return 1
+  fi
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
   fi
   if ! [ -d "$CLI_MIXES_DIR" ]; then
     ui_notify_warning "Mixes directory not found: $CLI_MIXES_DIR"

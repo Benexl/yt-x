@@ -58,7 +58,9 @@ _preview_local_mix_creator() {
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 full_path='$escaped_full_path'
 dest_file="$CLI_LOCAL_PREVIEWS_MIX_CREATOR/\$(_util_generate_hash "\$full_path").jpg"
-! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$full_path" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+  ffmpegthumbnailer -i "\$full_path" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+fi
 [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
 EOF
       fi
@@ -75,6 +77,11 @@ _menu_main() {
   [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
   local play_helper
   play_helper=$(_setup_mix_creator_play_helper)
+
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
 
   while true; do
     local media_type search_path play_mode
@@ -100,9 +107,9 @@ _menu_main() {
     
     local files
     if [ "$media_type" = "audio" ]; then
-      files=$(find . -type f 2>/dev/null | grep -iE '\.(mp3|flac|aac|ogg|opus|wav|m4a)$' | sed 's|^\./||')
+      files=$(find . -type f \( -iname '*.mp3' -o -iname '*.flac' -o -iname '*.aac' -o -iname '*.ogg' -o -iname '*.opus' -o -iname '*.wav' -o -iname '*.m4a' \) 2>/dev/null | sed 's|^\./||')
     else
-      files=$(find . -type f 2>/dev/null | grep -iE '\.(mp4|mkv|webm|avi|mov|flv)$' | sed 's|^\./||')
+      files=$(find . -type f \( -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' -o -iname '*.avi' -o -iname '*.mov' -o -iname '*.flv' \) 2>/dev/null | sed 's|^\./||')
     fi
     
     if [ -z "$files" ]; then

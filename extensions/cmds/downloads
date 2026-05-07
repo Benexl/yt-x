@@ -26,6 +26,11 @@ _handle_action() {
 _menu_main() {
   local type playlist channel media
 
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
+
   while true; do
     # 1. Type
     type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")

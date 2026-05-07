@@ -5,6 +5,11 @@
 # Main Loop Override
 # ==============================================================================
 _menu_main() {
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
+
   while true; do
     local type video prev_dir
     

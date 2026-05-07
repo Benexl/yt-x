@@ -14,7 +14,7 @@ __menu_dailymotion_search() {
   local search_term
   local url
 
-  search_term="$(ui_prompt "Enter Dailymotion search query")"
+  search_term="$(ui_prompt "Enter Dailymotion search query" | jq -Rr '@uri')"
   [ -z "$search_term" ] && return
 
   url="https://www.dailymotion.com/search/$search_term/videos"

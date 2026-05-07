@@ -10,7 +10,7 @@ CLI_LOCAL_PREVIEWS="$CLI_CACHE_DIR/local_previews"
 # ==============================================================================
 _preview_local_type() {
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
       local hash script_path
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -25,7 +25,9 @@ _preview_local_type() {
 file=\$(find "$CONFIG_DOWNLOAD_DIR/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
 if [ -n "\$file" ]; then
     dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    fi
     [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
 fi
 EOF
@@ -39,7 +41,7 @@ EOF
 _preview_local_channel() {
   local type="$1"
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
       local hash script_path
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -52,7 +54,9 @@ _preview_local_channel() {
 file=\$(fd --absolute-path --type directory --regex "$line" --search-path "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null | while read -r folder; do fd --absolute-path --search-path "\$folder" --type file --extension mkv --extension mp4 --extension mp3 2>/dev/null; done | shuf -n 1 2>/dev/null)
 if [ -n "\$file" ]; then
     dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
+      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    fi
     [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
 fi
 EOF
@@ -70,8 +74,14 @@ _menu_main() {
   # Ensure standard fzf preview utilities are configured
   [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
-  # This command relies on `fd` for channel discovery and playlist generation.
-  _dep_ch fd
+  if ! _dep_ch fd; then
+    ui_notify_warning "Error: 'fd' missing."
+    return 1
+  fi
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
 
   while true; do
     local type channel temp_playlist
