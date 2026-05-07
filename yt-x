@@ -413,6 +413,8 @@ EOF
   TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
 
+  TXT_ENTER_PLAYLIST_TITLE="Enter playlist title"
+
   # player
   TXT_PLAYER_START_WATCHING="Now Watching"
   TXT_PLAYER_START_LISTENING="Now Listening To"
