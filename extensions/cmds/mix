@@ -49,7 +49,7 @@ fi
  draw_divider
  echo "${THEME_BOLD}--- First 5 Tracks ---${THEME_RESET}"
  grep "^#EXTINF" "$mix_full_path" | head -n 5 | sed 's/#EXTINF:-1,//;s/^/• /'
- EOF
+EOF
       fi
     else
       echo "$line"
