@@ -10,7 +10,7 @@ CLI_LOCAL_PREVIEWS="$CLI_CACHE_DIR/local_previews"
 # ==============================================================================
 _preview_local_type() {
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ] &&[ "$line" != "$TXT_MENU_EXIT" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
       local hash script_path
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -19,7 +19,7 @@ _preview_local_type() {
       echo "$hash.sh|$line"
       
       # Generate the thumbnailing script dynamically
-      if[ ! -s "$script_path" ]; then
+      if [ ! -s "$script_path" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 file=\$(find "$CONFIG_DOWNLOAD_DIR/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
@@ -39,7 +39,7 @@ EOF
 _preview_local_playlist() {
   local type="$1"
   while IFS= read -r line; do
-    if[ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
       local hash script_path
       # Use "$type-$line" so identically named playlists in different types don't conflict
       hash="$(_util_generate_hash "$type-$line")"
@@ -47,7 +47,7 @@ _preview_local_playlist() {
       
       echo "$hash.sh|$line"
       
-      if[ ! -s "$script_path" ]; then
+      if [ ! -s "$script_path" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 file=\$(find "$CONFIG_DOWNLOAD_DIR/$type/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
@@ -67,13 +67,14 @@ EOF
 # Main Loop Override
 # ==============================================================================
 _menu_main() {
-  # Ensure standard fzf preview utilities are configured[ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
+  # Ensure standard fzf preview utilities are configured
+  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
   while true; do
     local type playlist
     
     # 1. Select Type
-    if[ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | _preview_local_type | ui_launcher_with_preview "Select the type of file to play")
     else
       type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
@@ -84,7 +85,7 @@ _menu_main() {
     esac
 
     # 2. Select Playlist
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       playlist=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null)" "$TXT_MENU_BACK" | _preview_local_playlist "$type" | ui_launcher_with_preview "Select the playlist to play")
     else
       playlist=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null)" "$TXT_MENU_BACK" | ui_launcher "Select the playlist to play")

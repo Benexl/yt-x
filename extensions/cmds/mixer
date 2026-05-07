@@ -1,13 +1,13 @@
-#/bin/sh
+#!/bin/sh
 # shellcheck disable=SC3043,SC2034,SC1090
 
 # Setup dedicated local cache & config directories
 CLI_LOCAL_PREVIEWS_MIX_CREATOR="$CLI_CACHE_DIR/local_previews_mix_creator"
-![ -d "$CLI_LOCAL_PREVIEWS_MIX_CREATOR" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_CREATOR"
+! [ -d "$CLI_LOCAL_PREVIEWS_MIX_CREATOR" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_CREATOR"
 
 CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes"
-![ -d "$CLI_MIXES_DIR/audio" ] && mkdir -p "$CLI_MIXES_DIR/audio"
-![ -d "$CLI_MIXES_DIR/video" ] && mkdir -p "$CLI_MIXES_DIR/video"
+! [ -d "$CLI_MIXES_DIR/audio" ] && mkdir -p "$CLI_MIXES_DIR/audio"
+! [ -d "$CLI_MIXES_DIR/video" ] && mkdir -p "$CLI_MIXES_DIR/video"
 
 # ==============================================================================
 # Playback Helper (For FZF ctrl-j / ctrl-o binds)
@@ -26,7 +26,7 @@ shift 2
 # cd into the directory so relative paths from FZF work natively with mpv
 cd "$base_dir" || exit 1
 
-if[ "$mode" = "listen" ]; then
+if [ "$mode" = "listen" ]; then
     nohup mpv --no-video "$@" >/dev/null 2>&1 &
 else
     nohup mpv "$@" >/dev/null 2>&1 &
@@ -44,7 +44,7 @@ _preview_local_mix_creator() {
   local base_dir="$1"
   
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       local hash script_path full_path
       hash="$(_util_generate_hash "mixcreate-$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -110,7 +110,7 @@ _menu_main() {
     
     # 3. Setup Custom FZF Binds & Select Files
     local OLD_FZF_OPTS="$CONFIG_FZF_OPTS"
-    if[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       # {2..} grabs the relative path, bypassing the hash.sh prefix
       # {+2..} grabs ALL selected relative paths
       CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --bind \"ctrl-j:execute-silent($play_helper $play_mode \\\"$search_path\\\" {2..})\""
@@ -119,7 +119,7 @@ _menu_main() {
     fi
     
     local selected_files
-    if[ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       selected_files=$(printf "%s" "$files" | _preview_local_mix_creator "$search_path" | ui_launcher_with_preview "Select files for '$media_type' mix" "multi")
     else
       selected_files=$(printf "%s" "$files" | ui_launcher "Select files for '$media_type' mix" "multi")
@@ -128,19 +128,21 @@ _menu_main() {
     CONFIG_FZF_OPTS="$OLD_FZF_OPTS"
     cd "$prev_dir" || continue
     
-    if[ -z "$selected_files" ]; then
+    if [ -z "$selected_files" ]; then
       ui_notify "Mix creation cancelled."
       continue
     fi
     
     # 4. Prompt for Mix Name
     local mix_name sane_mix_filename m3u8_file_path
-    mix_name=$(ui_prompt "Enter a name for your '$media_type' mix")[ -z "$mix_name" ] && continue
+    mix_name=$(ui_prompt "Enter a name for your '$media_type' mix")
+    [ -z "$mix_name" ] && continue
     
-    sane_mix_filename=$(echo "$mix_name" | sed 's/[^a-zA-Z0-9._-]/_/g')[ -z "$sane_mix_filename" ] && sane_mix_filename="unnamed_mix_$(date +%s)"
+    sane_mix_filename=$(echo "$mix_name" | sed 's/[^a-zA-Z0-9._-]/_/g')
+    [ -z "$sane_mix_filename" ] && sane_mix_filename="unnamed_mix_$(date +%s)"
     m3u8_file_path="$CLI_MIXES_DIR/$media_type/$sane_mix_filename.m3u8"
     
-    if[ -f "$m3u8_file_path" ]; then
+    if [ -f "$m3u8_file_path" ]; then
       ui_confirm "Mix '$mix_name' already exists. Overwrite?" || continue
     fi
     
@@ -158,7 +160,7 @@ _menu_main() {
       fi
     done
     
-    if[ -s "$m3u8_file_path" ]; then
+    if [ -s "$m3u8_file_path" ]; then
       ui_notify "Mix '$mix_name' created successfully!"
     else
       ui_notify_error "Failed to create mix '$mix_name'."

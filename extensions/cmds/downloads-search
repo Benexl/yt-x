@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 # shellcheck disable=SC3043,SC2034,SC1090
 
 # ==============================================================================
@@ -36,4 +36,3 @@ _menu_main() {
     ui_confirm "Do you want to play another video?" || _util_byebye
   done
 }
-

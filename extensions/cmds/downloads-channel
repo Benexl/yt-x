@@ -10,7 +10,7 @@ CLI_LOCAL_PREVIEWS="$CLI_CACHE_DIR/local_previews"
 # ==============================================================================
 _preview_local_type() {
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       local hash script_path
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -19,7 +19,7 @@ _preview_local_type() {
       echo "$hash.sh|$line"
       
       # Generate the thumbnailing script dynamically 
-      if[ ! -s "$script_path" ]; then
+      if [ ! -s "$script_path" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 file=\$(find "$CONFIG_DOWNLOAD_DIR/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
@@ -39,7 +39,7 @@ EOF
 _preview_local_channel() {
   local type="$1"
   while IFS= read -r line; do
-    if[ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       local hash script_path
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
@@ -89,7 +89,7 @@ _menu_main() {
     local prev_dir="$PWD"
     cd "$CONFIG_DOWNLOAD_DIR/$type" || continue
     
-    if[ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       channel=$(printf "%s\n%s" "$(fd --exact-depth 2 2>/dev/null | cut -d / -f 2 | sort | uniq)" "$TXT_MENU_BACK" | _preview_local_channel "$type" | ui_launcher_with_preview "Select the playlist to play")
     else
       channel=$(printf "%s\n%s" "$(fd --exact-depth 2 2>/dev/null | cut -d / -f 2 | sort | uniq)" "$TXT_MENU_BACK" | ui_launcher "Select the playlist to play")

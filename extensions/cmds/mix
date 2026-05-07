@@ -3,7 +3,7 @@
 
 # Setup dedicated local cache directory
 CLI_LOCAL_PREVIEWS_MIX_EXPLORER="$CLI_CACHE_DIR/local_previews_mix_creator"
-![ -d "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER"
+! [ -d "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER"
 CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes"
 
 # ==============================================================================
@@ -37,7 +37,7 @@ fi
 draw_divider
 echo "${THEME_BOLD}Mix:${THEME_RESET} \$(basename "$line" .m3u8)"
 
-if[ -n "\$first_media" ]; then
+if [ -n "\$first_media" ]; then
     echo "${THEME_FZF_PREVIEW_KEY}Previewing:${THEME_RESET} \$(basename "\$first_media")"
 else
     echo "No previewable item found in mix."
@@ -105,9 +105,10 @@ _menu_main() {
       esac
 
       local selected_m3u8_path="$mix_dir/$mix_file"
-      local mix_name="$(basename "$mix_file" .m3u8)"
+      local mix_name
+      mix_name="$(basename "$mix_file" .m3u8)"
 
-      if ![ -f "$selected_m3u8_path" ]; then
+      if ! [ -f "$selected_m3u8_path" ]; then
         ui_notify_warning "Error: Could not retrieve selected mix path."
         continue
       fi
