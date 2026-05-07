@@ -3,6 +3,9 @@
 
 # ==============================================================================
 # Dailymotion Site Extension for yt-x
+# uses --no-flat-playlist to ensure we get all metadata for each video
+# in the playlist, which makes the ui nicer
+# even if it takes longer to fetch the playlist initially
 # ==============================================================================
 
 # --- Functionality ---
@@ -14,15 +17,14 @@ __menu_dailymotion_search() {
   search_term="$(ui_prompt "Enter Dailymotion search query")"
   [ -z "$search_term" ] && return
 
-  # yt-dlp uses dmsearchall: to query Dailymotion's search API
-  url="https://dailymotion.com/search/$search_term/videos"
+  url="https://www.dailymotion.com/search/$search_term/videos"
 
   # Initialize playlist pagination
   STATE_CURRENT_PLAYLIST_START=1
   STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
 
   # _fetch_playlist handles the core yt-dlp dumping over our URL
-  _fetch_playlist "$url"
+  _fetch_playlist "$url" --no-flat-playlist
   _state_push
 
   # Launch the standard playlist viewer with our Dailymotion results
@@ -41,7 +43,7 @@ __menu_dailymotion_user() {
   STATE_CURRENT_PLAYLIST_START=1
   STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
 
-  _fetch_playlist "$url"
+  _fetch_playlist "$url" --no-flat-playlist
   _state_push
   menu_playlist_explorer
 }
@@ -61,7 +63,7 @@ __menu_dailymotion_playlist() {
   STATE_CURRENT_PLAYLIST_START=1
   STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
 
-  _fetch_playlist "$url"
+  _fetch_playlist "$url" --no-flat-playlist
   _state_push
   menu_playlist_explorer
 }
