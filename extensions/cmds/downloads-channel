@@ -52,7 +52,7 @@ _preview_local_channel() {
 file=\$(fd --absolute-path --type directory --regex "$line" --search-path "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null | while read -r folder; do fd --absolute-path --search-path "\$folder" --type file --extension mkv --extension mp4 --extension mp3 2>/dev/null; done | shuf -n 1 2>/dev/null)
 if [ -n "\$file" ]; then
     dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    ![ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
     [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
 fi
 EOF
