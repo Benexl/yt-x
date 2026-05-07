@@ -1332,25 +1332,59 @@ preview_fzf() {
 }
 
 _preview_rofi() {
-  while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
-      printf "%s\0icon\x1f%s.jpg" "$line" "$(echo "$line" | _util_generate_hash)"
-    else
-      echo "$line"
-    fi
-  done
-
-  local data_to_preview
-  data_to_preview="$1"
+  local data_to_preview="$1"
 
   if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
-    local log_base_path
-    log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
-    ! [ -d "$log_base_path" ] && log_base_path="$CLI_CURRENT_STATE_DIR"
+    local log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+    [ ! -d "$log_base_path" ] && log_base_path="$CLI_CURRENT_STATE_DIR"
 
-    if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
-      _preview_download_imgs "$data_to_preview" >"$log_base_path/fzf-preview-img.log" 2>&1
+    local num_entries=0
+    if [ -n "$data_to_preview" ] && [ "$data_to_preview" != "null" ]; then
+      # Count the number of media items so we know exactly how many lines to ignore from stdin
+      num_entries=$(printf "%s\n" "$data_to_preview" | jq -r 'if .entries then (.entries | length) else 0 end' 2>/dev/null || echo 0)
+
+      {
+        local i=0
+        # Output URL first to protect against tabs inside video titles!
+        printf "%s\n" "$data_to_preview" | jq -r '.entries[]? | "\(.thumbnails[-1]?.url // "")\t\(.title)"' | while IFS="$(printf '\t')" read -r url title; do
+
+          if [ -n "$url" ] && [ "$url" != "null" ]; then
+            case "$url" in
+            //*) url="https:$url" ;;
+            esac
+
+            local url_hash img_path
+            url_hash="$(printf "%s\n" "$url" | _util_generate_hash)"
+            img_path="$CLI_PREVIEW_IMGS_DIR/${url_hash}.jpg"
+
+            # Download asynchronously
+            if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
+              __preview_download_image "$url" "$img_path" &
+            fi
+
+            # Output the title strictly mapped to the URL-based image cache
+            printf "%s\0icon\x1f%s\n" "$title" "$img_path"
+          else
+            # Fallback for media items without thumbnails
+            printf "%s\n" "$title"
+          fi
+
+          i=$((i + 1))
+          if [ $((i % 10)) -eq 0 ]; then
+            wait
+          fi
+        done
+
+        # Wait for all background downloads to finish BEFORE we unblock the pipe to Rofi
+        wait
+      } >>"$log_base_path/rofi-preview-img.log" 2>&1
     fi
+
+    # Print the remaining menu items from stdin (Next, Back, Exit) by skipping the first $num_entries titles
+    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' | tail -n +$((num_entries + 1))
+  else
+    # Fallback when Previews are disabled: just pass stdin through and strip ANSI
+    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
   fi
 }
 
