@@ -769,10 +769,8 @@ __ui_rofi_launcher() {
 
   # shellcheck disable=SC2086
   selection=$(
-    while read -r line; do
-      echo "$line" |
-        sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
-    done | rofi -no-config -theme "$CONFIG_ROFI_THEME_MAIN" -dmenu $custom_opts -p "$1"
+    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' |
+      rofi -no-config -theme "$CONFIG_ROFI_THEME_MAIN" -dmenu $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
@@ -830,10 +828,8 @@ __ui_rofi_launcher_with_preview() {
 
   # shellcheck disable=SC2086
   selection=$(
-    while read -r line; do
-      echo "$line" |
-        sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
-    done | rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -dmenu $custom_opts -p "$1"
+    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' |
+      rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -dmenu $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
@@ -1377,7 +1373,7 @@ _preview_rofi() {
 
         # Wait for all background downloads to finish BEFORE we unblock the pipe to Rofi
         wait
-      } >>"$log_base_path/rofi-preview-img.log" 2>&1
+      }
     fi
 
     # Print the remaining menu items from stdin (Next, Back, Exit) by skipping the first $num_entries titles
