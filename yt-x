@@ -1716,6 +1716,51 @@ fetch_yt_subs() {
   _fetch_yt_subs
 }
 
+# Return the nth most recent search history entry (1-indexed, newest=1)
+_get_search_history_entry() {
+  local n="$1" total line
+  total=$(wc -l <"$CLI_SEARCH_HISTORY_FILE")
+  n=$((total - n + 1))
+  [ "$n" -lt 1 ] && return 1
+  sed -n "${n}p" "$CLI_SEARCH_HISTORY_FILE"
+}
+
+# ==============================================================================
+# Data parsers
+# ==============================================================================
+# Map a colon command to the corresponding YouTube sp parameter
+# Prints the sp string to stdout; returns 0 if the prefix is va
+_parse_search_filter() {
+  case "$1" in
+  hour) echo "EgIIAQ%253D%253D" ;;
+  today) echo "EgIIAg%253D%253D" ;;
+  week) echo "EgIIAw%253D%253D" ;;
+  month) echo "EgIIBA%253D%253D" ;;
+  year) echo "EgIIBQ%253D%253D" ;;
+  video) echo "EgIQAQ%253D%253D" ;;
+  movie) echo "EgIQBA%253D%253D" ;;
+  live) echo "EgJAAQ%253D%253D" ;;
+  short) echo "EgQQARgB" ;;
+  long) echo "EgQQARgC" ;;
+  4k) echo "EgJwAQ%253D%253D" ;;
+  hd) echo "EgIgAQ%253D%253D" ;;
+  subtitles) echo "EgIoAQ%253D%253D" ;;
+  360) echo "EgJ4AQ%253D%253D" ;;
+  vr) echo "EgLIAQ%253D%253D" ;;
+  3d) echo "EgI4AQ%253D%253D" ;;
+  hdr) echo "EgPIAQ%253D%253D" ;;
+  local) echo "EgO4AQ%253D%253D" ;;
+  newest) echo "CAISAhAB" ;;
+  views) echo "CAMSAhAB" ;;
+  rating) echo "CAESAhAB" ;;
+  *) return 1 ;; # invalid filter
+  esac
+}
+
+parse_search_filter() {
+  _parse_search_filter "$@"
+}
+
 # ==============================================================================
 # Data downloading
 # ==============================================================================
@@ -2114,6 +2159,14 @@ _remove_saved_playlist() {
 
   playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_URL" | sed 's/.*list=//g')
   echo "$custom_playlists" | jq "select(.id != \"$playlist_id\")" >"$CLI_CUSTOM_PLAYLISTS_FILE"
+}
+
+_get_search_history_entry() {
+  local n="$1" total line
+  total=$(wc -l <"$CLI_SEARCH_HISTORY_FILE")
+  n=$((total - n + 1))
+  [ "$n" -lt 1 ] && return 1
+  sed -n "${n}p" "$CLI_SEARCH_HISTORY_FILE"
 }
 
 # ==============================================================================
@@ -2860,11 +2913,98 @@ __menu_main_subscriptions_feed() {
 }
 
 __menu_main_search() {
-  local search_term
-  local url
+  local raw_search_term
+  local use_history
+  use_history=0
 
-  search_term="$(ui_prompt "$TXT_MENU_PROMPT_SEARCH" | jq -Rr '@uri')"
-  url="results?search_query=$search_term"
+  if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
+    [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
+    # Show last 10 history entries (newest first)
+    local hist_list
+    local choice
+
+    hist_list=$(
+      awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
+        "$CLI_SEARCH_HISTORY_FILE" | head -10
+    )
+    choice=$(printf "New search…\n%s" "$hist_list" |
+      ui_launcher "Search or history" || true)
+    case "$choice" in
+    "New search…" | "") # fall through to manual input
+      ;;
+    *)
+      raw_search_term="$choice"
+      use_history=1
+      ;;
+    esac
+  fi
+
+  if [ "$use_history" -eq 0 ]; then
+    # Manual input – provide a hint in the prompt header (optional)
+    local header="Enter :filter <query> or !number"
+    raw_search_term=$(ui_prompt "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    [ -z "$raw_search_term" ] && return
+  fi
+
+  # ---- process !n recall ----
+  case "$raw_search_term" in
+  !*) # possible history reference
+    local n
+    n="${raw_search_term#!}"
+    # check if n is a positive integer
+    case "$n" in
+    *[!0-9]* | '') ;;
+    *)
+      if n=$((n)); then # strip leading zeros, ensure numeric
+        local recall
+        recall=$(_get_search_history_entry "$n" 2>/dev/null)
+        [ -n "$recall" ] && raw_search_term="$recall"
+      fi
+      ;;
+    esac
+    ;;
+  esac
+
+  # ---- parse optional colon filter ----
+  local sp
+  local query_only
+
+  sp="EgIQAQ%253D%253D" # default: videos
+  query_only="$raw_search_term"
+
+  case "$raw_search_term" in
+  :*[\ \	]*) # starts with colon, contains space/tab
+    local colon_prefix
+    local maybe_sp
+
+    colon_prefix="${raw_search_term%% *}"
+    colon_prefix="${colon_prefix#:}" # remove leading ':'
+
+    maybe_sp=$(parse_search_filter "$colon_prefix" 2>/dev/null)
+
+    # shellcheck disable=SC2181
+    if [ $? -eq 0 ]; then
+      sp="$maybe_sp"
+      query_only="${raw_search_term#* }"
+      query_only="${query_only# }"
+    fi
+    ;;
+  esac
+
+  # ---- save to history ----
+  if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ]; then
+    # Avoid duplicate consecutive entries
+    local last_entry
+    last_entry=$(tail -n 1 "$CLI_SEARCH_HISTORY_FILE" 2>/dev/null)
+    if [ "$last_entry" != "$raw_search_term" ]; then
+      echo "$raw_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
+    fi
+  fi
+
+  # ---- build URL and fetch ----
+  local encoded_search_term url
+  encoded_search_term=$(printf '%s' "$query_only" | jq -Rr '@uri')
+  url="results?search_query=$encoded_search_term&sp=$sp"
 
   fetch_playlist "$url"
   menu_playlist_explorer
