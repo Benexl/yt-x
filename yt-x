@@ -1278,7 +1278,7 @@ __preview_download_image() {
   fi
 }
 
-_preview_download_imgs() {
+_preview_fzf_download_imgs() {
   local data_to_preview
   local url
   local output_path
@@ -1322,7 +1322,7 @@ _preview_fzf() {
 
     _preview_fzf_generate_script "$data_to_preview" >"$log_base_path/fzf-preview-sh.log" 2>&1 &
     if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
-      _preview_download_imgs "$data_to_preview" >"$log_base_path/fzf-preview-img.log" 2>&1 &
+      _preview_fzf_download_imgs "$data_to_preview" >"$log_base_path/fzf-preview-img.log" 2>&1 &
     fi
   fi
 }
