@@ -1,0 +1,135 @@
+#!/bin/sh
+
+# ==============================================================================
+# Dailymotion Site Extension for yt-x
+# ==============================================================================
+
+# --- Functionality ---
+
+__menu_dailymotion_search() {
+  local search_term
+  local url
+
+  search_term="$(ui_prompt "Enter Dailymotion search query")"
+  [ -z "$search_term" ] && return
+
+  # yt-dlp uses dmsearchall: to query Dailymotion's search API
+  url="dmsearchall:$search_term"
+
+  # Initialize playlist pagination 
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+
+  # _fetch_playlist handles the core yt-dlp dumping over our URL
+  _fetch_playlist "$url"
+  _state_push
+  
+  # Launch the standard playlist viewer with our Dailymotion results
+  menu_playlist_explorer
+}
+
+__menu_dailymotion_user() {
+  local user_name
+  local url
+
+  user_name="$(ui_prompt "Enter Dailymotion username")"
+  [ -z "$user_name" ] && return
+
+  url="https://www.dailymotion.com/$user_name"
+
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+
+  _fetch_playlist "$url"
+  _state_push
+  menu_playlist_explorer
+}
+
+__menu_dailymotion_playlist() {
+  local playlist_id
+  local url
+
+  playlist_id="$(ui_prompt "Enter Dailymotion Playlist ID or URL")"
+  [ -z "$playlist_id" ] && return
+
+  case "$playlist_id" in
+  http://* | https://*) url="$playlist_id" ;;
+  *) url="https://www.dailymotion.com/playlist/$playlist_id" ;;
+  esac
+
+  STATE_CURRENT_PLAYLIST_START=1
+  STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
+
+  _fetch_playlist "$url"
+  _state_push
+  menu_playlist_explorer
+}
+
+# --- Dailymotion Sub-Menu ---
+
+_menu_dailymotion() {
+  local actions
+  actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  Search Dailymotion
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  Explore User
+${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  Explore Playlist
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}"
+
+  while true; do
+    action="$(printf "%s" "$actions" | ui_launcher "Dailymotion Menu" | sed 's/.*  //g')"
+    case "$action" in
+    "Search Dailymotion") __menu_dailymotion_search ;;
+    "Explore User") __menu_dailymotion_user ;;
+    "Explore Playlist") __menu_dailymotion_playlist ;;
+    "$TXT_MENU_BACK" | "") break ;;
+    *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+  done
+}
+
+# --- Hook into Main Menu ---
+# Overriding the original `_menu_main` at runtime to inject Dailymotion natively into the root
+
+_menu_main() {
+  local actions
+  actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_FEED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SEARCH}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_MAIN_SUBS_FEED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_WATCH_LATER}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MAIN_PLAYLISTS}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰑈${THEME_RESET}  ${TXT_MENU_MAIN_CHANNELS}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CUSTOM_PLAYLISTS}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SAVED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_RECENT}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_LIKED}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_HISTORY}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CLIPS}
+${THEME_FZF_ICON_COLOR_ACCENT}${THEME_RESET}  Dailymotion
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
+${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  while true; do
+    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
+    case "$action" in
+    "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
+    "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
+    "$TXT_MENU_MAIN_SUBS_FEED") __menu_main_subscriptions_feed ;;
+    "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
+    "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
+    "$TXT_MENU_MAIN_CHANNELS") __menu_main_channels_explorer ;;
+    "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
+    "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
+    "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
+    "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
+    "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
+    "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
+    "Dailymotion") _menu_dailymotion ;;
+    "$TXT_MENU_MAIN_MISC") menu_miscellaneous ;;
+    "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+  done
+}
