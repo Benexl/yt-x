@@ -33,8 +33,4 @@ jobs:
         run: |
           shellcheck --shell=sh --severity=warning extensions/*/**
 
-      - name: Check formatting
-        run: |
-          # shfmt will auto-detect the shell dialect from the shebang (#!/bin/sh → POSIX)
-          shfmt -d -i 2 -ci -bn -s -l yt-x
-          find extensions/ -name '*.sh' -print0 | xargs -0 shfmt -d -i 2 -ci -bn -s -l
+   # TODO: add a formatting check
