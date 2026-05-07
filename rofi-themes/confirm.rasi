@@ -1,0 +1,113 @@
+/**
+ * Rofi Theme: Viu "Tokyo Night" Confirmation
+ * Author: Gemini ft Benexl
+ * Description: A compact and clear modal dialog for Yes/No confirmations that displays a prompt.
+ */
+
+/*****----- Configuration -----*****/
+configuration {
+    font:           "JetBrains Mono Nerd Font 12";
+}
+
+/*****----- Global Properties -----*****/
+* {
+    /* Tokyo Night Color Palette */
+    bg-col:       #1a1b26;
+    bg-alt:       #24283b;
+    fg-col:       #c0caf5;
+    
+    blue:         #7aa2f7;
+    green:        #9ece6a; /* For 'Yes' */
+    red:          #f7768e; /* For 'No' */
+
+    background-color: transparent;
+    text-color:       @fg-col;
+}
+
+/*****----- Main Window -----*****/
+window {
+    transparency:     "real";
+    location:         center;
+    anchor:           center;
+    fullscreen:       false;
+    width:            350px;
+    
+    border:           2px;
+    border-color:     @blue;
+    border-radius:    12px;
+    padding:          20px;
+    background-color: @bg-col;
+}
+
+/*****----- Main Box -----*****/
+mainbox {
+    children:         [ inputbar, message, listview ];
+    spacing:          15px;
+    background-color: transparent;
+}
+
+/*****----- Inputbar (Displays the -p 'prompt') -----*****/
+inputbar {
+    background-color: transparent;
+    text-color:       @blue;
+    children:         [ prompt ];
+}
+
+prompt {
+    font:             "JetBrains Mono Nerd Font Bold 14";
+    horizontal-align: 0.5; /* Center the title */
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+
+/*****----- Message (Displays the -mesg 'Are you Sure?') -----*****/
+message {
+    padding:          10px;
+    margin:           5px 0px;
+    border-radius:    8px;
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+}
+
+textbox {
+    font:             "JetBrains Mono Nerd Font 12";
+    horizontal-align: 0.5;
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+/*****----- Listview (The Buttons) -----*****/
+listview {
+    columns:          2;
+    lines:            1;
+    spacing:          15px;
+    layout:           vertical;
+    background-color: transparent;
+}
+
+/*****----- Elements (Yes/No Buttons) -----*****/
+element {
+    padding:          12px;
+    border-radius:    8px;
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+    cursor:           pointer;
+}
+
+element-text {
+    font:             "JetBrains Mono Nerd Font Bold 12";
+    horizontal-align: 0.5;
+    background-color: transparent;
+    text-color:       inherit;
+}
+
+element normal.normal {
+    background-color: @bg-alt;
+    text-color:       @fg-col;
+}
+
+element selected.normal {
+    background-color: @blue;
+    text-color:       @bg-col;
+}
