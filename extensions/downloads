@@ -1,25 +1,59 @@
-_handle_action(){
-  action=$(printf "Media\nPlaylist\nChannel"|launcher "Select what to view")
-  case $action in
+#!/bin/sh
+
+_handle_action() {
+  local action
+  
+  action=$(printf "Media\nPlaylist\nChannel\n%s" "$TXT_MENU_BACK" | ui_launcher "Select what to view")
+  
+  case "$action" in
     Media)
-      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel/$video"
+      play "$CONFIG_DOWNLOAD_DIR/$type/$playlist/$channel/$media"
       ;;
     Channel)
-      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel"
+      play "$CONFIG_DOWNLOAD_DIR/$type/$playlist/$channel"
       ;;
     Playlist)
-      mpv "$DOWNLOAD_DIRECTORY/$type/$playlist"
+      play "$CONFIG_DOWNLOAD_DIR/$type/$playlist"
+      ;;
+    "$TXT_MENU_BACK" | "")
+      return 1
       ;;
   esac
-
 }
-main(){
+
+# Override the application's main menu loop
+_menu_main() {
+  local type playlist channel media
+
   while true; do
-    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
-    playlist=$(command ls "$DOWNLOAD_DIRECTORY/$type"|launcher "Select the playlist")
-    channel=$(command ls "$DOWNLOAD_DIRECTORY/$type/$playlist"|launcher "Select the channel")
-    media=$(command ls "$DOWNLOAD_DIRECTORY/$type/$playlist/$channel"|launcher "Select the video")
-    _handle_action
-    confirm "Do you want to play another video?"||break
-    done
-  }
+    # 1. Type
+    type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
+    case "$type" in
+      "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    esac
+    
+    # 2. Playlist
+    playlist=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null)" "$TXT_MENU_BACK" | ui_launcher "Select the playlist")
+    case "$playlist" in
+      "$TXT_MENU_BACK" | "") continue ;;
+    esac
+    
+    # 3. Channel
+    channel=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type/$playlist" 2>/dev/null)" "$TXT_MENU_BACK" | ui_launcher "Select the channel")
+    case "$channel" in
+      "$TXT_MENU_BACK" | "") continue ;;
+    esac
+    
+    # 4. Media
+    media=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type/$playlist/$channel" 2>/dev/null)" "$TXT_MENU_BACK" | ui_launcher "Select the video")
+    case "$media" in
+      "$TXT_MENU_BACK" | "") continue ;;
+    esac
+    
+    # 5. Action
+    _handle_action || continue
+    
+    # 6. Replay?
+    ui_confirm "Do you want to play another video?" || _util_byebye
+  done
+}
