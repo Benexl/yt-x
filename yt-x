@@ -156,6 +156,7 @@ __load_default_config() {
   : "${CONFIG_VIDEO_QUALITY:=1080}"
   : "${CONFIG_PER_PAGE:=30}"
   : "${CONFIG_BROWSER:=}"
+  : "${CONFIG_CACHE_RETENTION_DAYS:=7}"
   : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
   : "${CONFIG_NOTIFICATION_DURATION:=5}"
   : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
@@ -587,6 +588,9 @@ CONFIG_ROFI_THEME_PROMPT="$CONFIG_ROFI_THEME_PROMPT"
 CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
 CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 
+# Number of days to keep cached preview images, playlists, and logs
+# Default: 7
+CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 # ==============================================================================
 # 楽しんでね
 # ==============================================================================
@@ -3110,6 +3114,9 @@ _app_update_check() {
     last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
 
     if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
+      # TODO: better placement maybe
+      _app_util_cache_cleanup &
+
       _app_util_check_update
       echo "$CLI_START_TIME" >"$timestamp_file"
     fi
@@ -3122,6 +3129,31 @@ _app_core_dep_ch() {
   ! _dep_ch "fzf" && ui_notify_critical "fzf is not installed and is a core dep please install it to proceed"
 }
 
+_app_util_cache_cleanup() {
+  local retention_days
+  retention_days="${CONFIG_CACHE_RETENTION_DAYS:-7}"
+
+  if [ -d "$CLI_PREVIEW_DIR" ]; then
+    find "$CLI_PREVIEW_DIR" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
+  fi
+
+  if [ -d "$CLI_AUTO_GEN_PLAYLISTS" ]; then
+    find "$CLI_AUTO_GEN_PLAYLISTS" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
+  fi
+
+  if [ -d "$CLI_LOG_DIR" ]; then
+    find "$CLI_LOG_DIR" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
+  fi
+
+  if [ -d "$CLI_STATE_DIR" ]; then
+    for state_dir in "$CLI_STATE_DIR"/*; do
+      [ -d "$state_dir" ] || continue
+      if [ -n "$(find "$state_dir" -prune -mtime +1 2>/dev/null)" ]; then
+        rm -rf "$state_dir"
+      fi
+    done
+  fi
+}
 _app_clean_up() {
   rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
   # shellcheck disable=SC2046
