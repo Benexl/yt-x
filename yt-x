@@ -454,7 +454,7 @@ __load_default_theme() {
     THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;42;195;222m')"
 
     # Tokyo Night: #ff9e64
-    THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;255;158;100m')"
+    # THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;255;158;100m')"
 
     # Tokyo Night: #9ece6a
     THEME_PLAYER_START="$(printf '\033[38;2;158;206;106m')"
