@@ -770,7 +770,7 @@ __ui_rofi_launcher() {
     while read -r line; do
       echo "$line" |
         sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
-    done | rofi -config "$CONFIG_ROFI_THEME_MAIN" $custom_opts -p "$1"
+    done | rofi -no-config -theme "$CONFIG_ROFI_THEME_MAIN" -dmenu $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
@@ -831,7 +831,7 @@ __ui_rofi_launcher_with_preview() {
     while read -r line; do
       echo "$line" |
         sed -r 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
-    done | rofi -config "$CONFIG_ROFI_THEME_PREVIEW" $custom_opts -p "$1"
+    done | rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -dmenu $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
 }
@@ -873,7 +873,7 @@ __ui_default_prompt() {
 __ui_rofi_prompt() {
   ! [ -s "$CONFIG_ROFI_THEME_PROMPT" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PROMPT=\"$CONFIG_ROFI_THEME_PROMPT\""
 
-  rofi -config "$CONFIG_ROFI_THEME_PROMPT" -p "$1: "
+  rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" -dmenu -p "$1: "
 }
 
 _ui_prompt() {
@@ -947,7 +947,7 @@ _ui_rofi_confirm() {
   fi
 
   printf "%s\n%s" "$yes" "$no" |
-    rofi -config "$CONFIG_ROFI_THEME_CONFIRM" -p "$1: " -selected-row "$default_index"
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_CONFIRM" -dmenu -p "$1: " -selected-row "$default_index"
 }
 
 _ui_confirm() {
@@ -979,7 +979,7 @@ __ui_default_pager() {
 __ui_rofi_pager() {
   ! [ -s "$CONFIG_ROFI_THEME_PAGER" ] && ui_notify_critical "$TXT_ROFI_NOT_CONFIGURED: where CONFIG_ROFI_THEME_PAGER=\"$CONFIG_ROFI_THEME_PAGER\""
 
-  rofi -config "$CONFIG_ROFI_THEME_PAGER" -mesg "$TXT_ROFI_PAGER_MESSAGE" -p "$TXT_ROFI_PAGER_PROMPT"
+  rofi -no-config -theme "$CONFIG_ROFI_THEME_PAGER" -dmenu -mesg "$TXT_ROFI_PAGER_MESSAGE" -p "$TXT_ROFI_PAGER_PROMPT"
 }
 
 _ui_pager() {
