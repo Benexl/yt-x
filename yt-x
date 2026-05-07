@@ -1792,33 +1792,14 @@ __cached_mix_path() {
     [ -z "$_mix_data" ] && echo "$url" && return
 
     # start creating the m3u8 mix
-    echo '#EXTM3U' >>"$cached_mix_path"
-    lines="$(echo "$_mix_data" | jq '.entries[].url' -r | wc -l)"
-    for i in $(seq 1 "$lines"); do
-      local _video
-      local _title
-      local _channel
-      local _url
+    # NOTE: the extended metadata below is not available in the mix data of yt
+    # but other sites may have them. You could easily inject them using jq like:
+    # "#EXTALB:\(.album)\n#EXTGENRE:\(.genre)\n#EXTGRP:\(.group)\n"
 
-      _video=$(echo "$_mix_data" | jq ".entries[$((i - 1))]")
-      _title=$(echo "$_video" | jq ".title" -r)
-      _channel=$(echo "$_video" | jq '.channel' -r)
-      _url=$(echo "$_video" | jq '.url' -r)
-
-      # shellcheck disable=SC2129
-      echo "#EXTINF:-1,$_title" >>"$cached_mix_path"
-      echo "$_url" >>"$cached_mix_path"
-
-      # NOTE: the data below is not available in the mix data of yt
-      # but other sites may have them so...
-
-      # echo "#EXTALB:Album Name" >>"$cached_mix"
-      # echo "#EXTGENRE:Genre" >>"$cached_mix"
-      # echo "#EXTGRP:Group Name" >>"$cached_mix"
-
-      # newline
-      echo "" >>"$cached_mix_path"
-    done
+    echo "$_mix_data" | jq -r '
+      "#EXTM3U",
+      (.entries[]? | "#EXTINF:-1,\(.title)\n\(.url)\n")
+    ' >"$cached_mix_path"
   fi
 
   echo "$cached_mix_path"
