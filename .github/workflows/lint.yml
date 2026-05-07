@@ -31,7 +31,7 @@ jobs:
 
       - name: Lint extensions
         run: |
-          find extensions/ -name '*.sh' -print0 | xargs -0 shellcheck --shell=sh --severity=warning
+          shellcheck --shell=sh --severity=warning extensions/*/**
 
       - name: Check formatting
         run: |
