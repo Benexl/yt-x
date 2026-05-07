@@ -29,19 +29,6 @@ __init_env_platform() {
     setopt shwordsplit
   fi
 
-  # check if supports local
-  if ! _dep_ch local; then
-    # shellcheck disable=SC02329
-    __local() {
-      unset "$1"
-      eval "$1=''"
-    }
-    # shellcheck disable=SC02329
-    local() {
-      __local "$1"
-    }
-  fi
-
   case "$(uname -a)" in
   *ndroid*) CLI_PLATFORM="android" ;;
   *Darwin*) CLI_PLATFORM="mac" ;;
