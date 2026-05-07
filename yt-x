@@ -3321,60 +3321,30 @@ complete -c $CLI_NAME --no-files --short-option f --long-option fish --descripti
 # ==============================================================================
 # APP:cmdline parser
 # ==============================================================================
-__app_cmd_line_parser_completions() {
-  [ -n "$2" ] || _app_usage 1
-  case "$2" in
-  -f | --fish) _app_completions_fish ;;
-  -b | --bash)
-    # TODO: write bash completions
-    echo Contribute to "$CLI_NAME" by writing bash completions
-    exit 1
-    ;;
-  -z | --zsh)
-    # TODO: write zsh completions
-    echo Contribute to "$CLI_NAME" by writing zsh completions
-    exit 1
-    ;;
-  -h | --help) _app_usage_completions ;;
-  *) _app_usage_completions 1 ;;
-  esac
-
-}
-
-__app_cmd_line_parser_extensions() {
-  [ -n "$2" ] || _app_usage 1
-  if [ "${2#/}" != "$2" ]; then
-    . "$2"
-  else
-    . "$CLI_EXTENSIONS_DIR/$2"
-  fi
-  shift
-
-}
-
 _app_cmd_line_parser() {
+  local shift_count
   while [ $# -gt 0 ]; do
+    shift_count=1
     case "$1" in
     -h | --help) _app_usage ;;
     -v | --version)
       echo "$CLI_NAME v$CLI_VERSION MIT Copyright © 2024 $CLI_AUTHOR projects"
       exit 0
       ;;
-    -e | --edit-config)
-      _app_edit_config
-      ;;
+    -e | --edit-config) _app_edit_config ;;
     -U | --update)
       ! _app_util_check_update && ui_notify "No updates found, script is up to date :)" && _util_byebye
       ;;
     -S | --search)
+      [ -n "$2" ] || _app_usage 1
       CMD_ACTION="Search"
       CMD_SEARCH_TERMS="$2"
-      shift
+      shift_count=2
       ;;
     -l | --launcher)
       [ -n "$2" ] || _app_usage 1
       CONFIG_LAUNCHER="$2"
-      shift
+      shift_count=2
       ;;
     -i | --preview)
       CONFIG_ENABLE_PREVIEW=true
@@ -3397,34 +3367,69 @@ _app_cmd_line_parser() {
     --rofi-theme-main)
       [ -n "$2" ] || _app_usage 1
       CONFIG_ROFI_THEME_MAIN="$2"
-      shift
+      shift_count=2
       ;;
     --rofi-theme-preview)
       [ -n "$2" ] || _app_usage 1
       CONFIG_ROFI_THEME_PREVIEW="$2"
-      shift
+      shift_count=2
       ;;
     --rofi-theme-prompt)
       [ -n "$2" ] || _app_usage 1
       CONFIG_ROFI_THEME_PROMPT="$2"
-      shift
+      shift_count=2
       ;;
     --rofi-theme-confirm)
       [ -n "$2" ] || _app_usage 1
       CONFIG_ROFI_THEME_CONFIRM="$2"
-      shift
+      shift_count=2
       ;;
     -p | --player)
       [ -n "$2" ] || _app_usage 1
       CONFIG_PLAYER="$2"
-      shift
+      shift_count=2
       ;;
     -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
-    completions) __app_cmd_line_parser_completions "$@" ;;
-    -x | --extensions) __app_cmd_line_parser_extensions "$@" ;;
-    *) _app_usage 1 ;;
+    completions)
+      [ -n "$2" ] || _app_usage 1
+      case "$2" in
+      -f | --fish)
+        _app_completions_fish
+        ;;
+      -b | --bash)
+        echo "Contribute to $CLI_NAME by writing bash completions"
+        exit 1
+        ;;
+      -z | --zsh)
+        echo "Contribute to $CLI_NAME by writing zsh completions"
+        exit 1
+        ;;
+      -h | --help)
+        _app_usage_completions
+        ;;
+      *)
+        _app_usage_completions 1
+        ;;
+      esac
+
+      shift_count=2
+      ;;
+    -x | --extensions)
+      [ -n "$2" ] || _app_usage 1
+      if [ "${2#/}" != "$2" ]; then
+        . "$2"
+      else
+        . "$CLI_EXTENSIONS_DIR/$2"
+      fi
+
+      shift_count=2
+      ;;
+    *)
+      _app_usage 1
+      ;;
     esac
-    shift
+
+    shift $shift_count
   done
 }
 
