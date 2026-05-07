@@ -45,16 +45,18 @@ _preview_local_mix_creator() {
   
   while IFS= read -r line; do
     if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
-      local hash script_path full_path
+      local hash script_path full_path escaped_full_path
       hash="$(_util_generate_hash "mixcreate-$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
       full_path="$base_dir/$line"
+      escaped_full_path="$(printf "%s" "$full_path" | sed "s/'/'\\\\''/g")"
       
       echo "$hash.sh|$line"
       
       if [ ! -s "$script_path" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
+full_path='$escaped_full_path'
 dest_file="$CLI_LOCAL_PREVIEWS_MIX_CREATOR/\$(_util_generate_hash "\$full_path").jpg"
 ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$full_path" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
 [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
