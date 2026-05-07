@@ -302,6 +302,15 @@ __load_default_lang() {
   TXT_MENU_MAIN_TRENDING="Trending"
   TXT_MENU_MAIN_PLAYLISTS="Playlists"
   TXT_MENU_MAIN_SEARCH="Search"
+  TXT_MENU_MAIN_SEARCH_PROMPT="Enter search query"
+  TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT="Enter search query or select from history"
+  TXT_SEARCH_FILTER_HELP="\
+Filter by upload date –  :hour, :today, :week, :month, :year
+Filter by content      –  :video, :movie, :live, :short, :long
+Filter by features     –  :4k, :hd, :hdr, :subtitles, :360, :vr, :3d, :local
+Sort by                –  :newest, :views, :rating
+Recall history         –  !1, !2, … (newest = 1)"
+
   TXT_MENU_MAIN_WATCH_LATER="Watch Later"
   TXT_MENU_MAIN_SUBS_FEED="Subscriptions Feed"
 
@@ -873,7 +882,8 @@ __ui_rofi_prompt() {
   [ -s "$CONFIG_ROFI_THEME_PROMPT" ] ||
     ui_notify_critical "Rofi prompt theme not set: $CONFIG_ROFI_THEME_PROMPT"
 
-  if [ -n "$2" ]; then
+  # It doesnt look pretty so disabling it
+  if [ -n "$2" ] && false; then
     rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
       -dmenu -p "$1: " -mesg "$2"
   else
@@ -2924,9 +2934,17 @@ __menu_main_search() {
   local raw_search_term
   local use_history
   use_history=0
+  local header
 
   if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
     [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
+    local recent
+    recent=$(awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
+      "$CLI_SEARCH_HISTORY_FILE" | head -5)
+    header="${header}Recent searches:
+${recent}
+
+"
     # Show last 10 history entries (newest first)
     local hist_list
     local choice
@@ -2936,7 +2954,7 @@ __menu_main_search() {
         "$CLI_SEARCH_HISTORY_FILE" | head -10
     )
     choice=$(printf "New search…\n%s" "$hist_list" |
-      ui_launcher "Search or history" || true)
+      ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
     case "$choice" in
     "New search…" | "") # fall through to manual input
       ;;
@@ -2946,11 +2964,11 @@ __menu_main_search() {
       ;;
     esac
   fi
+  header="${header}${TXT_SEARCH_FILTER_HELP}"
 
   if [ "$use_history" -eq 0 ]; then
     # Manual input – provide a hint in the prompt header (optional)
-    local header="Enter :filter <query> or !number"
-    raw_search_term=$(ui_prompt "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     [ -z "$raw_search_term" ] && return
   fi
 
