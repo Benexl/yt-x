@@ -1770,15 +1770,6 @@ fetch_yt_subs() {
   _fetch_yt_subs
 }
 
-# Return the nth most recent search history entry (1-indexed, newest=1)
-_get_search_history_entry() {
-  local n="$1" total line
-  total=$(wc -l <"$CLI_SEARCH_HISTORY_FILE")
-  n=$((total - n + 1))
-  [ "$n" -lt 1 ] && return 1
-  sed -n "${n}p" "$CLI_SEARCH_HISTORY_FILE"
-}
-
 # ==============================================================================
 # Data parsers
 # ==============================================================================
@@ -3404,8 +3395,9 @@ _app_util_cache_cleanup() {
 
 _app_clean_up() {
   rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
-  # shellcheck disable=SC2046
   job_pids=$(jobs -p)
+
+  # shellcheck disable=SC2086
   [ -n "$job_pids" ] && kill $job_pids 2>/dev/null
 }
 
@@ -3626,6 +3618,7 @@ _app_cmd_line_parser() {
         ;;
       esac
 
+      # shellcheck disable=SC2317
       shift_count=2
       ;;
     -x | --extensions)
