@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
 
 # ==============================================================================
 # Dailymotion Site Extension for yt-x
@@ -14,16 +15,16 @@ __menu_dailymotion_search() {
   [ -z "$search_term" ] && return
 
   # yt-dlp uses dmsearchall: to query Dailymotion's search API
-  url="dmsearchall:$search_term"
+  url="https://dailymotion.com/search/$search_term/videos"
 
-  # Initialize playlist pagination 
+  # Initialize playlist pagination
   STATE_CURRENT_PLAYLIST_START=1
   STATE_CURRENT_PLAYLIST_END="$CONFIG_PER_PAGE"
 
   # _fetch_playlist handles the core yt-dlp dumping over our URL
   _fetch_playlist "$url"
   _state_push
-  
+
   # Launch the standard playlist viewer with our Dailymotion results
   menu_playlist_explorer
 }
