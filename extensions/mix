@@ -1,234 +1,141 @@
+#!/bin/sh
 
-#!/usr/bin/env bash
-# yt-x extension: Local Mix Explorer
+# Setup dedicated local cache directory
+CLI_LOCAL_PREVIEWS_MIX_EXPLORER="$CLI_CACHE_DIR/local_previews_mix_creator"
+![ -d "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER" ] && mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER"
+CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes"
 
-CLI_LOCAL_PREVIEWS_MIX_EXPLORER="$CLI_CACHE_DIR/local_previews_mix_creator" # Re-use creator's cache for item previews
-[ -d "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER" ] || mkdir -p "$CLI_LOCAL_PREVIEWS_MIX_EXPLORER"
-CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes" # Should exist from creator script
+# ==============================================================================
+# Preview Generators
+# ==============================================================================
+_preview_local_mix() {
+  local mix_dir="$1"
+  
+  while IFS= read -r line; do
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
+      local hash script_path mix_full_path
+      hash="$(_util_generate_hash "$mix_dir/$line")"
+      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
+      mix_full_path="$mix_dir/$line"
+      
+      echo "$hash.sh|$line"
+      
+      if [ ! -s "$script_path" ]; then
+        cat <<EOF >"$script_path"
+. "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 
-# Helper function to get the first valid media file path from an M3U8
-# $1: path to m3u8 file
-_ytx_get_first_media_from_m3u8() {
-    local m3u8_file="$1"
-    if [ ! -f "$m3u8_file" ]; then return 1; fi
-    # Read lines, ignore #EXTM3U and #EXTINF, take first line that is not a comment and is a file
-    grep -v '^#' "$m3u8_file" | while IFS= read -r line; do
-        # Trim leading/trailing whitespace just in case
-        line_trimmed=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        if [ -n "$line_trimmed" ] && [ -f "$line_trimmed" ]; then
-            echo "$line_trimmed"
-            return 0 # Found one
-        fi
-    done
-    return 1 # No valid file found
+# Extract first valid media file from the playlist
+first_media=\$(grep -v "^#" "$mix_full_path" | while read -r f; do if [ -f "\$f" ]; then echo "\$f"; break; fi; done)
+
+if [ -n "\$first_media" ]; then
+    dest_file="$CLI_LOCAL_PREVIEWS_MIX_EXPLORER/\$(_util_generate_hash "\$first_media").jpg"
+    ! [ -s "\$dest_file" ] && ffmpegthumbnailer -i "\$first_media" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
+    [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
+fi
+
+draw_divider
+echo "${THEME_BOLD}Mix:${THEME_RESET} \$(basename "$line" .m3u8)"
+
+if[ -n "\$first_media" ]; then
+    echo "${THEME_FZF_PREVIEW_KEY}Previewing:${THEME_RESET} \$(basename "\$first_media")"
+else
+    echo "No previewable item found in mix."
+fi
+
+draw_divider
+echo "${THEME_BOLD}--- First 5 Tracks ---${THEME_RESET}"
+grep "^#EXTINF" "$mix_full_path" | head -n 5 | sed 's/#EXTINF:-1,//;s/^/• /'
+EOF
+      fi
+    else
+      echo "$line"
+    fi
+  done
 }
 
-main() {
-  SHELL="bash"; export SHELL FZF_PREVIEW_COLUMNS FZF_PREVIEW_LINES
-  export -f _ytx_get_first_media_from_m3u8 # Make helper available if preview script is complex
+# ==============================================================================
+# Main Loop Override
+# ==============================================================================
+_menu_main() {
+  # Ensure standard fzf preview utilities are configured
+  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
-  if ! command -v fd >/dev/null 2>&1; then send_notification "Error: 'fd' missing."; return 1; fi
-  if ! command -v ffmpegthumbnailer >/dev/null 2>&1; then send_notification "Warning: 'ffmpegthumbnailer' missing."; fi
-  if ! [ -d "$CLI_MIXES_DIR" ]; then send_notification "Mixes directory not found: $CLI_MIXES_DIR"; return 1; fi
+  if ! _dep_ch fd; then ui_notify_warning "Error: 'fd' missing."; return 1; fi
+  if ! [ -d "$CLI_MIXES_DIR" ]; then ui_notify_warning "Mixes directory not found: $CLI_MIXES_DIR"; return 1; fi
 
-  while true; do # Main loop for choosing mix type or exiting
-    local mix_type selected_mix_dir
-    local temp_m3u8_paths_file
-    temp_m3u8_paths_file=$(mktemp "${TMPDIR:-/tmp}/ytx_mix_explorer_paths.XXXXXX")
-    trap 'rm -f "$temp_m3u8_paths_file" &>/dev/null' EXIT TERM INT # Ensure cleanup
-
-    mix_type_selection=$(printf "audio\nvideo\nExit" | launcher "Explore which type of mixes?")
-    case "$mix_type_selection" in
-      audio) mix_type="audio"; selected_mix_dir="$CLI_MIXES_DIR/audio" ;;
-      video) mix_type="video"; selected_mix_dir="$CLI_MIXES_DIR/video" ;;
-      Exit|"") send_notification "Exiting mix explorer."; return 0 ;;
-      *) send_notification "Invalid selection."; continue ;;
+  while true; do
+    local mix_type mix_dir mix_file mix_action
+    
+    # 1. Select Mix Type
+    mix_type=$(printf "audio\nvideo\n%s" "$TXT_MENU_EXIT" | ui_launcher "Explore which type of mixes?")
+    
+    case "$mix_type" in
+      "$TXT_MENU_EXIT" | "") _util_byebye ;;
+      audio|video) mix_dir="$CLI_MIXES_DIR/$mix_type" ;;
+      *) continue ;;
     esac
 
-    if ! [ -d "$selected_mix_dir" ]; then
-      send_notification "No '$mix_type' mixes directory found ($selected_mix_dir)."
-      # rm -f "$temp_m3u8_paths_file"; trap - EXIT TERM INT # Clean up and remove trap before continue
-      continue # Go back to mix type selection
-    fi
-
-    local fzf_mix_input_data=() index=0
-    while IFS= read -r -d $'\0' m3u8_full_path; do
-      if [ -n "$m3u8_full_path" ]; then
-        ((index++))
-        echo "$m3u8_full_path" >> "$temp_m3u8_paths_file"
-        local m3u8_basename mix_name
-        m3u8_basename=$(basename "$m3u8_full_path")
-        mix_name="${m3u8_basename%.m3u8}" # Remove .m3u8 extension
-        printf -v fzf_line "[%03d] %s" "$index" "$mix_name"
-        fzf_mix_input_data+=("$fzf_line")
-      fi
-    done < <(fd --print0 --type f --extension m3u8 . "$selected_mix_dir")
-
-    if [ ${#fzf_mix_input_data[@]} -eq 0 ]; then
-      send_notification "No '$mix_type' mixes found in $selected_mix_dir."
-      # rm -f "$temp_m3u8_paths_file"; trap - EXIT TERM INT
+    if ! [ -d "$mix_dir" ]; then
+      ui_notify_warning "No '$mix_type' mixes directory found."
       continue
     fi
 
-    local mix_preview_script
-    mix_preview_script='
-      selected_fzf_line="{}" # e.g., "[001] My Awesome Mix"
-      raw_idx_field=$(echo "$selected_fzf_line" | awk "{print \$1}")
-      item_idx=$(echo "$raw_idx_field" | grep -oE "[0-9]+")
+    while true; do
+      local prev_dir="$PWD"
+      cd "$mix_dir" || continue
       
-      if ! [[ "$item_idx" =~ ^[0-9]+$ ]]; then echo "MixPreview Err: Idx \"$item_idx\" invalid."; exit 0; fi
-      idx_for_sed=$((10#$item_idx)); if [ "$idx_for_sed" -eq 0 ]; then echo "MixPreview Err: Idx 0."; exit 0; fi
-
-      m3u8_path_for_preview=$(sed -n "${idx_for_sed}p" "'"$temp_m3u8_paths_file"'")
-      if [ -z "$m3u8_path_for_preview" ] || ! [ -f "$m3u8_path_for_preview" ]; then
-        echo "MixPreview Err: M3U8 path not found or not a file for index $idx_for_sed."
-        exit 0
-      fi
-
-      # Get first media file from M3U8 for thumbnail
-      # Note: _ytx_get_first_media_from_m3u8 needs to be callable here.
-      # If fzf runs preview in a very restricted subshell, it might not see exported functions.
-      # A simpler inline grep might be safer if the exported function isn'"'"'t found.
-      # first_media_file=$(_ytx_get_first_media_from_m3u8 "$m3u8_path_for_preview")
-      first_media_file=$(grep -v "^#" "$m3u8_path_for_preview" | head -n 10 | while IFS= read -r line; do line_trimmed=$(echo "$line" | sed "s/^[[:space:]]*//;s/[[:space:]]*$//"); if [ -n "$line_trimmed" ] && [ -f "$line_trimmed" ]; then echo "$line_trimmed"; break; fi; done)
-
-
-      if [ -z "$first_media_file" ] || ! [ -f "$first_media_file" ]; then
-        echo "Mix: $(basename "${m3u8_path_for_preview%.m3u8}")"
-        echo "No previewable item found in mix."
-        # Optionally list some #EXTINF titles
-        grep "^#EXTINF" "$m3u8_path_for_preview" | head -n 5 | sed "s/#EXTINF:-1,//"
-        exit 0
-      fi
-
-      media_base_name=$(basename "$first_media_file")
-      thumb_cache_dir_preview="'"$CLI_LOCAL_PREVIEWS_MIX_EXPLORER"'" # Use the correct variable
-      preview_image_hash_mix=$(echo -n "$first_media_file" | generate_sha256) # Hash the media file, not the m3u8
-      preview_image_file_mix="$thumb_cache_dir_preview/${preview_image_hash_mix}.jpg"
-
-      if ! [ -s "$preview_image_file_mix" ]; then
-        if command -v ffmpegthumbnailer >/dev/null 2>&1; then
-          ffmpegthumbnailer -i "$first_media_file" -o "$preview_image_file_mix" -s 0 -q 7 &>/dev/null
-          if [ -s "$preview_image_file_mix" ]; then fzf_preview "$preview_image_file_mix"; else echo "Preview N/A for $media_base_name (thumb fail)"; fi
-        else echo "No ffmpegthumbnailer. Item: $media_base_name"; fi
+      # 2. Select Mix File
+      if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+        mix_file=$(printf "%s\n%s" "$(fd --type f --extension m3u8 2>/dev/null | sed 's|^\./||')" "$TXT_MENU_BACK" | _preview_local_mix "$mix_dir" | ui_launcher_with_preview "Select '$mix_type' mix")
       else
-        fzf_preview "$preview_image_file_mix"
-      fi
-      echo "Mix: $(basename "${m3u8_path_for_preview%.m3u8}")"
-      echo "Previewing: $media_base_name"
-      echo "--- First 5 Tracks ---"
-      grep "^#EXTINF" "$m3u8_path_for_preview" | head -n 5 | sed "s/#EXTINF:-1,//;s/^/• /"
-    '
-    
-    while true; do # Loop for selecting a mix and acting on it
-      selected_mix_fzf_line=$(printf "%s\n" "${fzf_mix_input_data[@]}" | \
-        fzf --height=80% --layout=reverse --info=inline --border=rounded \
-            --prompt="Select '$mix_type' mix to manage: " \
-            --header="ENTER to choose action for selected mix." \
-            --preview-window="left,40%,border-rounded,wrap" \
-            --preview="$mix_preview_script" \
-            --bind "enter:accept")
-            # No other keybinds for now, Enter selects the mix for action menu
-
-      local fzf_mix_select_status=$?
-
-      if [ "$fzf_mix_select_status" -ne 0 ] || [ -z "$selected_mix_fzf_line" ]; then
-        # User pressed ESC or Ctrl-C, or selected nothing
-        break # Break from this inner loop, go back to mix type selection
+        mix_file=$(printf "%s\n%s" "$(fd --type f --extension m3u8 2>/dev/null | sed 's|^\./||')" "$TXT_MENU_BACK" | ui_launcher "Select '$mix_type' mix")
       fi
 
-      # Process selected mix
-      raw_idx_field_mix=$(echo "$selected_mix_fzf_line" | awk '{print $1}')
-      item_idx_mix=$(echo "$raw_idx_field_mix" | grep -oE "[0-9]+")
-      selected_m3u8_path=""
-      if [[ "$item_idx_mix" =~ ^[0-9]+$ ]]; then
-        idx_for_sed_mix=$((10#$item_idx_mix))
-        if [ "$idx_for_sed_mix" -ne 0 ]; then
-          selected_m3u8_path=$(sed -n "${idx_for_sed_mix}p" "$temp_m3u8_paths_file")
-        fi
+      cd "$prev_dir" || continue
+
+      case "$mix_file" in
+        "$TXT_MENU_BACK" | "") break ;; # Break inner loop, go back to type selection
+      esac
+
+      local selected_m3u8_path="$mix_dir/$mix_file"
+      local mix_name="$(basename "$mix_file" .m3u8)"
+
+      if ![ -f "$selected_m3u8_path" ]; then
+        ui_notify_warning "Error: Could not retrieve selected mix path."
+        continue
       fi
 
-      if [ -z "$selected_m3u8_path" ] || ! [ -f "$selected_m3u8_path" ]; then
-        send_notification "Error: Could not retrieve selected mix path."
-        continue # Go back to mix list
-      fi
-      
-      selected_mix_name=$(basename "${selected_m3u8_path%.m3u8}")
-
-      mix_action=$(printf "Play Mix\nDelete Mix\nBack to Mix List" | launcher "Action for '$selected_mix_name'")
+      # 3. Action Menu
+      mix_action=$(printf "Play Mix\nDelete Mix\n%s" "$TXT_MENU_BACK" | ui_launcher "Action for '$mix_name'")
 
       case "$mix_action" in
         "Play Mix")
-          local mpv_play_opts=""
-          [ "$mix_type" = "audio" ] && mpv_play_opts="--no-video"
-          nohup mpv $mpv_play_opts "$selected_m3u8_path" >/dev/null 2>&1 & disown
-          send_notification "Playing mix: $selected_mix_name"
+          ui_notify "Playing mix: $mix_name"
+          # Utilizing yt-x's native media wrapper modes!
+          if [ "$mix_type" = "audio" ]; then
+            play "$selected_m3u8_path" "listen"
+          else
+            play "$selected_m3u8_path" "watch"
+          fi
           ;;
+          
         "Delete Mix")
-          if confirm "Really delete mix '$selected_mix_name'?"; then
+          if ui_confirm "Really delete mix '$mix_name'?"; then
             if rm "$selected_m3u8_path"; then
-              send_notification "Mix '$selected_mix_name' deleted."
-              # Need to refresh fzf_mix_input_data and temp_m3u8_paths_file
-              # Easiest is to break and re-enter the outer loop for now
-              # Or, could rebuild them here and 'continue' the inner loop.
-              # For simplicity, let's break to refresh list.
-              # This means after delete, user is taken back to audio/video selection.
-              # A more sophisticated refresh would re-run the fd and fzf_input_data generation.
-              # For now:
-              rm -f "$temp_m3u8_paths_file"; trap - EXIT TERM INT # Clean up current temp file
-              # A bit of a hack to force re-evaluation of the outer loop
-              # This will effectively re-list mixes of the *current* type.
-              # To go back to type selection, we'd 'continue 2' if nested or just 'break' from inner loop.
-              # Let's make it re-list the current type of mixes:
-              break # Breaks from 'while true; do # Loop for selecting a mix'
-                    # The outer 'while true; do # Main loop' will then re-evaluate
-                    # but it will re-ask for audio/video.
-                    # To refresh current list:
-                    # 1. Remove deleted entry from fzf_mix_input_data and temp_m3u8_paths_file
-                    # 2. continue this inner loop.
-                    # This is complex. Easiest is to break fully and let user re-select.
+              ui_notify "Mix '$mix_name' deleted."
+              break # Break to refresh the list
             else
-              send_notification "Failed to delete mix '$selected_mix_name'."
+              ui_notify_error "Failed to delete mix '$mix_name'."
             fi
           else
-            send_notification "Deletion cancelled."
+             ui_notify "Deletion cancelled."
           fi
-          # After delete action (success or fail), go back to mix list of the *same type*
-          # This requires re-generating the list. For now, break out to type selection.
-          break # Break from this inner loop, goes to outer loop's start (type selection)
           ;;
-        "Back to Mix List"|"")
-          # Do nothing, will loop back to showing the list of mixes of current type
+          
+        "$TXT_MENU_BACK" | "")
           continue
           ;;
-        *) send_notification "Invalid action.";;
       esac
-    done # End of inner loop for selecting a mix and acting on it
-    rm -f "$temp_m3u8_paths_file"; trap - EXIT TERM INT # Clean up temp file for this type selection
-  done # End of main outer loop (choosing mix type)
-  return 0
+    done
+  done
 }
-
-# Mock self-test section
-# ... (similar to creator's, ensure fd, ffmpegthumbnailer are in PATH)
-# if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-#   DOWNLOAD_DIRECTORY="${HOME}/Downloads/yt_x_test_files" 
-#   CLI_CONFIG_DIR="${HOME}/.config/yt-x-test" # Ensure this exists with mixes/audio and mixes/video
-#   CLI_CACHE_DIR="${HOME}/.cache/yt-x-test"
-#   mkdir -p "$CLI_CONFIG_DIR/mixes/audio" "$CLI_CONFIG_DIR/mixes/video" "$CLI_CACHE_DIR/local_previews_mix_creator"
-# 
-#   # Create a dummy m3u8 for testing
-#   # mkdir -p "$DOWNLOAD_DIRECTORY/videos/test_vids"
-#   # touch "$DOWNLOAD_DIRECTORY/videos/test_vids/vid1.mp4"
-#   # echo -e "#EXTM3U\n#EXTINF:-1,Test Vid 1\n$DOWNLOAD_DIRECTORY/videos/test_vids/vid1.mp4" > "$CLI_CONFIG_DIR/mixes/video/My Test Video Mix.m3u8"
-# 
-#   launcher() { printf "%s: " "$1" >&2; head -n1 ; }
-#   prompt() { printf "%s: " "$1" >&2; read -r val; echo "$val"; }
-#   send_notification() { echo "NOTIFICATION: $1" >&2; sleep 0.1; }
-#   confirm() { printf "%s [y/N]: " "$1" >&2; read -r conf; [[ "$conf" == "y" || "$conf" == "Y" ]]; }
-#   generate_sha256() { echo -n "$1" | sha256sum | awk '{print $1}'; }
-#   fzf_preview() { if [ -f "$1" ]; then echo "FZF_PREVIEW_IMAGE: $1"; else echo "FZF_PREVIEW_IMAGE_NOT_FOUND: $1";fi; }
-#   export -f generate_sha256 fzf_preview send_notification prompt launcher confirm _ytx_get_first_media_from_m3u8
-# 
-#   main
-# fi
