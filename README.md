@@ -19,12 +19,35 @@ Plus other sites yt-dlp supports.
 
 </details>
 
+<details>
+  <summary>Riced</summary>
+  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/487952e1-4911-4269-9b99-7e99a14048b0" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/645a8e5d-fa5a-40a6-9fe1-7e7c91b28f8e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0a990fc3-cc29-49b4-a0fc-c99a68ef833d" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c066221a-97e2-46fb-9433-7e644fd6ebb8" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/fc6c9d0a-b482-405b-a054-a19d2df75482" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/669e7dc9-d54c-4830-9850-9e7bb03994b5" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/19bc4352-9f8b-44be-8688-828c44ea96f3" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6364a8ad-b745-4e88-a6a4-8c6babeab65a" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/cb4aa5f8-9661-4c70-b436-ef75bdb13f4c" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/f6480ee3-ebfe-42a0-b197-4f0227923a0e" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7088f36d-1632-466b-84a2-9c4f30580e7f" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ba7cd738-019f-46b4-be0a-2226b9d06066" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e575d8e6-0cdc-4f2e-8fae-95e4602f6c52" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/078ae35a-af91-41ab-af37-29a1cfe8b111" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52926ce8-a3f8-4447-afbf-4ef4e9b8ab0d" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ca428115-ec08-453b-a2fc-e4dec30d0b83" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c6546dac-d39b-49d4-9656-edf82e305d80" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/bc0ba42d-3284-48d4-a2e3-1b0de6cd8630" />
+
+</details>
+
 ## Features
 
 - **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless navigation.
 - **YouTube-Specific Menus**: Access your feed, trending videos, playlists, watch later, subscriptions feed, liked videos, clips.
 - **Playback Support**: Play videos and audio via `mpv`, `vlc`, or `tplay`.
-- **Search Functionality**: Search for videos, channels and playlists directly.
+- **Search and filter Functionality**: Search for videos, channels and playlists directly.
 - **Channel Exploration**: Explore channels, including their videos, streams, podcasts, shorts, and playlists.
 - **Saved Channels**: Bookmark your favorite channels for quick access, with support for importing existing subscriptions.
 - **Saved Videos**: Save videos to watch later.
@@ -36,6 +59,10 @@ Plus other sites yt-dlp supports.
 - **Configuration Management**: Customize and manage configurations for yt-x, mpv and yt-dlp with ease.
 - **Extensions:** Extend yt-x with your own custom ui and preview logic allowing more precise coverage of other sites that yt-dlp supports🥳
 - **Custom Commands:** Basically a simple way to achieve the same thing with extensions. A custom command is just a yt-dlp command that loads a playlist or playlist like json.
+- **Multi language support:** through lang extensions
+- **Muli site support:** though site extensions
+- **themable:** rice yt-x to your hearts content and make it yours through theme extensions and the config with nice defualts (tokyo night)
+- **intuitive code architecture:** an easy to understand to codebase with intuitive state management
 - **Miscellaneous Features**:
   - Shell completions for `bash`, `zsh`, and `fish`.
   - Desktop entry generation for easy access.
