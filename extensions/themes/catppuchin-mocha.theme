@@ -2,29 +2,29 @@
 # shellcheck disable=SC2034
 
 # ==============================================================================
-# yt-x Theme Extension: Catppuccin Mocha
+# yt-x Theme Extension: Catppuchin Mocha
 # ==============================================================================
 
 if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
-  # Catppuccin Mocha: Mauve (#cba6f7)
+  # Catppuchin Mocha: Mauve (#cba6f7)
   THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;203;166;247m')"
 
-  # Catppuccin Mocha: Overlay1 (#7f849c)
+  # Catppuchin Mocha: Overlay1 (#7f849c)
   THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;127;132;156m')"
 
-  # Catppuccin Mocha: Peach (#fab387)
+  # Catppuchin Mocha: Peach (#fab387)
   THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;250;179;135m')"
 
-  # Catppuccin Mocha: Red (#f38ba8)
+  # Catppuchin Mocha: Red (#f38ba8)
   THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;243;139;168m')"
 
-  # Catppuccin Mocha: Blue (#89b4fa)
+  # Catppuchin Mocha: Blue (#89b4fa)
   THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;137;180;250m')"
 
-  # Catppuccin Mocha: Surface2 (#585b70)
+  # Catppuchin Mocha: Surface2 (#585b70)
   THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;88;91;112m')"
 
-  # Catppuccin Mocha: Green (#a6e3a1)
+  # Catppuchin Mocha: Green (#a6e3a1)
   THEME_PLAYER_START="$(printf '\033[38;2;166;227;161m')"
 
   # Text formatting
