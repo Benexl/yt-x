@@ -1327,10 +1327,38 @@ preview_fzf() {
   _preview_fzf "$@"
 }
 
+_preview_rofi() {
+  while IFS= read -r line; do
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
+      printf "%s\0icon\x1f%s.jpg" "$line" "$(echo "$line" | _util_generate_hash)"
+    else
+      echo "$line"
+    fi
+  done
+
+  local data_to_preview
+  data_to_preview="$1"
+
+  if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
+    local log_base_path
+    log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+    ! [ -d "$log_base_path" ] && log_base_path="$CLI_CURRENT_STATE_DIR"
+
+    if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
+      _preview_download_imgs "$data_to_preview" >"$log_base_path/fzf-preview-img.log" 2>&1
+    fi
+  fi
+}
+
+preview_rofi() {
+  _preview_rofi "$@"
+}
+
 _preview() {
   case "$CONFIG_LAUNCHER" in
   fzf) preview_fzf "$@" ;;
-  *) ui_notify_warning "$TXT_LAUNCHER_PREVIEWS_UNSUPPORTED" ;;
+  rofi) preview_rofi "$@" ;;
+  *) ui_notify_critical "$TXT_LAUNCHER_PREVIEWS_UNSUPPORTED" ;;
   esac
 }
 
