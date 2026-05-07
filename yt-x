@@ -628,7 +628,7 @@ _load_config() {
 # ==============================================================================
 _util_byebye() {
   echo "$TXT_BYEBYE $USER"
-  exit "${1:-0}"
+  exit
 }
 
 _util_generate_hash() {
