@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
 
 # Setup dedicated local cache directory
 CLI_LOCAL_PREVIEWS_MIX_EXPLORER="$CLI_CACHE_DIR/local_previews_mix_creator"
@@ -10,16 +11,16 @@ CLI_MIXES_DIR="$CLI_CONFIG_DIR/mixes"
 # ==============================================================================
 _preview_local_mix() {
   local mix_dir="$1"
-  
+
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
       local hash script_path mix_full_path
       hash="$(_util_generate_hash "$mix_dir/$line")"
       script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
       mix_full_path="$mix_dir/$line"
-      
+
       echo "$hash.sh|$line"
-      
+
       if [ ! -s "$script_path" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
@@ -60,19 +61,25 @@ _menu_main() {
   # Ensure standard fzf preview utilities are configured
   [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
-  if ! _dep_ch fd; then ui_notify_warning "Error: 'fd' missing."; return 1; fi
-  if ! [ -d "$CLI_MIXES_DIR" ]; then ui_notify_warning "Mixes directory not found: $CLI_MIXES_DIR"; return 1; fi
+  if ! _dep_ch fd; then
+    ui_notify_warning "Error: 'fd' missing."
+    return 1
+  fi
+  if ! [ -d "$CLI_MIXES_DIR" ]; then
+    ui_notify_warning "Mixes directory not found: $CLI_MIXES_DIR"
+    return 1
+  fi
 
   while true; do
     local mix_type mix_dir mix_file mix_action
-    
+
     # 1. Select Mix Type
     mix_type=$(printf "audio\nvideo\n%s" "$TXT_MENU_EXIT" | ui_launcher "Explore which type of mixes?")
-    
+
     case "$mix_type" in
-      "$TXT_MENU_EXIT" | "") _util_byebye ;;
-      audio|video) mix_dir="$CLI_MIXES_DIR/$mix_type" ;;
-      *) continue ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    audio | video) mix_dir="$CLI_MIXES_DIR/$mix_type" ;;
+    *) continue ;;
     esac
 
     if ! [ -d "$mix_dir" ]; then
@@ -83,9 +90,9 @@ _menu_main() {
     while true; do
       local prev_dir="$PWD"
       cd "$mix_dir" || continue
-      
+
       # 2. Select Mix File
-      if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] &&[ "$CONFIG_LAUNCHER" = "fzf" ]; then
+      if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
         mix_file=$(printf "%s\n%s" "$(fd --type f --extension m3u8 2>/dev/null | sed 's|^\./||')" "$TXT_MENU_BACK" | _preview_local_mix "$mix_dir" | ui_launcher_with_preview "Select '$mix_type' mix")
       else
         mix_file=$(printf "%s\n%s" "$(fd --type f --extension m3u8 2>/dev/null | sed 's|^\./||')" "$TXT_MENU_BACK" | ui_launcher "Select '$mix_type' mix")
@@ -94,7 +101,7 @@ _menu_main() {
       cd "$prev_dir" || continue
 
       case "$mix_file" in
-        "$TXT_MENU_BACK" | "") break ;; # Break inner loop, go back to type selection
+      "$TXT_MENU_BACK" | "") break ;; # Break inner loop, go back to type selection
       esac
 
       local selected_m3u8_path="$mix_dir/$mix_file"
@@ -109,32 +116,32 @@ _menu_main() {
       mix_action=$(printf "Play Mix\nDelete Mix\n%s" "$TXT_MENU_BACK" | ui_launcher "Action for '$mix_name'")
 
       case "$mix_action" in
-        "Play Mix")
-          ui_notify "Playing mix: $mix_name"
-          # Utilizing yt-x's native media wrapper modes!
-          if [ "$mix_type" = "audio" ]; then
-            play "$selected_m3u8_path" "listen"
+      "Play Mix")
+        ui_notify "Playing mix: $mix_name"
+        # Utilizing yt-x's native media wrapper modes!
+        if [ "$mix_type" = "audio" ]; then
+          play "$selected_m3u8_path" "listen"
+        else
+          play "$selected_m3u8_path" "watch"
+        fi
+        ;;
+
+      "Delete Mix")
+        if ui_confirm "Really delete mix '$mix_name'?"; then
+          if rm "$selected_m3u8_path"; then
+            ui_notify "Mix '$mix_name' deleted."
+            break # Break to refresh the list
           else
-            play "$selected_m3u8_path" "watch"
+            ui_notify_error "Failed to delete mix '$mix_name'."
           fi
-          ;;
-          
-        "Delete Mix")
-          if ui_confirm "Really delete mix '$mix_name'?"; then
-            if rm "$selected_m3u8_path"; then
-              ui_notify "Mix '$mix_name' deleted."
-              break # Break to refresh the list
-            else
-              ui_notify_error "Failed to delete mix '$mix_name'."
-            fi
-          else
-             ui_notify "Deletion cancelled."
-          fi
-          ;;
-          
-        "$TXT_MENU_BACK" | "")
-          continue
-          ;;
+        else
+          ui_notify "Deletion cancelled."
+        fi
+        ;;
+
+      "$TXT_MENU_BACK" | "")
+        continue
+        ;;
       esac
     done
   done

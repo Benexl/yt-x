@@ -1,4 +1,5 @@
 #/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
 
 # Setup dedicated local cache & config directories
 CLI_LOCAL_PREVIEWS_MIX_CREATOR="$CLI_CACHE_DIR/local_previews_mix_creator"
