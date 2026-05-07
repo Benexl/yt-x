@@ -150,7 +150,7 @@ rm ~/.local/bin/yt-x
 - [fzf](https://github.com/junegunn/fzf) - Main UI navigation.
 - [mpv](https://mpv.io/) - Video and audio playback.
 - [ffmpeg](https://www.ffmpeg.org/) - Proper HLS stream downloading.
-- [bash](https://www.gnu.org/software/bash/) - Script interpreter.
+- [sh](https://www.gnu.org/software/bash/) - Script interpreter (any posix compliant shell).
 - [nerdfont](https://www.nerdfonts.com/) - for the icons
 
 ### Optional
