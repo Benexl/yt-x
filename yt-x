@@ -2197,10 +2197,13 @@ You can use the following:
   if [ "$user_shell" = "fish" ]; then
     fish --init-command "function fish_greeting; clear;echo \"$init_text\"; end"
   else
-    cat <<EOF >/tmp/yt_x_sh_init
+    local init_file
+    init_file="$(mktemp /tmp/yt_x_sh_init.XXXXXX)"
+
+    cat <<EOF >"$init_file"
 printf "%s" "$init_text"
 EOF
-    ENV=/tmp/yt_x_sh_init sh -i
+    ENV="$init_file" sh -i
   fi
 
 }
