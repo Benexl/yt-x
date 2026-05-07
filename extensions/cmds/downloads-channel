@@ -70,6 +70,9 @@ _menu_main() {
   # Ensure standard fzf preview utilities are configured
   [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
+  # This command relies on `fd` for channel discovery and playlist generation.
+  _dep_ch fd
+
   while true; do
     local type channel temp_playlist
     
