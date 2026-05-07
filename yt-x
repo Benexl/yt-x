@@ -1697,7 +1697,8 @@ __download_yt_dlp() {
   shift
   custom_opts="$*"
 
-  yt-dlp "$url"
+  # shellcheck disable=SC2086
+  yt-dlp "$url" $custom_opts
 }
 
 _download_media() {
