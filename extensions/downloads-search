@@ -1,10 +1,38 @@
-main(){
+#/bin/sh
+
+# ==============================================================================
+# Main Loop Override
+# ==============================================================================
+_menu_main() {
   while true; do
-    type=$(command ls "$DOWNLOAD_DIRECTORY"|launcher "Select the type of file to play")
-    command cd "$DOWNLOAD_DIRECTORY/$type"
-    video=$(fzf)
-    mpv "$DOWNLOAD_DIRECTORY/$type/$video"
-    confirm "Do you want to play another video?"||break
-    done
-  }
+    local type video prev_dir
+    
+    # 1. Select Type
+    type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
+    
+    case "$type" in
+      "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    esac
+
+    # 2. Select Video (Recursive)
+    # We CD briefly so the paths presented to the user are clean relative paths
+    prev_dir="$PWD"
+    cd "$CONFIG_DOWNLOAD_DIR/$type" || continue
+    
+    # Use find to list all files recursively, stripping the leading './'
+    video=$(printf "%s\n%s" "$(find . -type f 2>/dev/null | sed 's|^\./||')" "$TXT_MENU_BACK" | ui_launcher "Select the video")
+    
+    cd "$prev_dir" || continue
+
+    case "$video" in
+      "$TXT_MENU_BACK" | "") continue ;;
+    esac
+
+    # 3. Play the selected video
+    play "$CONFIG_DOWNLOAD_DIR/$type/$video"
+
+    # 4. Loop continuation
+    ui_confirm "Do you want to play another video?" || _util_byebye
+  done
+}
 
