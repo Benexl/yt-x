@@ -935,6 +935,7 @@ _ui_rofi_confirm() {
   local no
   local default
   local default_index
+  local selection
 
   yes="${3:-y}"
   no="${4:-n}"
@@ -946,8 +947,9 @@ _ui_rofi_confirm() {
     default_index=1
   fi
 
-  printf "%s\n%s" "$yes" "$no" |
-    rofi -no-config -theme "$CONFIG_ROFI_THEME_CONFIRM" -dmenu -p "$1: " -selected-row "$default_index"
+  selection="$(printf "%s\n%s" "$yes" "$no" |
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_CONFIRM" -dmenu -p "$1: " -selected-row "$default_index")"
+  [ "$selection" = "$yes" ] && return 0 || return 1
 }
 
 _ui_confirm() {
