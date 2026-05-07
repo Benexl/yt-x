@@ -433,12 +433,30 @@ EOF
 
 __load_default_theme() {
   if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
-    THEME_FZF_ICON_COLOR_PRIMARY=""
-    THEME_FZF_ICON_COLOR_SECONDARY=""
-    THEME_FZF_ICON_COLOR_ACCENT=""
-    THEME_FZF_ICON_COLOR_ERROR=""
-    THEME_RESET=""
-    THEME_PLAYER_START=""
+    # Tokyo Night: #2ac3de
+    THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;42;195;222m')"
+
+    # Tokyo Night: #545c7e
+    THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;84;92;126m')"
+
+    # Tokyo Night: #ff9e64
+    THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;255;158;100m')"
+
+    # Tokyo Night: #ff007c
+    THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;255;0;124m')"
+
+    # Tokyo Night: #2ac3de
+    THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;42;195;222m')"
+
+    # Tokyo Night: #ff9e64
+    THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;255;158;100m')"
+
+    # Tokyo Night: #9ece6a
+    THEME_PLAYER_START="$(printf '\033[38;2;158;206;106m')"
+
+    # Text formatting
+    THEME_BOLD="$(printf '\033[1m')"
+    THEME_RESET="$(printf '\033[0m')"
 
     [ -s "$CLI_DEFAULT_THEME_FILE" ] && . "$CLI_DEFAULT_THEME_FILE"
   fi
