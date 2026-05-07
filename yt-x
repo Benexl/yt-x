@@ -1147,7 +1147,9 @@ __preview_fzf_generate_script_for_item() {
 
   eval "$(printf "%s\n" "$data_item" | jq -r '
     def format_number:
-      tostring | split("") | reverse | join("") | gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),") | split("") | reverse | join("");
+      tostring | split("") | reverse | join("") |
+      gsub("(?<thousands>[0-9]{3})(?=[0-9])"; "\(.thousands),") |
+      split("") | reverse | join("");
 
     def format_duration:
       try(
@@ -1161,16 +1163,50 @@ __preview_fzf_generate_script_for_item() {
       ) catch null;
 
     def format_timestamp:
-      try(
-        (. | tostring | strptime("%Y%m%d") | mktime | now - .) as $diff
+      if .timestamp then
+        (now - .timestamp) as $diff
         | if $diff < 60 then "Just now"
-          elif $diff < 3600 then ($diff / 60 | floor) as $mins | if $mins == 1 then "1 minute ago" else "\($mins) minutes ago" end
-          elif $diff < 86400 then ($diff / 3600 | floor) as $hours | if $hours == 1 then "1 hour ago" else "\($hours) hours ago" end
-          elif $diff < 2592000 then ($diff / 86400 | floor) as $days | if $days == 1 then "1 day ago" else "\($days) days ago" end
-          elif $diff < 31536000 then ($diff / 2592000 | floor) as $months | if $months == 1 then "1 month ago" else "\($months) months ago" end
-          else ($diff / 31536000 | floor) as $years | if $years == 1 then "1 year ago" else "\($years) years ago" end
+          elif $diff < 3600 then
+            ($diff/60 | floor) as $mins
+            | if $mins == 1 then "1 minute ago" else "\($mins) minutes ago" end
+          elif $diff < 86400 then
+            ($diff/3600 | floor) as $hours
+            | if $hours == 1 then "1 hour ago" else "\($hours) hours ago" end
+          elif $diff < 2592000 then
+            ($diff/86400 | floor) as $days
+            | if $days == 1 then "1 day ago" else "\($days) days ago" end
+          elif $diff < 31536000 then
+            ($diff/2592000 | floor) as $months
+            | if $months == 1 then "1 month ago" else "\($months) months ago" end
+          else
+            ($diff/31536000 | floor) as $years
+            | if $years == 1 then "1 year ago" else "\($years) years ago" end
           end
-      ) catch null;[
+      elif .upload_date then
+        (try (.upload_date | strptime("%Y%m%d") | mktime) catch null) as $epoch
+        | if $epoch then
+            (now - $epoch) as $diff
+            | if $diff < 60 then "Just now"
+              elif $diff < 3600 then
+                ($diff/60 | floor) as $mins
+                | if $mins == 1 then "1 minute ago" else "\($mins) minutes ago" end
+              elif $diff < 86400 then
+                ($diff/3600 | floor) as $hours
+                | if $hours == 1 then "1 hour ago" else "\($hours) hours ago" end
+              elif $diff < 2592000 then
+                ($diff/86400 | floor) as $days
+                | if $days == 1 then "1 day ago" else "\($days) days ago" end
+              elif $diff < 31536000 then
+                ($diff/2592000 | floor) as $months
+                | if $months == 1 then "1 month ago" else "\($months) months ago" end
+              else
+                ($diff/31536000 | floor) as $years
+                | if $years == 1 then "1 year ago" else "\($years) years ago" end
+              end
+          else null end
+      else null
+      end;
+    [
       "id=" + (.id // "" | @sh),
       "title=" + (.title // "" | sub("^[0-9]+ "; "") | @sh | @sh),
       "raw_title=" + (.title // "" | @sh),
@@ -1181,9 +1217,9 @@ __preview_fzf_generate_script_for_item() {
       "channel=" + (.channel | if . == null then "null" else (@sh | @sh) end),
       "channel_follower_count=" + (.channel_follower_count | if . == null then "null" else (format_number | @sh) end),
       "duration=" + (.duration | format_duration | if . == null then "null" else @sh end),
-      "timestamp=" + (.upload_date | format_timestamp | if . == null then "null" else @sh end)
+      "timestamp=" + (format_timestamp | if . == null then "null" else @sh end)
     ] | join("\n")
-  ')"
+')"
 
   preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s\n" "$raw_title" | _util_generate_hash).sh"
 
