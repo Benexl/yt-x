@@ -1,0 +1,40 @@
+name: Lint & Format
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'yt-x'
+      - 'extensions/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'yt-x'
+      - 'extensions/**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck and shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          curl -sS https://webi.sh/shfmt | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Lint yt-x
+        run: shellcheck --shell=sh --severity=warning yt-x
+
+      - name: Lint extensions
+        run: |
+          find extensions/ -name '*.sh' -print0 | xargs -0 shellcheck --shell=sh --severity=warning
+
+      - name: Check formatting
+        run: |
+          # shfmt will auto-detect the shell dialect from the shebang (#!/bin/sh → POSIX)
+          shfmt -d -i 2 -ci -bn -s -l yt-x
+          find extensions/ -name '*.sh' -print0 | xargs -0 shfmt -d -i 2 -ci -bn -s -l
