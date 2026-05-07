@@ -1740,7 +1740,8 @@ _download_media() {
 
   [ -n "$CONFIG_BROWSER" ] && custom_opts="--cookies-from-browser $CONFIG_BROWSER"
 
-  __download_yt_dlp "$url" "$custom_opts" "$@"
+  # shellcheck disable=SC2086
+  __download_yt_dlp "$url" $custom_opts "$@"
 }
 
 _download_video() {
@@ -1754,6 +1755,7 @@ download_video() {
 
 _download_audio() {
   _download_media "$STATE_CURRENT_VIDEO_URL" \
+    --extract-audio --audio-format mp3 \
     --output "$CONFIG_DOWNLOAD_DIR/audio/individual/%(channel)s/%(title)s.%(ext)s"
 }
 
@@ -1789,14 +1791,13 @@ _download_playlist_audio() {
 
   playlist_title="$(ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
 
-  download_archive="$(_util_generate_hash "audio - $STATE_CURRENT_PLAYLIST_URL")"
-
   [ "$CONFIG_DOWNLOADS_ENUMERATE" = "true" ] && enumerate_playlist="%(playlist_index)s - "
 
   # TODO: could be more unique
   download_archive="$(_util_generate_hash "audio - $STATE_CURRENT_PLAYLIST_URL")"
 
   _download_media "$STATE_CURRENT_PLAYLIST_URL" \
+    --extract-audio --audio-format mp3 \
     --output "$CONFIG_DOWNLOAD_DIR/audio/$playlist_title/%(channel)s/$enumerate_playlist%(title)s.%(ext)s" \
     --download-archive "$CLI_DOWNLOAD_ARCHIVE_DIR/$download_archive"
 }
@@ -3198,6 +3199,7 @@ _app_util_cache_cleanup() {
     done
   fi
 }
+
 _app_clean_up() {
   rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
   # shellcheck disable=SC2046
