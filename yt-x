@@ -2516,7 +2516,7 @@ __menu_playlists_explorer() {
   current_playlist="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq ".entries[$((id - 1))]")"
   url="$(echo "$current_playlist" | jq '.url' -r)"
 
-  _fetch_playlist "$url"
+  fetch_playlist "$url"
   menu_playlist_explorer
 }
 
