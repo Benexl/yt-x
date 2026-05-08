@@ -793,7 +793,7 @@ __ui_fzf_launcher_with_preview() {
   local preview_script
 
   preview_script="
-preview_txt='$CLI_PREVIEW_SCRIPTS_DIR/{1}'
+preview_txt='{1}'
 [ -s \"\$preview_txt\" ] && exec sh \"\$preview_txt\"
 "
 
@@ -1343,7 +1343,7 @@ _preview_fzf_download_imgs() {
 _preview_fzf() {
   while IFS= read -r line; do
     if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
-      echo "$(echo "$line" | _util_generate_hash).sh|$line"
+      echo "$CLI_PREVIEW_SCRIPTS_DIR/$(echo "$line" | _util_generate_hash).sh|$line"
     else
       echo "$line"
     fi
