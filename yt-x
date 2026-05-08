@@ -2648,7 +2648,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE") __menu_channel_actions_subscribe ;;
-    "$TXT_MENU_BACK" | "") break ;;
+    "$TXT_MENU_BACK" | "") _state_pop && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify "$TXT_MENU_INVALID_ACTION" ;;
     esac
