@@ -17,20 +17,29 @@ _preview_local() {
       local script_path
       local img_path
       local thumbnailer_input_file
+      local base_dir
+      local candidate_path
       local random_seek
 
       hash="$(_util_generate_hash "$line")"
       script_path="$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR/$hash.sh"
       img_path="$CLI_LOCAL_PREVIEWS_IMGS_DIR/$hash.jpg"
 
-      if [ -z "$1" ]; then
-        thumbnailer_input_file="$(find "$CONFIG_DOWNLOAD_DIR/$line" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+      base_dir="$1"
+      candidate_path="$CONFIG_DOWNLOAD_DIR/$line"
+      [ -n "$base_dir" ] && candidate_path="$base_dir/$line"
+
+      if [ -f "$candidate_path" ]; then
+        thumbnailer_input_file="$candidate_path"
       else
-        thumbnailer_input_file="$(find "$1" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+        [ -n "$base_dir" ] && candidate_path="$base_dir"
+        thumbnailer_input_file="$(find "$candidate_path" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
       fi
 
-      random_seek=$(od -An -N2 -i /dev/urandom | awk '{print ($1 % 100) + 1}')
-      ffmpegthumbnailer -i "$thumbnailer_input_file" -o "$img_path" -t "$random_seek" -s 0 -m >/dev/null 2>&1
+      if [ -n "$thumbnailer_input_file" ]; then
+        random_seek=$(od -An -N2 -i /dev/urandom | awk '{print ($1 % 100) + 1}')
+        ffmpegthumbnailer -i "$thumbnailer_input_file" -o "$img_path" -t "$random_seek" -s 0 -m >/dev/null 2>&1
+      fi
 
       if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
         # FZF expects `{1}|{2}` where {1} is the script and {2} is the display name
