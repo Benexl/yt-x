@@ -1615,7 +1615,7 @@ _fetch_playlist() {
           "
   )"
 
-  STATE_CURRENT_PLAYLIST_URL="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.url' -r)"
+  STATE_CURRENT_PLAYLIST_URL="$url"
   STATE_CURRENT_PLAYLIST_TITLE="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.title' -r)"
 }
 
