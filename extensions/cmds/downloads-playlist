@@ -2,34 +2,50 @@
 # shellcheck disable=SC3043,SC2034,SC1090
 
 # Setup dedicated local cache directory
-CLI_LOCAL_PREVIEWS="$CLI_CACHE_DIR/local_previews"
-! [ -d "$CLI_LOCAL_PREVIEWS" ] && mkdir -p "$CLI_LOCAL_PREVIEWS"
+CLI_LOCAL_PREVIEWS_DIR="$CLI_CACHE_DIR/local-previews"
+CLI_LOCAL_PREVIEWS_SCRIPTS_DIR="$CLI_LOCAL_PREVIEWS_DIR/scripts"
+CLI_LOCAL_PREVIEWS_IMGS_DIR="$CLI_LOCAL_PREVIEWS_DIR/imgs"
+mkdir -p "$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR" "$CLI_LOCAL_PREVIEWS_IMGS_DIR"
 
 # ==============================================================================
 # Preview Generators
 # ==============================================================================
-_preview_local_type() {
+_preview_local() {
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
-      local hash script_path
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
+      local hash
+      local script_path
+      local img_path
+      local thumbnailer_input_file
+      local random_seek
+
       hash="$(_util_generate_hash "$line")"
-      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
-      
-      # FZF expects `{1}|{2}` where {1} is the script and {2} is the display name
-      echo "$hash.sh|$line"
-      
-      # Generate the thumbnailing script dynamically
-      if [ ! -s "$script_path" ]; then
+      script_path="$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR/$hash.sh"
+      img_path="$CLI_LOCAL_PREVIEWS_IMGS_DIR/$hash.jpg"
+
+      if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+        # FZF expects `{1}|{2}` where {1} is the script and {2} is the display name
+        printf "%s|%s\n" "$script_path" "$line"
+      elif [ "$CONFIG_LAUNCHER" = "rofi" ]; then
+        printf "%s\0icon\x1f%s\n" "$line" "$img_path"
+      else
+        echo "$line"
+        return
+      fi
+
+      if [ -d "$CONFIG_DOWNLOAD_DIR/$line" ]; then
+        thumbnailer_input_file="$(find "$CONFIG_DOWNLOAD_DIR/$line" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+      else
+        thumbnailer_input_file="$(find "$1" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+      fi
+
+      random_seek=$(od -An -N2 -i /dev/urandom | awk '{print ($1 % 100) + 1}')
+      ffmpegthumbnailer -i "$thumbnailer_input_file" -o "$img_path" -t "$random_seek" -s 0 -m >/dev/null 2>&1
+
+      if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
-file=\$(find "$CONFIG_DOWNLOAD_DIR/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
-if [ -n "\$file" ]; then
-    dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
-      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
-    fi
-    [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
-fi
+[ -s "$img_path" ] && fzf_preview "$img_path" 2>/dev/null 
 EOF
       fi
     else
@@ -39,41 +55,10 @@ EOF
   done
 }
 
-_preview_local_playlist() {
-  local type="$1"
-  while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
-      local hash script_path
-      # Use "$type-$line" so identically named playlists in different types don't conflict
-      hash="$(_util_generate_hash "$type-$line")"
-      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
-      
-      echo "$hash.sh|$line"
-      
-      if [ ! -s "$script_path" ]; then
-        cat <<EOF >"$script_path"
-. "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
-file=\$(find "$CONFIG_DOWNLOAD_DIR/$type/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
-if [ -n "\$file" ]; then
-    dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
-      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
-    fi
-    [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
-fi
-EOF
-      fi
-    else
-      echo "$line"
-    fi
-  done
-}
-
 # ==============================================================================
 # Main Loop Override
 # ==============================================================================
 _menu_main() {
-  # Ensure standard fzf preview utilities are configured
   [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
 
   if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
@@ -82,35 +67,34 @@ _menu_main() {
   fi
 
   while true; do
-    local type playlist
-    
-    # 1. Select Type
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
-      type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | _preview_local_type | ui_launcher_with_preview "Select the type of file to play")
-    else
-      type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
-    fi
-    
+    local base_dir
+    local type
+    local playlist
+
+    type=$(
+      printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" |
+        _preview_local |
+        ui_launcher_with_preview "Select the type of file to play"
+    )
+
     case "$type" in
-      "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
     esac
 
-    # 2. Select Playlist
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
-      playlist=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null)" "$TXT_MENU_BACK" | _preview_local_playlist "$type" | ui_launcher_with_preview "Select the playlist to play")
-    else
-      playlist=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null)" "$TXT_MENU_BACK" | ui_launcher "Select the playlist to play")
-    fi
+    base_dir="$CONFIG_DOWNLOAD_DIR/$type"
+    playlist=$(
+      printf "%s\n%s" "$(command ls "$base_dir" 2>/dev/null)" "$TXT_MENU_BACK" |
+        _preview_local "$base_dir" |
+        ui_launcher_with_preview "Select the playlist to play"
+    )
 
     case "$playlist" in
-      "$TXT_MENU_BACK" | "") continue ;;
+    "$TXT_MENU_BACK" | "") continue ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
     esac
 
-    # 3. Play the directory 
-    # (The `play` abstraction wraps mpv/vlc which natively handle playing a directory recursively/sequentially)
     play "$CONFIG_DOWNLOAD_DIR/$type/$playlist"
 
-    # 4. Loop continuation
     ui_confirm "Do you want to play another playlist?" || _util_byebye
   done
 }
