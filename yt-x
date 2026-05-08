@@ -1845,7 +1845,8 @@ _download_playlist_video() {
   local enumerate_playlist
   local playlist_title
 
-  playlist_title="$(ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+  playlist_title="$(echo "$STATE_CURRENT_PLAYLIST_TITLE" | ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+  [ -z "$playlist_title" ] && return
 
   [ "$CONFIG_DOWNLOADS_ENUMERATE" = "true" ] && enumerate_playlist="%(playlist_index)s - "
 
@@ -1866,7 +1867,8 @@ _download_playlist_audio() {
   local enumerate_playlist
   local playlist_title
 
-  playlist_title="$(ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+  playlist_title="$(echo "$STATE_CURRENT_PLAYLIST_TITLE" | ui_prompt "$TXT_ENTER_PLAYLIST_TITLE" "$STATE_CURRENT_PLAYLIST_TITLE")"
+  [ -z "$playlist_title" ] && return
 
   [ "$CONFIG_DOWNLOADS_ENUMERATE" = "true" ] && enumerate_playlist="%(playlist_index)s - "
 
@@ -2133,7 +2135,8 @@ _update_saved_playlists() {
   custom_playlists="[]"
   [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ] && custom_playlists=$(cat "$CLI_CUSTOM_PLAYLISTS_FILE")
 
-  playlist_name=$(ui_prompt "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST" "$STATE_CURRENT_PLAYLIST_TITLE")
+  playlist_name=$(echo "$STATE_CURRENT_PLAYLIST_TITLE" | ui_prompt "$TXT_MENU_PLAYLIST_ACTIONS_PROMPT_SAVE_PLAYLIST" "$STATE_CURRENT_PLAYLIST_TITLE")
+  [ -z "$playlist_name" ] && return
   playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq -r ".id")
 
   custom_playlist="
@@ -2642,6 +2645,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_CHANNEL_ACTIONS_SEARCH")
       local search_term
       search_term="$(ui_prompt "$TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT" | jq -Rr '@uri')"
+      [ -z "$search_term" ] && continue
 
       url="$STATE_CURRENT_CHANNEL_URL/search?query=$search_term"
       fetch_playlist "$url"
@@ -2729,6 +2733,7 @@ __menu_miscellaneous_explore_channels() {
   local url
 
   search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT" | jq -Rr '@uri')
+  [ -z "$search_term" ] && return
 
   url="results?search_query=$search_term&sp=EgIQAg%253D%253D"
 
@@ -2741,6 +2746,7 @@ __menu_miscellaneous_explore_playlists() {
   local url
 
   search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT" | jq -Rr '@uri')
+  [ -z "$search_term" ] && return
 
   url="results?search_query=$search_term&sp=EgIQAw%253D%253D"
 
