@@ -5,7 +5,8 @@
 CLI_LOCAL_PREVIEWS_DIR="$CLI_CACHE_DIR/local-previews"
 CLI_LOCAL_PREVIEWS_SCRIPTS_DIR="$CLI_LOCAL_PREVIEWS_DIR/scripts"
 CLI_LOCAL_PREVIEWS_IMGS_DIR="$CLI_LOCAL_PREVIEWS_DIR/imgs"
-mkdir -p "$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR" "$CLI_LOCAL_PREVIEWS_IMGS_DIR"
+CLI_LOCAL_AUTO_GEN_PLAYLISTS="$CLI_AUTO_GEN_PLAYLISTS/local"
+mkdir -p "$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR" "$CLI_LOCAL_PREVIEWS_IMGS_DIR" "$CLI_LOCAL_AUTO_GEN_PLAYLISTS"
 
 # ==============================================================================
 # Preview Generators
@@ -99,7 +100,7 @@ _menu_main() {
     "$TXT_MENU_BACK" | "") continue ;;
     esac
 
-    temp_playlist="$CLI_CACHE_DIR/local_playlist_$(_util_generate_hash "$type/$channel").m3u8"
+    temp_playlist="$CLI_LOCAL_AUTO_GEN_PLAYLISTS/$(_util_generate_hash "$type/$channel").m3u8"
     echo "#EXTM3U" >"$temp_playlist"
 
     find "$base_dir/$channel" -type f 2>/dev/null >>"$temp_playlist"
