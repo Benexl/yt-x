@@ -59,6 +59,8 @@ EOF
 # Main Loop Override
 # ==============================================================================
 _menu_main() {
+  [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && __preview_fzf_create_shared_script
+
   if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
     ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
     _util_byebye
@@ -67,10 +69,12 @@ _menu_main() {
   while true; do
     local type
     local video
-    local prev_dir
 
-    # 1. Select Type
-    type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
+    type=$(
+      printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" |
+        _preview_local |
+        ui_launcher_with_preview "Select the type of file to play"
+    )
 
     case "$type" in
     "$TXT_MENU_EXIT" | "") _util_byebye ;;
@@ -78,17 +82,17 @@ _menu_main() {
 
     video=$(
       printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$type" -type f 2>/dev/null | sed "s|^$CONFIG_DOWNLOAD_DIR/$type/||")" "$TXT_MENU_BACK" |
-        ui_launcher "Select the video"
+        _preview_local "$CONFIG_DOWNLOAD_DIR/$type" |
+        ui_launcher_with_preview "Select the video"
     )
 
     case "$video" in
     "$TXT_MENU_BACK" | "") continue ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
     esac
 
-    # 3. Play the selected video
     play "$CONFIG_DOWNLOAD_DIR/$type/$video"
 
-    # 4. Loop continuation
     ui_confirm "Do you want to play another video?" || _util_byebye
   done
 }
