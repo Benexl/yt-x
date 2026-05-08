@@ -1615,7 +1615,7 @@ _fetch_playlist() {
           "
   )"
 
-  STATE_CURRENT_PLAYLIST_URL="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.original_url' -r)"
+  STATE_CURRENT_PLAYLIST_URL="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.url' -r)"
   STATE_CURRENT_PLAYLIST_TITLE="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.title' -r)"
 }
 
@@ -1711,7 +1711,7 @@ _fetch_channels() {
           "
   )"
 
-  STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.url' -r)"
+  STATE_CURRENT_CHANNEL_RESULTS_URL="$(echo "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.original_url' -r)"
 }
 
 fetch_channels() {
