@@ -1,67 +1,49 @@
 #!/bin/sh
 # shellcheck disable=SC3043,SC2034,SC1090
 
-# Setup dedicated local cache directory
-CLI_LOCAL_PREVIEWS="$CLI_CACHE_DIR/local_previews"
-! [ -d "$CLI_LOCAL_PREVIEWS" ] && mkdir -p "$CLI_LOCAL_PREVIEWS"
-
 # ==============================================================================
 # Preview Generators
 # ==============================================================================
-_preview_local_type() {
+_preview_local() {
   while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
-      local hash script_path
-      hash="$(_util_generate_hash "$line")"
-      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
-      
-      # FZF expects `{1}|{2}` where {1} is the script and {2} is the display name
-      echo "$hash.sh|$line"
-      
-      # Generate the thumbnailing script dynamically 
-      if [ ! -s "$script_path" ]; then
-        cat <<EOF >"$script_path"
-. "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
-file=\$(find "$CONFIG_DOWNLOAD_DIR/$line/" -type f 2>/dev/null | shuf -n 1 2>/dev/null)
-if [ -n "\$file" ]; then
-    dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
-      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
-    fi
-    [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
-fi
-EOF
-      fi
-    else
-      echo "$line"
-    fi
-  done
-}
+    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$line" != "$TXT_MENU_EXIT" ]; then
+      local hash
+      local script_path
+      local img_path
+      local thumbnailer_input_file
+      local random_seek
 
-_preview_local_channel() {
-  local type="$1"
-  while IFS= read -r line; do
-    if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ] && [ "$line" != "$TXT_MENU_BACK" ]; then
-      local hash script_path
       hash="$(_util_generate_hash "$line")"
-      script_path="$CLI_PREVIEW_SCRIPTS_DIR/$hash.sh"
-      
-      echo "$hash.sh|$line"
-      
-      if [ ! -s "$script_path" ]; then
+      script_path="$CLI_LOCAL_PREVIEWS_SCRIPTS_DIR/$hash.sh"
+      img_path="$CLI_LOCAL_PREVIEWS_IMGS_DIR/$hash.jpg"
+
+      if [ -z "$1" ]; then
+        thumbnailer_input_file="$(find "$CONFIG_DOWNLOAD_DIR/$line" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+      else
+        thumbnailer_input_file="$(find "$1" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+      fi
+
+      random_seek=$(od -An -N2 -i /dev/urandom | awk '{print ($1 % 100) + 1}')
+      ffmpegthumbnailer -i "$thumbnailer_input_file" -o "$img_path" -t "$random_seek" -s 0 -m >/dev/null 2>&1
+
+      if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
+        # FZF expects `{1}|{2}` where {1} is the script and {2} is the display name
+        printf "%s|%s\n" "$script_path" "$line"
+      elif [ "$CONFIG_LAUNCHER" = "rofi" ]; then
+        printf "%s\0icon\x1f%s\n" "$line" "$img_path"
+      else
+        echo "$line"
+        return
+      fi
+
+      if [ "$CONFIG_LAUNCHER" = "fzf" ]; then
         cat <<EOF >"$script_path"
 . "$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
-file=\$(fd --absolute-path --type directory --regex "$line" --search-path "$CONFIG_DOWNLOAD_DIR/$type" 2>/dev/null | while read -r folder; do fd --absolute-path --search-path "\$folder" --type file --extension mkv --extension mp4 --extension mp3 2>/dev/null; done | shuf -n 1 2>/dev/null)
-if [ -n "\$file" ]; then
-    dest_file="$CLI_LOCAL_PREVIEWS/\$(_util_generate_hash "\$file").jpg"
-    if ! [ -s "\$dest_file" ] && command -v ffmpegthumbnailer >/dev/null 2>&1; then
-      ffmpegthumbnailer -i "\$file" -o "\$dest_file" -s 0 -m >/dev/null 2>&1
-    fi
-    [ -s "\$dest_file" ] && fzf_preview "\$dest_file" 2>/dev/null
-fi
+[ -s "$img_path" ] && fzf_preview "$img_path" 2>/dev/null 
 EOF
       fi
     else
+      # Pass through normally if previews are disabled or it's a menu action
       echo "$line"
     fi
   done
@@ -85,23 +67,23 @@ _menu_main() {
 
   while true; do
     local type channel temp_playlist
-    
+
     # 1. Select Type
     if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | _preview_local_type | ui_launcher_with_preview "Select the type of file to play")
     else
       type=$(printf "%s\n%s" "$(command ls "$CONFIG_DOWNLOAD_DIR" 2>/dev/null)" "$TXT_MENU_EXIT" | ui_launcher "Select the type of file to play")
     fi
-    
+
     case "$type" in
-      "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
     esac
 
     # 2. Select Channel/Playlist
     # We CD briefly just so `fd` operates correctly on relative structure
     local prev_dir="$PWD"
     cd "$CONFIG_DOWNLOAD_DIR/$type" || continue
-    
+
     if [ "$CONFIG_ENABLE_PREVIEW" = "true" ] && [ "$CONFIG_LAUNCHER" = "fzf" ]; then
       channel=$(printf "%s\n%s" "$(fd --exact-depth 2 2>/dev/null | cut -d / -f 2 | sort | uniq)" "$TXT_MENU_BACK" | _preview_local_channel "$type" | ui_launcher_with_preview "Select the playlist to play")
     else
@@ -111,24 +93,24 @@ _menu_main() {
     cd "$prev_dir" || continue
 
     case "$channel" in
-      "$TXT_MENU_BACK" | "") continue ;;
+    "$TXT_MENU_BACK" | "") continue ;;
     esac
 
-    # 3. Build .m3u8 Playlist & Play 
+    # 3. Build .m3u8 Playlist & Play
     # (Pure POSIX sh - Replaces the original bash `paths=()` array implementation)
     temp_playlist="$CLI_CACHE_DIR/local_playlist_$(_util_generate_hash "$channel").m3u8"
-    echo "#EXTM3U" > "$temp_playlist"
-    
+    echo "#EXTM3U" >"$temp_playlist"
+
     # Write all media absolute paths directly into the playlist
     cd "$CONFIG_DOWNLOAD_DIR/$type" || continue
-    fd --absolute-path --exact-depth 2 "$channel" >> "$temp_playlist"
+    fd --absolute-path --exact-depth 2 "$channel" >>"$temp_playlist"
     cd "$prev_dir" || continue
 
     # Ensure playlist isn't empty before trying to launch media player
-    if [ "$(wc -l < "$temp_playlist")" -gt 1 ]; then
+    if [ "$(wc -l <"$temp_playlist")" -gt 1 ]; then
       play "$temp_playlist"
     else
-       ui_notify_warning "No media found in selected directory!"
+      ui_notify_warning "No media found in selected directory!"
     fi
 
     # 4. Loop continuation
