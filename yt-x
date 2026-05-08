@@ -1515,10 +1515,19 @@ EOF
 
 _state_pop() {
   local current_state_dir
+  local pop_count
+  local i
+  i=0
+  pop_count="${1:-1}"
 
-  __state_clean_prev
+  [ "$pop_count" -le 0 ] && return
 
-  STATE_CURRENT="$((STATE_CURRENT - 1))"
+  while [ "$i" -lt "$pop_count" ]; do
+    __state_clean_prev
+    STATE_CURRENT="$((STATE_CURRENT - 1))"
+    i=$((i + 1))
+  done
+
   [ "$((STATE_CURRENT))" -lt 1 ] && return
 
   current_state_dir="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
@@ -2475,6 +2484,8 @@ _menu_playlist_explorer() {
   local other_choices
   local titles
   local choice
+  local base_state
+  base_state="$STATE_CURRENT"
 
   other_choices="\
 $TXT_MENU_NEXT
@@ -2493,7 +2504,7 @@ $TXT_MENU_EXIT"
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlist_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_playlist_explorer_previous ;;
-    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_BACK" | "") _state_pop "$((STATE_CURRENT - base_state + 1))" && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) __menu_playlist_explorer "$choice" ;;
     esac
@@ -2537,6 +2548,8 @@ _menu_playlists_explorer() {
   local other_choices
   local titles
   local choice
+  local base_state
+  base_state="$STATE_CURRENT"
 
   other_choices="\
 $TXT_MENU_NEXT
@@ -2555,7 +2568,7 @@ $TXT_MENU_EXIT"
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlists_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_playlists_explorer_previous ;;
-    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_BACK" | "") _state_pop "$((STATE_CURRENT - base_state + 1))" && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) __menu_playlists_explorer "$choice" ;;
     esac
@@ -2707,6 +2720,8 @@ _menu_channels_explorer() {
   local other_choices
   local titles
   local choice
+  local base_state
+  base_state="$STATE_CURRENT"
 
   other_choices="\
 $TXT_MENU_NEXT
@@ -2724,7 +2739,7 @@ $TXT_MENU_EXIT"
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_channels_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_channels_explorer_previous ;;
-    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_BACK" | "") _state_pop "$((STATE_CURRENT - base_state + 1))" && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) __menu_channels_explorer "$choice" ;;
     esac
