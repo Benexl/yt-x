@@ -10,7 +10,7 @@
 Browse YouTube from your terminal.
 Plus other sites yt-dlp supports.
 
-[yt-x-github-demo.webm](https://github.com/user-attachments/assets/08e491cc-fc91-4f13-849b-6ce8e78bf6f0)
+https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61
 
 <details>
 <summary>Full Demo</summary>
