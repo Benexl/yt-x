@@ -21,7 +21,11 @@ _dep_ch() {
 }
 
 __init_env_platform() {
-  CLI_DIR="$(dirname "$(realpath "$0")")"
+  if _dep_ch realpath; then
+    CLI_DIR="$(dirname "$(realpath "$0")")"
+  else
+    CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+  fi
   CLI_PATH="$CLI_DIR/$CLI_NAME"
 
   # If we are in Zsh, enable word splitting for the duration of the script
