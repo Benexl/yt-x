@@ -428,6 +428,8 @@ EOF
 }
 
 __load_default_theme() {
+  THEME_ESC="$(printf '\033')"
+
   if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
     # Tokyo Night: #2ac3de
     THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;42;195;222m')"
@@ -769,7 +771,7 @@ __ui_rofi_launcher() {
 
   # shellcheck disable=SC2086
   selection=$(
-    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' |
+    sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g" |
       rofi -no-config -theme "$CONFIG_ROFI_THEME_MAIN" -dmenu -i $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
@@ -828,7 +830,7 @@ __ui_rofi_launcher_with_preview() {
 
   # shellcheck disable=SC2086
   selection=$(
-    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' |
+    sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g" |
       rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -dmenu -i $custom_opts -p "$1"
   )
   [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
@@ -1422,10 +1424,10 @@ _preview_rofi() {
     fi
 
     # Print the remaining menu items from stdin (Next, Back, Exit) by skipping the first $num_entries titles
-    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g' | tail -n +$((num_entries + 1))
+    sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g" | tail -n +$((num_entries + 1))
   else
     # Fallback when Previews are disabled: just pass stdin through and strip ANSI
-    sed -E 's/\x1B(\[[0-9;]*[a-zA-Z]|\(B)//g'
+    sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g"
   fi
 }
 
