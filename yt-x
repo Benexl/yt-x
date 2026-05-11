@@ -774,7 +774,7 @@ __ui_rofi_launcher() {
     sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g" |
       rofi -no-config -theme "$CONFIG_ROFI_THEME_MAIN" -dmenu -i $custom_opts -p "$1"
   )
-  [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
+  echo "$selection"
 }
 
 _ui_launcher() {
@@ -833,7 +833,7 @@ __ui_rofi_launcher_with_preview() {
     sed -E "s/$THEME_ESC(\[[0-9;]*[a-zA-Z]|\(B)//g" |
       rofi -no-config -theme "$CONFIG_ROFI_THEME_PREVIEW" -dmenu -i $custom_opts -p "$1"
   )
-  [ -z "$selection" ] && echo "$TXT_MENU_EXIT" || echo "$selection"
+  echo "$selection"
 }
 
 _ui_launcher_with_preview() {
@@ -2833,7 +2833,7 @@ __menu_miscellaneous_custom_commands() {
           ui_launcher "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT"
       )
       case "$custom_cmd_name" in
-      "$TXT_MENU_BACK") break ;;
+      "$TXT_MENU_BACK" | "") break ;;
       *)
         custom_cmd=$(
           jq -r "
@@ -2873,7 +2873,7 @@ __menu_miscellaneous_search_history() {
           ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
       )"
       case "$search_term" in
-      "$TXT_MENU_BACK") break ;;
+      "$TXT_MENU_BACK" | "") break ;;
       *)
         url="results?search_query=$search_term&sp=EgIQAQ%253D%253D"
 
@@ -3185,7 +3185,7 @@ __menu_main_custom_playlists() {
           ui_launcher "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT"
       )
       case "$playlist_title" in
-      "$TXT_MENU_BACK") break ;;
+      "$TXT_MENU_BACK" | "") break ;;
       *)
         url=$(
           jq -r "
