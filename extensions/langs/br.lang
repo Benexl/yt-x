@@ -87,8 +87,7 @@ TXT_MENU_MISC_CLEAR_SEARCH_HISTORY="Limpar Histórico de Busca"
 TXT_MENU_MISC_CLEAR_SEARCH_HISTORY_PROMPT="Tem certeza que deseja limpar seu histórico de busca em $CLI_SEARCH_HISTORY_FILE?"
 
 TXT_MENU_MISC_NEW_CUSTOM_CMD="Novo Comando Personalizado"
-TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
-  cat <<EOF
+TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="\
 # ==============================================================================
 # COMANDOS PERSONALIZADOS DO YT-X
 # ==============================================================================
@@ -105,9 +104,8 @@ NOTA: Há opções base passadas ao yt-dlp que podem ser sobrescritas.
       --cookies-from-browser $CONFIG_BROWSER (Depende de CONFIG_BROWSER)
     Não é recomendado sobrescrever as duas primeiras, pois quebrará a lógica de exibição.
 # ==============================================================================
-# ==============================================================================
-EOF
-)"
+# =============================================================================="
+
 TXT_MENU_MISC_NEW_CUSTOM_CMD_NAME_PROMPT="Digite um nome para o comando personalizado"
 TXT_MENU_MISC_NEW_CUSTOM_CMD_URL_PROMPT="Digite a URL para o comando personalizado"
 TXT_MENU_MISC_NEW_CUSTOM_CMD_YT_DLP_OPTS_PROMPT="Digite opções extras do yt-dlp (opcional)"
