@@ -333,8 +333,7 @@ Recall history         –  !1, !2, … (newest = 1)"
   TXT_MENU_MISC_CLEAR_SEARCH_HISTORY_PROMPT="Are you sure you would like to clear your search history at $CLI_SEARCH_HISTORY_FILE?"
 
   TXT_MENU_MISC_NEW_CUSTOM_CMD="New Custom Command"
-  TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="$(
-    cat <<EOF
+  TXT_MENU_MISC_NEW_CUSTOM_CMD_DESC="\
 # ==============================================================================
 # YT-X CUSTOM COMMANDS
 # ==============================================================================
@@ -351,9 +350,8 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
       --cookies-from-browser $CONFIG_BROWSER (Dependent on CONFIG_BROWSER)
     Don't recommend to override the first two will break the display logic
 # ==============================================================================
-# ==============================================================================
-EOF
-  )"
+# =============================================================================="
+
   TXT_MENU_MISC_NEW_CUSTOM_CMD_NAME_PROMPT="Enter a name for the custom command"
   TXT_MENU_MISC_NEW_CUSTOM_CMD_URL_PROMPT="Enter the URL for the custom command"
   TXT_MENU_MISC_NEW_CUSTOM_CMD_YT_DLP_OPTS_PROMPT="Enter any extra yt-dlp options for the custom command (optional)"
