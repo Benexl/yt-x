@@ -3321,7 +3321,7 @@ _app_util_update_check() {
   fi
 }
 
-_app_auto_update_check() {
+_app_auto_update() {
   local timestamp_file
   local interval
   local last_check_time
@@ -3656,7 +3656,7 @@ main() {
   _init_env
   _load_config
   _app_cmd_line_parser "$@"
-  _app_auto_update_check
+  _app_auto_update
   _app_core_dep_ch
   menu_main
 }
