@@ -2108,14 +2108,17 @@ _update_recent() {
   video_entry="$(echo "$STATE_CURRENT_VIDEO" | jq '.title |= sub("^[0-9]+ "; "")')"
 
   echo "$current_recent" |
-    jq "{
-    \"entries\":[
-      .entries[]
-      | select(.id != \"$id\")
-      ]
+    jq --arg id "$id" --argjson video_entry "$video_entry" '
+    {
+      "entries":[
+        .entries[]
+        | select(.id != $id)
+        ]
     }
-  |.entries+=[$video_entry]" |
-    jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_RECENT_FILE"
+    |.entries+=[$video_entry]
+    ' | jq --argjson limit "$CONFIG_NO_OF_RECENT" '
+      {"entries":.entries[-$limit:]}
+      ' >"$CLI_RECENT_FILE"
 }
 
 _update_saved_videos() {
@@ -2130,14 +2133,15 @@ _update_saved_videos() {
   video_entry="$(echo "$STATE_CURRENT_VIDEO" | jq '.title |= sub("^[0-9]+ "; "")')"
 
   echo "$current_saved_videos" |
-    jq "{
-    \"entries\":[
-      .entries[]
-      | select(.id != \"$id\")
-      ]
+    jq --arg id "$id" --argjson video_entry "$video_entry" '
+    {
+      "entries":[
+        .entries[]
+        | select(.id != $id)
+        ]
     }
-  |.entries+=[$video_entry]" |
-    jq "{\"entries\":.entries[-$CONFIG_NO_OF_RECENT:]}" >"$CLI_SAVED_VIDEOS_FILE"
+    |.entries+=[$video_entry]
+    ' >"$CLI_SAVED_VIDEOS_FILE"
 }
 
 _update_saved_playlists() {
@@ -2153,14 +2157,18 @@ _update_saved_playlists() {
   [ -z "$playlist_name" ] && return
   playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq -r ".id")
 
-  custom_playlist="
-    {
-      \"id\": \"$playlist_id\",
-      \"name\": \"$playlist_name\",
-      \"url\": \"$STATE_CURRENT_PLAYLIST_URL\"
-    }
-  "
-  echo "$custom_playlists" | jq ".+=[$custom_playlist]" >"$CLI_CUSTOM_PLAYLISTS_FILE"
+  echo "$custom_playlists" | jq \
+    --arg id "$playlist_id" \
+    --arg name "$playlist_name" \
+    --arg url "$STATE_CURRENT_PLAYLIST_URL" '
+      .+=[
+        {
+          "id": $id,
+          "name": $name,
+          "url": $url
+        }
+      ]
+      ' >"$CLI_CUSTOM_PLAYLISTS_FILE"
 }
 
 _remove_recent() {
@@ -2173,12 +2181,12 @@ _remove_recent() {
   id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
 
   echo "$current_recent" |
-    jq "{
-    \"entries\":[
+    jq --arg id "$id" '{
+    "entries":[
       .entries[]
-      | select(.id != \"$id\")
+      | select(.id != $id)
       ]
-    }" >"$CLI_RECENT_FILE"
+    }' >"$CLI_RECENT_FILE"
 }
 
 _remove_saved_video() {
@@ -2191,12 +2199,12 @@ _remove_saved_video() {
   id=$(echo "$STATE_CURRENT_VIDEO" | jq '.id' -r)
 
   echo "$current_saved_videos" |
-    jq "{
-    \"entries\":[
+    jq --arg id "$id" '{
+    "entries":[
       .entries[]
-      | select(.id != \"$id\")
+      | select(.id != $id)
       ]
-    }" >"$CLI_SAVED_VIDEOS_FILE"
+    }' >"$CLI_SAVED_VIDEOS_FILE"
 }
 
 _remove_saved_playlist() {
@@ -2207,7 +2215,9 @@ _remove_saved_playlist() {
   [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ] && custom_playlists=$(cat "$CLI_CUSTOM_PLAYLISTS_FILE")
 
   playlist_id=$(echo "$STATE_CURRENT_PLAYLIST_URL" | sed 's/.*list=//g')
-  echo "$custom_playlists" | jq "select(.id != \"$playlist_id\")" >"$CLI_CUSTOM_PLAYLISTS_FILE"
+
+  echo "$custom_playlists" |
+    jq --arg id "$playlist_id" 'select(.id != $id)' >"$CLI_CUSTOM_PLAYLISTS_FILE"
 }
 
 _get_search_history_entry() {
@@ -2477,7 +2487,10 @@ __menu_playlist_explorer() {
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
-  STATE_CURRENT_VIDEO="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq ".entries[$((id - 1))]")"
+  STATE_CURRENT_VIDEO="$(
+    echo "$STATE_CURRENT_PLAYLIST_RESULTS" |
+      jq --argjson id "$((id - 1))" '.entries[$id]'
+  )"
   STATE_CURRENT_VIDEO_URL="$(echo "$STATE_CURRENT_VIDEO" | jq '.url' -r)"
   STATE_CURRENT_VIDEO_TITLE="$(echo "$title" | sed 's/^[0-9]+ //g')"
   _state_push
@@ -2542,7 +2555,11 @@ __menu_playlists_explorer() {
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
-  current_playlist="$(echo "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq ".entries[$((id - 1))]")"
+
+  current_playlist="$(
+    echo "$STATE_CURRENT_PLAYLISTS_RESULTS" |
+      jq --argjson id "$((id - 1))" '.entries[$id]'
+  )"
   url="$(echo "$current_playlist" | jq '.url' -r)"
 
   fetch_playlist "$url"
@@ -2802,15 +2819,18 @@ __menu_miscellaneous_new_custom_command() {
     custom_cmds="[]"
     [ -s "$CLI_CUSTOM_CMDS_FILE" ] && custom_cmds=$(cat "$CLI_CUSTOM_CMDS_FILE")
 
-    custom_cmd="
-      {
-        \"name\": \"$custom_cmd_name\",
-        \"url\": \"$custom_cmd_url\",
-        \"yt-dlp-opts\": \"$custom_cmd_yt_dlp_opts\"
-    }"
-
     # TODO: maybe switch to a map
-    echo "$custom_cmds" | jq ".+=[$custom_cmd]" >"$CLI_CUSTOM_CMDS_FILE"
+    echo "$custom_cmds" | jq \
+      --arg name "$custom_cmd_name" \
+      --arg url "$custom_cmd_url" \
+      --arg opts "$custom_cmd_yt_dlp_opts" '
+      .+=[
+        {
+          "name": $name,
+          "url": $url,
+          "yt-dlp-opts": $opts
+        }
+      ]' >"$CLI_CUSTOM_CMDS_FILE"
 
     # shellcheck disable=SC2086
     _fetch_playlist "$custom_cmd_url" $custom_cmd_yt_dlp_opts
@@ -2837,10 +2857,10 @@ __menu_miscellaneous_custom_commands() {
       "$TXT_MENU_BACK" | "") break ;;
       *)
         custom_cmd=$(
-          jq -r "
-      .
-      | map(select(.name == \"$custom_cmd_name\" )) 
-      | .[0]" "$CLI_CUSTOM_CMDS_FILE"
+          jq -r --arg name "$custom_cmd_name" '
+          .
+          | map(select(.name == $name))
+          | .[0]' "$CLI_CUSTOM_CMDS_FILE"
         )
 
         url="$(echo "$custom_cmd" | jq -r ".url")"
@@ -3156,10 +3176,10 @@ __menu_main_channels_explorer() {
       "$TXT_MENU_BACK" | "") break ;;
       *)
         url=$(
-          jq -r "
+          jq -r --arg channel "$channel" '
           .entries
-          | map(select(.title == \"$channel\" )) 
-          | .[0].url" "$CLI_SUBSCRIPTIONS_FILE"
+          | map(select(.title == $channel ))
+          | .[0].url' "$CLI_SUBSCRIPTIONS_FILE"
         )
 
         STATE_CURRENT_CHANNEL_URL="$url"
@@ -3189,10 +3209,10 @@ __menu_main_custom_playlists() {
       "$TXT_MENU_BACK" | "") break ;;
       *)
         url=$(
-          jq -r "
+          jq -r --arg title "$playlist_title" '
           .
-          | map(select(.name == \"$playlist_title\" )) 
-          | .[0].url" "$CLI_CUSTOM_PLAYLISTS_FILE"
+          | map(select(.name == $title))
+          | .[0].url' "$CLI_CUSTOM_PLAYLISTS_FILE"
         )
 
         _fetch_playlist "$url"
