@@ -311,6 +311,7 @@ Recall history         –  !1, !2, … (newest = 1)"
   TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Custom Playlists"
   TXT_MENU_MAIN_LIKED="Liked Videos"
   TXT_MENU_MAIN_SAVED="Saved Videos"
+  TXT_MENU_MAIN_SAVED_PROMPT="Select video"
   TXT_MENU_MAIN_HISTORY="Watch History"
   TXT_MENU_MAIN_RECENT="Recent"
   TXT_MENU_MAIN_CLIPS="Clips"
@@ -3207,9 +3208,50 @@ __menu_main_custom_playlists() {
 }
 
 __menu_main_saved_videos() {
+  local video
+  local saved_videos
+  local selection
+
   if [ -s "$CLI_SAVED_VIDEOS_FILE" ]; then
-    STATE_CURRENT_PLAYLIST_RESULTS="$(jq '{"entries":.entries|reverse}' "$CLI_SAVED_VIDEOS_FILE")"
-    menu_playlist_explorer
+    saved_videos="$(
+      cat "$CLI_SAVED_VIDEOS_FILE" |
+        jq '
+          .entries=(
+            .entries
+            |reverse
+            | to_entries
+            | map(.value.title="\(.key+1|tostring| if (.|length) < 2 then "0" + . else . end) " + .value.title)
+            |map(.value)
+          )
+          '
+    )"
+
+    while true; do
+      selection=$(
+        printf "%s\n%s" "$(echo "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+          preview "$saved_videos" |
+          ui_launcher_with_preview "$TXT_MENU_MAIN_SAVED_PROMPT"
+      )
+
+      case "$selection" in
+      "$TXT_MENU_BACK" | "") break ;;
+      *)
+        video=$(
+          echo "$saved_videos" | jq -r --arg title "$selection" '
+          .entries
+          | map(select(.title == $title ))[0]
+          '
+        )
+
+        STATE_CURRENT_VIDEO="$video"
+        STATE_CURRENT_VIDEO_URL="$(echo "$video" | jq -r ".url")"
+        STATE_CURRENT_VIDEO_TITLE="$(echo "$selection" | sed -E 's/^[0-9]+ //g')"
+
+        _state_push
+        menu_playlist_actions
+        ;;
+      esac
+    done
   else
     ui_notify_warning "$TXT_SAVED_VIDEOS_FILE_NOT_FOUND"
   fi
