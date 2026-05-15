@@ -3279,7 +3279,7 @@ menu_main() {
 # ==============================================================================
 # APP: utils
 # ==============================================================================
-_app_util_update_script() {
+_app_update_script() {
   local update
 
   if ! [ -w "$CLI_PATH" ]; then
@@ -3315,7 +3315,7 @@ _app_update_check() {
 
   if [ -n "$update" ]; then
     ui_confirm "An update has been found would you like to see the changes before deciding whether to update?" && echo "$update" | ui_pager
-    ui_confirm "Would you like to proceed with the update?" && _app_util_update_script
+    ui_confirm "Would you like to proceed with the update?" && _app_update_script
   else
     return 1
   fi
