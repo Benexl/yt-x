@@ -2607,14 +2607,16 @@ __menu_channel_actions_subscribe() {
     echo "$STATE_CURRENT_CHANNEL_RESULTS" |
       jq --arg title "$STATE_CURRENT_CHANNEL_TITLE" '.entries | map(select(.title == $title)) | .[0]'
   )"
+  channel="$(echo "$channel" | jq '.title |= sub("^[0-9]+ "; "")')"
 
   id=$(echo "$channel" | jq '.id' -r)
+
   echo "$_channels_data" |
-    jq "{
-    \"entries\":[
+    jq --arg id "$id" --argjson channel "$channel" '{
+    "entries":[
       .entries[]
-        | select(.id != \"$id\")
-    ]}|.entries+=[$channel]" >"$CLI_SUBSCRIPTIONS_FILE"
+        | select(.id != $id)
+    ]}|.entries+=[$channel]' >"$CLI_SUBSCRIPTIONS_FILE"
 }
 
 _menu_channel_actions() {
