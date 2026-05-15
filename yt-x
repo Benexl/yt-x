@@ -3334,7 +3334,7 @@ _app_auto_update() {
     last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
 
     if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
-      _app_util_cache_cleanup &
+      _app_cache_clean_up &
 
       _app_update_check
       echo "$CLI_START_TIME" >"$timestamp_file"
@@ -3384,7 +3384,7 @@ _app_core_dep_ch() {
   ! _dep_ch "fzf" && ui_notify_critical "fzf is not installed and is a core dep please install it to proceed"
 }
 
-_app_util_cache_cleanup() {
+_app_cache_clean_up() {
   local retention_days
   retention_days="${CONFIG_CACHE_RETENTION_DAYS:-7}"
 
