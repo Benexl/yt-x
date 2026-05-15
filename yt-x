@@ -3305,7 +3305,7 @@ _app_util_update_script() {
   fi
 }
 
-_app_util_update_check() {
+_app_update_check() {
   local update
 
   update=$(curl -s "$CLI_URL")
@@ -3336,7 +3336,7 @@ _app_auto_update() {
     if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
       _app_util_cache_cleanup &
 
-      _app_util_update_check
+      _app_update_check
       echo "$CLI_START_TIME" >"$timestamp_file"
     fi
   fi
@@ -3547,7 +3547,7 @@ _app_cmd_line_parser() {
       ;;
     -e | --edit-config) _app_edit_config ;;
     -U | --update)
-      _app_util_update_check || echo "No updates found" && exit 1
+      _app_update_check || echo "No updates found" && exit 1
       ;;
     -S | --search)
       [ -n "$2" ] || _app_usage 1
