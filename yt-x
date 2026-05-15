@@ -3401,7 +3401,7 @@ _app_cache_clean_up() {
   fi
 }
 
-_app_clean_up() {
+_app_runtime_clean_up() {
   rm -r "$CLI_CURRENT_STATE_DIR" 2>/dev/null
   job_pids=$(jobs -p)
 
@@ -3652,7 +3652,7 @@ _app_cmd_line_parser() {
 # App
 # ==============================================================================
 main() {
-  trap _app_clean_up EXIT INT TERM
+  trap _app_runtime_clean_up EXIT INT TERM
   _init_env
   _load_config
   _app_cmd_line_parser "$@"
