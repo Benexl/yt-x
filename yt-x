@@ -2496,7 +2496,7 @@ __menu_playlist_explorer() {
       jq --argjson id "$((id - 1))" '.entries[$id]'
   )"
   STATE_CURRENT_VIDEO_URL="$(echo "$STATE_CURRENT_VIDEO" | jq '.url' -r)"
-  STATE_CURRENT_VIDEO_TITLE="$(echo "$title" | sed 's/^[0-9]+ //g')"
+  STATE_CURRENT_VIDEO_TITLE="$(echo "$title" | sed -E 's/^[0-9]+ //g')"
   _state_push
 
   menu_playlist_actions
