@@ -309,9 +309,13 @@ Recall history         –  !1, !2, … (newest = 1)"
   TXT_MENU_MAIN_CHANNELS_PROMPT="Select Channel"
 
   TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Custom Playlists"
+  TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT="Select Playlist"
+
   TXT_MENU_MAIN_LIKED="Liked Videos"
+
   TXT_MENU_MAIN_SAVED="Saved Videos"
   TXT_MENU_MAIN_SAVED_PROMPT="Select video"
+
   TXT_MENU_MAIN_HISTORY="Watch History"
   TXT_MENU_MAIN_RECENT="Recent"
   TXT_MENU_MAIN_CLIPS="Clips"
