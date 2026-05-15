@@ -3281,12 +3281,9 @@ menu_main() {
 # ==============================================================================
 _app_util_update_script() {
   local update
-  if [ -z "$CLI_PATH" ]; then
-    ui_notify_critical "Can't find $CLI_NAME in PATH"
-  fi
 
-  if [ ! -w "$CLI_PATH" ]; then
-    ui_confirm "It seems you have installed $CLI_NAME as root, which is not recommended. Do you still want to update using sudo? (I recommended reinstalling the cli as non root)" || _util_byebye
+  if ! [ -w "$CLI_PATH" ]; then
+    ui_confirm "It seems you have installed $CLI_NAME as root, which is not recommended. Do you still want to update using sudo? (I recommended reinstalling the cli as non root)" || exit 1
     if _dep_ch sudo; then
       exec sudo -s "$CLI_PATH" "-u"
     else
@@ -3296,30 +3293,52 @@ _app_util_update_script() {
 
   update=$(curl -s "$CLI_URL")
   [ -z "$update" ] && ui_notify_critical "Failed to fetch update information"
-  update="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" - 2>/dev/null)"
-  if [ -z "$update" ]; then
-    ui_notify "Script is up to date :)"
-  else
-    if printf "%s" "$update" | patch "$CLI_PATH" -; then
-      ui_notify "Script has been updated!"
+
+  if printf "%s" "$update" >"$CLI_PATH"; then
+    if ui_confirm "Script has been updated! Would you like to re-execute it?"; then
+      exec "$CLI_PATH"
     else
-      ui_notify_critical "Can't update for some reason!"
+      exit 0
     fi
+  else
+    ui_notify_critical "Can't update for some reason!"
   fi
-  exec "$CLI_PATH"
 }
 
-_app_util_check_update() {
+_app_util_update_check() {
   local update
+
   update=$(curl -s "$CLI_URL")
-  [ -z "$update" ] && ui_notify_critical "Failed to fetch update information"
-  update="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" -)"
+  [ -z "$update" ] && return 1
+
+  update="$(printf "%s" "$update" | diff -u "$CLI_PATH" -)"
+
   if [ -n "$update" ]; then
-    # TODO: show pretty diffs
     ui_confirm "An update has been found would you like to see the changes before deciding whether to update?" && echo "$update" | ui_pager
     ui_confirm "Would you like to proceed with the update?" && _app_util_update_script
   else
     return 1
+  fi
+}
+
+_app_auto_update_check() {
+  local timestamp_file
+  local interval
+  local last_check_time
+
+  if [ "$CONFIG_CHECK_FOR_UPDATES" = "true" ]; then
+    timestamp_file="$CLI_CACHE_DIR/.last_update_check"
+
+    interval=$((12 * 60 * 60))
+
+    last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
+
+    if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
+      _app_util_cache_cleanup &
+
+      _app_util_update_check
+      echo "$CLI_START_TIME" >"$timestamp_file"
+    fi
   fi
 }
 
@@ -3357,30 +3376,6 @@ Categories=Entertainment"
 
   printf "%s\n" "$entry"
   exit 0
-}
-
-_app_update_check() {
-  local timestamp_file
-  local interval
-  local last_check_time
-
-  if [ "$CONFIG_CHECK_FOR_UPDATES" = "true" ]; then
-    timestamp_file="$CLI_CACHE_DIR/.last_update_check"
-
-    # Time interval in seconds (6 hours = 21600 seconds)
-    interval=$((12 * 60 * 60))
-
-    # Determine whether to run the update check
-    last_check_time=$(cat "$timestamp_file" 2>/dev/null || echo 0)
-
-    if [ "$((CLI_START_TIME - last_check_time))" -ge "$interval" ]; then
-      # TODO: better placement maybe
-      _app_util_cache_cleanup &
-
-      _app_util_check_update
-      echo "$CLI_START_TIME" >"$timestamp_file"
-    fi
-  fi
 }
 
 _app_core_dep_ch() {
@@ -3561,7 +3556,7 @@ _app_cmd_line_parser() {
       ;;
     -e | --edit-config) _app_edit_config ;;
     -U | --update)
-      ! _app_util_check_update && ui_notify "No updates found, script is up to date :)" && _util_byebye
+      _app_util_update_check || echo "No updates found" && exit 1
       ;;
     -S | --search)
       [ -n "$2" ] || _app_usage 1
@@ -3670,7 +3665,7 @@ main() {
   _init_env
   _load_config
   _app_cmd_line_parser "$@"
-  _app_update_check
+  _app_auto_update_check
   _app_core_dep_ch
   menu_main
 }
