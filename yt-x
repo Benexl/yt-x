@@ -3389,24 +3389,15 @@ _app_util_cache_cleanup() {
   retention_days="${CONFIG_CACHE_RETENTION_DAYS:-7}"
 
   if [ -d "$CLI_PREVIEW_DIR" ]; then
-    find "$CLI_PREVIEW_DIR" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
+    find "$CLI_PREVIEW_DIR" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
   fi
 
   if [ -d "$CLI_AUTO_GEN_PLAYLISTS" ]; then
-    find "$CLI_AUTO_GEN_PLAYLISTS" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
+    find "$CLI_AUTO_GEN_PLAYLISTS" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
   fi
 
   if [ -d "$CLI_LOG_DIR" ]; then
-    find "$CLI_LOG_DIR" -type f -mtime "+$retention_days" -exec rm -f {} + 2>/dev/null
-  fi
-
-  if [ -d "$CLI_STATE_DIR" ]; then
-    for state_dir in "$CLI_STATE_DIR"/*; do
-      [ -d "$state_dir" ] || continue
-      if [ -n "$(find "$state_dir" -prune -mtime +1 2>/dev/null)" ]; then
-        rm -rf "$state_dir"
-      fi
-    done
+    find "$CLI_LOG_DIR" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
   fi
 }
 
