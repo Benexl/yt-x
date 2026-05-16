@@ -271,7 +271,7 @@ _Example: `:short :4k nature timeline`_
 
 ## ❓ Frequently Asked Questions (FAQ)
 
-> [!NOTE] `yt-x` is a shell wrapper!\*\*  
+> [!NOTE]
 > `yt-x` is not a standalone application. It is a highly integrated shell wrapper built on top of powerful command-line tools:
 >
 > - **Data Fetching & Extraction:** [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
