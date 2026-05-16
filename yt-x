@@ -1581,12 +1581,19 @@ __fetch_yt_dlp() {
   custom_opts="$*"
 
   # shellcheck disable=SC2086
-  ui_load yt-dlp "$url" \
+  yt-dlp "$url" \
+    --quiet \
+    --no-warnings \
+    --no-progress \
     --dump-single-json \
     --flat-playlist \
     --playlist-start "$playlist_start" \
     --playlist-end "$playlist_end" \
     $custom_opts
+}
+
+__sanitize_json_stream() {
+  tr -d '\000-\010\013-\037'
 }
 
 __fetch_video_url() {
@@ -1633,6 +1640,7 @@ _fetch_playlist() {
   # shellcheck disable=SC2086
   STATE_CURRENT_PLAYLIST_RESULTS="$(
     _fetch_media "$url" "$STATE_CURRENT_PLAYLIST_START" "$STATE_CURRENT_PLAYLIST_END" $custom_opts |
+      __sanitize_json_stream |
       jq "
           .entries=(.entries 
           | to_entries
@@ -1683,6 +1691,7 @@ _fetch_playlists() {
   # shellcheck disable=SC2086
   STATE_CURRENT_PLAYLISTS_RESULTS="$(
     _fetch_media "$url" "$STATE_CURRENT_PLAYLISTS_RESULTS_START" "$STATE_CURRENT_PLAYLISTS_RESULTS_END" $custom_opts |
+      __sanitize_json_stream |
       jq "
           .entries=(.entries 
           | to_entries
@@ -1729,6 +1738,7 @@ _fetch_channels() {
 
   STATE_CURRENT_CHANNEL_RESULTS="$(
     _fetch_media "$url" "$STATE_CURRENT_CHANNEL_RESULTS_START" "$STATE_CURRENT_CHANNEL_RESULTS_END" |
+      __sanitize_json_stream |
       jq "
           .entries=(.entries 
           | to_entries
