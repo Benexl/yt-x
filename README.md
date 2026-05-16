@@ -154,7 +154,7 @@ _(To uninstall, simply run `rm ~/.local/bin/yt-x`)_
   - [chafa](https://github.com/hpjansson/chafa) (Cross-terminal, highly recommended)
   - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty))
   - [imgcat](https://github.com/danielgatis/imgcat)
-  - `tycat` (Built into [Terminology](https://www.enlightenment.org/about-terminology.md))
+  - `tycat` (Built into [Terminology](https://www.enlightenment.org/about-terminology))
 - **Fonts**: A [Nerd Font](https://www.nerdfonts.com/) is required to render UI icons correctly.
 
 ### Basic Commands
