@@ -3575,6 +3575,9 @@ Examples:
   $CLI_NAME -S \"cute cats\"                 Search for \"cute cats\" immediately
   $CLI_NAME --launcher rofi --preview       Use rofi with previews
   $CLI_NAME -x themes/catppuccin.theme      Load the catppuccin theme extension
+  $CLI_NAME -x langs/es.lang                Load the catppuccin theme extension
+  $CLI_NAME -x cmd/downloads                Load the catppuccin theme extension
+  $CLI_NAME -x sites/dailymotion.site       Load the catppuccin theme extension
   $CLI_NAME completions --fish              Print fish completions
   $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop  Create a desktop entry"
 
