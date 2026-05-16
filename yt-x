@@ -2461,10 +2461,11 @@ __menu_playlist_actions_visit_channel() {
     echo "$STATE_CURRENT_VIDEO" |
       jq -c --arg url "$channel_url" '{
       "id": (.channel_id // .uploader_id // ""),
-      "title": (.channel // .uploader // .channel_id // .uploader_id // $url),
+      "title": (.channel // .uploader // $url),
       "url": $url
     }'
   )"
+  [ -z "$channel_entry" ] && ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND" && return
 
   STATE_CURRENT_CHANNEL_URL="$channel_url"
   STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel_entry" | jq -r ".title")"
