@@ -140,7 +140,7 @@ __load_default_config() {
   : "${CONFIG_IMGCAT_ARGS:=}"
   : "${CONFIG_YT_DLP_ARGS:=}"
   : "${CONFIG_PLAYER:=mpv}"
-  : "${CONFIG_DISOWN_STREAMING_PROCESS:=false}"
+  : "${CONFIG_DISOWN_PLAYER:=false}"
   : "${CONFIG_DISOWN_DOWNLOADING_PROCESS:=false}"
   : "${CONFIG_MPV_ARGS:=}"
   : "${CONFIG_VLC_ARGS:=}"
@@ -213,6 +213,7 @@ __load_env_config() {
 
   # Player Settings
   CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
+  CONFIG_DISOWN_PLAYER="${YT_X_DISOWN_PLAYER:-$CONFIG_DISOWN_PLAYER}"
   CONFIG_MPV_ARGS="${YT_X_MPV_ARGS:-$CONFIG_MPV_ARGS}"
   CONFIG_VLC_ARGS="${YT_X_VLC_ARGS:-$CONFIG_VLC_ARGS}"
   CONFIG_TPLAY_ARGS="${YT_X_TPLAY_ARGS:-$CONFIG_TPLAY_ARGS}"
@@ -545,9 +546,9 @@ CONFIG_TPLAY_ARGS="$CONFIG_TPLAY_ARGS"
 # Options: 2160, 1440, 1080, 720, 480 (Default: 1080)
 CONFIG_VIDEO_QUALITY="$CONFIG_VIDEO_QUALITY"
 
-# Whether to disown the streaming/downloading process to prevent blocking the UI
+# Whether to disown the player, process to prevent blocking the UI
 # options: true, false (Default: false)
-CONFIG_DISOWN_STREAMING_PROCESS="$CONFIG_DISOWN_STREAMING_PROCESS"
+CONFIG_DISOWN_PLAYER="$CONFIG_DISOWN_PLAYER"
 CONFIG_DISOWN_DOWNLOADING_PROCESS="$CONFIG_DISOWN_DOWNLOADING_PROCESS"
 
 # Maximum number of search results to fetch per page
@@ -3470,7 +3471,7 @@ Version=$CLI_VERSION
 Path=$HOME
 Comment=Browse Youtube from the terminal plus other sites yt-dlp supports
 Terminal=false
-Exec=$CLI_PATH --launcher rofi --no-disown-streaming-process
+Exec=$CLI_PATH --launcher rofi --no-disown-player
 Categories=Entertainment"
   else
     entry="\
@@ -3544,8 +3545,8 @@ Options:
   -p, --player <player>          Media player: mpv, vlc or tplay
   -i, --preview                  Enable the preview window (images/text)
   -I, --no-preview               Disable the preview window
-  --disown-streaming-process     Detach the streaming process from the terminal
-  --no-disown-streaming-process  Keep streaming attached (default)
+  --disown-player                Detach the player process from the terminal
+  --no-disown-player             Keep player attached (default)
   --disown-downloading-process   Detach the downloading process
   --no-disown-downloading-process Keep downloads attached (default)
   --rofi-theme-main <path>       Path to the rofi main theme file
@@ -3618,8 +3619,8 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s p -l player -d "Media player
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview -d "Enable preview window"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-preview -d "Disable preview window"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-streaming-process -d "Disown streaming process"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-streaming-process -d "Do not disown streaming"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-player -d "Disown player"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-player -d "Do not disown player"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-downloading-process -d "Disown downloading process"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-downloading-process -d "Do not disown downloading"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-main -d "Rofi main theme path" --require-parameter
@@ -3677,11 +3678,11 @@ _app_cmd_line_parser() {
     -I | --no-preview)
       CONFIG_ENABLE_PREVIEW=false
       ;;
-    --disown-streaming-process)
-      CONFIG_DISOWN_STREAMING_PROCESS=true
+    --disown-player)
+      CONFIG_DISOWN_PLAYER=true
       ;;
-    --no-disown-streaming-process)
-      CONFIG_DISOWN_STREAMING_PROCESS=false
+    --no-disown-player)
+      CONFIG_DISOWN_PLAYER=false
       ;;
     --disown-downloading-process)
       CONFIG_DISOWN_DOWNLOADING_PROCESS=true
