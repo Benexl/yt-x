@@ -1098,7 +1098,6 @@ fzf_preview() {
     fi
   elif [ "$CONFIG_IMAGE_RENDERER" = "tycat" ] && command -v tycat >/dev/null 2>&1; then
     tycat -g "$dim" "$file" 2>/dev/null || tycat "$file"
-
   elif command -v chafa >/dev/null 2>&1; then
     case "$CLI_PLATFORM" in
     android) chafa -s "$dim" "$file" ;;
