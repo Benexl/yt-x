@@ -689,7 +689,7 @@ _util_open() {
     converted_target="$target"
 
     case "$target" in
-    *://*) ;;
+    http://* | https://* | ftp://* | ftps://* | mailto:*) ;;
     *)
       if _dep_ch cygpath; then
         converted_target="$(cygpath -w "$target" 2>/dev/null || printf "%s" "$target")"

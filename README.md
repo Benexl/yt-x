@@ -138,6 +138,7 @@ _(To uninstall, simply run `rm ~/.local/bin/yt-x`)_
 ### 🪟 Windows (Git Bash/Cygwin) & WSL Notes
 
 - `yt-x` runs in **Git Bash**, **Cygwin**, and **WSL**.
+- `yt-x` treats **WSL** as a Linux environment, while **Git Bash/Cygwin** are treated as Windows terminals.
 - Use `fzf` as the launcher on Windows terminals (`rofi` is Linux desktop-oriented).
 - Make sure Windows/WSL-accessible binaries are in `PATH` (`yt-dlp`, `jq`, `fzf`, and a player like `mpv.exe` or `vlc.exe`).
 - Browser/config opening supports `open`, `xdg-open`, `wslview`, or `cmd.exe`.
