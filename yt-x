@@ -3710,6 +3710,11 @@ _app_cmd_line_parser() {
       CONFIG_ROFI_THEME_CONFIRM="$2"
       shift_count=2
       ;;
+    --rofi-theme-pager)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PAGER="$2"
+      shift_count=2
+      ;;
     -p | --player)
       [ -n "$2" ] || _app_usage 1
       CONFIG_PLAYER="$2"
