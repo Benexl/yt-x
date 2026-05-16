@@ -17,117 +17,109 @@ readonly CLI_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/maste
 # ==============================================================================
 # SETUP
 # ==============================================================================
+# shellcheck disable=2155
+readonly CLI_START_TIME="$(date +%s)"
+
 _dep_ch() {
   command -v "$1" >/dev/null 2>&1
 }
 
-__init_env_platform() {
-  if ! _dep_ch local; then
-    eval 'local() { unset -v $1; }'
-  fi
+# ==============================================================================
+# SETUP ENVIRONMENT
+# ==============================================================================
+if ! _dep_ch local; then
+  eval 'local() { unset -v $1; }'
+fi
 
-  if _dep_ch realpath; then
-    # shellcheck disable=SC2155
-    readonly CLI_DIR="$(dirname "$(realpath "$0")")"
-  else
-    # shellcheck disable=SC2155
-    readonly CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
-  fi
+if _dep_ch realpath; then
+  # shellcheck disable=SC2155
+  readonly CLI_DIR="$(dirname "$(realpath "$0")")"
+else
+  # shellcheck disable=SC2155
+  readonly CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+fi
 
-  readonly CLI_PATH="$CLI_DIR/$CLI_NAME"
+readonly CLI_PATH="$CLI_DIR/$CLI_NAME"
 
-  if [ -n "$ZSH_VERSION" ]; then
-    setopt shwordsplit
-  fi
+if [ -n "$ZSH_VERSION" ]; then
+  setopt shwordsplit
+fi
 
-  case "$(uname -a)" in
-  *ndroid*) readonly CLI_PLATFORM="android" ;;
-  *Darwin*) readonly CLI_PLATFORM="mac" ;;
-  *MINGW* | *WSL2*) readonly CLI_PLATFORM="windows" ;;
-  *) readonly CLI_PLATFORM="linux" ;;
-  esac
+case "$(uname -a)" in
+*ndroid*) readonly CLI_PLATFORM="android" ;;
+*Darwin*) readonly CLI_PLATFORM="mac" ;;
+*MINGW* | *WSL2*) readonly CLI_PLATFORM="windows" ;;
+*) readonly CLI_PLATFORM="linux" ;;
+esac
 
-  if [ -t 1 ]; then
-    readonly CLI_IS_TERMINAL=true
-  else
-    readonly CLI_IS_TERMINAL=false
-  fi
+if [ -t 1 ]; then
+  readonly CLI_IS_TERMINAL=true
+else
+  readonly CLI_IS_TERMINAL=false
+fi
 
-  if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
-    readonly CLI_SUPPORTS_TRUE_COLOR=true
-  else
-    readonly CLI_SUPPORTS_TRUE_COLOR=false
-  fi
-}
+if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
+  readonly CLI_SUPPORTS_TRUE_COLOR=true
+else
+  readonly CLI_SUPPORTS_TRUE_COLOR=false
+fi
 
-__init_env_paths() {
-  XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-  XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-  XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export SHELL="sh"
 
-  # Directories
-  readonly CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_APP_NAME"
+# ==============================================================================
+# SETUP PATHS
+# ==============================================================================
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
-  readonly CLI_EXTENSIONS_DIR="$CLI_CONFIG_DIR/extensions"
-  readonly CLI_EXTENSIONS_SITES_DIR="$CLI_EXTENSIONS_DIR/sites"
-  readonly CLI_EXTENSIONS_THEMES_DIR="$CLI_EXTENSIONS_DIR/themes"
-  readonly CLI_EXTENSIONS_LANGS_DIR="$CLI_EXTENSIONS_DIR/langs"
-  readonly CLI_EXTENSIONS_CMDS_DIR="$CLI_EXTENSIONS_DIR/cmds"
+# Directories
+readonly CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_APP_NAME"
 
-  readonly CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
+readonly CLI_EXTENSIONS_DIR="$CLI_CONFIG_DIR/extensions"
+readonly CLI_EXTENSIONS_SITES_DIR="$CLI_EXTENSIONS_DIR/sites"
+readonly CLI_EXTENSIONS_THEMES_DIR="$CLI_EXTENSIONS_DIR/themes"
+readonly CLI_EXTENSIONS_LANGS_DIR="$CLI_EXTENSIONS_DIR/langs"
+readonly CLI_EXTENSIONS_CMDS_DIR="$CLI_EXTENSIONS_DIR/cmds"
 
-  readonly CLI_STATE_DIR="$CLI_CACHE_DIR/state"
-  readonly CLI_CURRENT_STATE_DIR="$CLI_STATE_DIR/${CLI_START_TIME}-$$"
+readonly CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
 
-  readonly CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
-  readonly CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
-  readonly CLI_PREVIEW_SCRIPTS_DIR="$CLI_CACHE_DIR/previews/text"
+readonly CLI_STATE_DIR="$CLI_CACHE_DIR/state"
+readonly CLI_CURRENT_STATE_DIR="$CLI_STATE_DIR/${CLI_START_TIME}-$$"
 
-  readonly CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
-  readonly CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
-  readonly CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
+readonly CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
+readonly CLI_PREVIEW_IMGS_DIR="$CLI_CACHE_DIR/previews/images"
+readonly CLI_PREVIEW_SCRIPTS_DIR="$CLI_CACHE_DIR/previews/text"
 
-  # Files
-  readonly CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config"
-  readonly CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
-  readonly CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
-  readonly CLI_RECENT_FILE="$CLI_CONFIG_DIR/recent.json"
-  readonly CLI_SAVED_VIDEOS_FILE="$CLI_CONFIG_DIR/saved-videos.json"
-  readonly CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom-playlists.json"
-  readonly CLI_SUBSCRIPTIONS_FILE="$CLI_CONFIG_DIR/subscriptions.json"
-  readonly CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom-cmds.json"
+readonly CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
+readonly CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
+readonly CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
-  readonly CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search-history.txt"
-  readonly CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
+# Files
+readonly CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config"
+readonly CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
+readonly CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
+readonly CLI_RECENT_FILE="$CLI_CONFIG_DIR/recent.json"
+readonly CLI_SAVED_VIDEOS_FILE="$CLI_CONFIG_DIR/saved-videos.json"
+readonly CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom-playlists.json"
+readonly CLI_SUBSCRIPTIONS_FILE="$CLI_CONFIG_DIR/subscriptions.json"
+readonly CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom-cmds.json"
 
-  # Ensure directories exist
-  mkdir -p \
-    "$CLI_EXTENSIONS_SITES_DIR" \
-    "$CLI_EXTENSIONS_THEMES_DIR" \
-    "$CLI_EXTENSIONS_LANGS_DIR" \
-    "$CLI_EXTENSIONS_CMDS_DIR" \
-    "$CLI_CURRENT_STATE_DIR" \
-    "$CLI_PREVIEW_IMGS_DIR" \
-    "$CLI_PREVIEW_SCRIPTS_DIR" \
-    "$CLI_AUTO_GEN_PLAYLISTS" \
-    "$CLI_DOWNLOAD_ARCHIVE_DIR" \
-    "$CLI_LOG_DIR"
+readonly CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search-history.txt"
+readonly CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
 
-}
-
-__post_init_env() {
-  export SHELL="sh"
-
-}
-
-_init_env() {
-  # shellcheck disable=2155
-  readonly CLI_START_TIME="$(date +%s)"
-
-  __init_env_platform
-  __init_env_paths
-  __post_init_env
-}
+# Ensure directories exist
+mkdir -p \
+  "$CLI_EXTENSIONS_SITES_DIR" \
+  "$CLI_EXTENSIONS_THEMES_DIR" \
+  "$CLI_EXTENSIONS_LANGS_DIR" \
+  "$CLI_EXTENSIONS_CMDS_DIR" \
+  "$CLI_CURRENT_STATE_DIR" \
+  "$CLI_PREVIEW_IMGS_DIR" \
+  "$CLI_PREVIEW_SCRIPTS_DIR" \
+  "$CLI_AUTO_GEN_PLAYLISTS" \
+  "$CLI_DOWNLOAD_ARCHIVE_DIR" \
+  "$CLI_LOG_DIR"
 
 # ==============================================================================
 # CONFIGURATION & ENVIRONMENT
@@ -3859,7 +3851,6 @@ _app_cmd_line_parser() {
 # ==============================================================================
 main() {
   trap _app_runtime_clean_up EXIT INT TERM
-  _init_env
   _load_config
   _app_cmd_line_parser "$@"
   _app_auto_update
