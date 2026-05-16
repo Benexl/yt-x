@@ -207,13 +207,6 @@ To fetch your private feed or age-restricted content, pass your browser's cookie
 CONFIG_BROWSER="firefox"
 ```
 
-> **Fixing "cannot decrypt cookies" error (Chromium/Brave):**
-> If you get keyring errors, specify the exact keystore:
-> `CONFIG_BROWSER="brave+gnomekeyring:Default"`
-
-> [!IMPORTANT]
-> YouTube is aggressively blocking unauthenticated bot access. Setting up a **PO Token** is highly recommended to prevent HTTP 403 errors. Read the guide: [PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide).
-
 ### 🎬 Optimizing MPV
 
 If you want `mpv` to use your browser cookies and specific qualities, add this to your `~/.config/mpv/mpv.conf`:
