@@ -1,27 +1,29 @@
-# yt-x
+<div align="center">
 
-![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/Benex254/yt-x)
-![GitHub License](https://img.shields.io/github/license/Benex254/yt-x)
-![GitHub file size in bytes](https://img.shields.io/github/size/Benex254/yt-x/yt-x)
-![GitHub Release](https://img.shields.io/github/v/release/Benex254/yt-x)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Benex254/yt-x)
+# 📺 yt-x
 
+**Browse YouTube and other `yt-dlp` supported sites directly from your terminal.**
 
-Browse YouTube from your terminal.
-Plus other sites yt-dlp supports.
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/issues)
+[![GitHub License](https://img.shields.io/github/license/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/blob/master/LICENSE)
+[![GitHub file size in bytes](https://img.shields.io/github/size/Benex254/yt-x/yt-x?style=flat-square)]()
+[![GitHub Release](https://img.shields.io/github/v/release/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/releases)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Benex254/yt-x?style=flat-square)]()
 
-https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61
+</div>
+
+---
+
+[yt-x demo](https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61)
 
 <details>
-<summary>Full Demo</summary>
-  
+<summary><b>View Demos & Previews</b></summary>
+<br>
+**Full Demo:**
 [yt-x-full-github-demo.webm](https://github.com/user-attachments/assets/06e388c4-4399-4358-a6cc-68045db48177)
 
-</details>
-
-<details>
-  <summary>Riced</summary>
-  <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/487952e1-4911-4269-9b99-7e99a14048b0" />
+**Riced/Customized Previews:**
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/487952e1-4911-4269-9b99-7e99a14048b0" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/645a8e5d-fa5a-40a6-9fe1-7e7c91b28f8e" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0a990fc3-cc29-49b4-a0fc-c99a68ef833d" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c066221a-97e2-46fb-9433-7e644fd6ebb8" />
@@ -39,211 +41,187 @@ https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ca428115-ec08-453b-a2fc-e4dec30d0b83" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c6546dac-d39b-49d4-9656-edf82e305d80" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/bc0ba42d-3284-48d4-a2e3-1b0de6cd8630" />
-
 </details>
+
+## 📖 Table of Contents
+- [Features](#-features)
+- [Installation](#-installation)
+- [Dependencies](#-dependencies)
+- [Usage](#%EF%B8%8F-usage)
+- [Configuration & Tips](#%EF%B8%8F-configuration--tips)
+- [Extended Search Filters](#-extended-search-filters)
+- [Support & Contribution](#-support--contribution)
+
+---
 
 ## 🚀 Features
 
-- **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless navigation.
-- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, or Kitty/Ghostty's native `icat`.
-- **YouTube-Specific Menus**: Access your feed, trending videos, playlists, watch later, subscriptions, liked videos, and clips.
-- **Playback Support**: Play videos and audio natively via `mpv`, `vlc`, or `tplay`. Fully supports detaching (`disowning`) players from the terminal.
-- **Search & Filter Functionality**: Search for videos, channels, and playlists directly, including advanced filters (`:today`, `:long`, `:4k`) and history recall (`!1`).
-- **Channel Exploration**: Explore channels, including their videos, streams, podcasts, shorts, and playlists.
-- **Saved Channels**: Bookmark favorite channels and import your existing YouTube subscriptions.
-- **Mixes**: Generate and explore YouTube song mixes automatically.
-- **Yt-x Shell Mode:** Drop directly into a shell from any menu with all video/playlist metadata exported as environment variables for custom scripting.
-- **Download Management**: Download individual videos, audio, or entire playlists automatically tracked via yt-dlp archives.
-- **History & Recents**: Track your watched media and recall previous searches instantly.
+### 🖥️ Interface & Navigation
+- **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless, blazing-fast navigation.
+- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, or native `icat` (Kitty/Ghostty).
+- **YouTube Ecosystem**: Access your Feed, Trending, Playlists, Watch Later, Subscriptions, Liked Videos, and Clips.
+- **Channel Exploration**: Deep dive into channels—browse their videos, streams, podcasts, shorts, and playlists.
+- **History & Recents**: Automatically tracks your watched media and allows instant recall of previous searches.
+
+### 🎵 Playback & Media Management
+- **Native Playback**: Play videos and audio directly via `mpv`, `vlc`, or `tplay`. 
+- **Background Mode**: Fully supports detaching (`disowning`) players so you can keep browsing while watching.
+- **Download Management**: Download individual videos, audio, or entire playlists (automatically tracked via `yt-dlp` archives to prevent duplicates).
+- **Auto-Mixes**: Generate and explore YouTube song mixes automatically.
+
+### 🛠️ Advanced Tools
+- **Powerful Search**: Search with built-in advanced filters (`:today`, `:long`, `:4k`) and history recall (e.g., `!1`).
 - **Extensions Architecture**: Easily extend `yt-x` with your own UI logic, themes, languages, and site definitions via `~/.config/yt-x/extensions/`.
-- **Custom Commands Menu**: Create your own tailored `yt-dlp` commands (e.g., custom site scrapers) directly from the UI to load them into the browser.
-- **Cross-Platform**: Supports Linux, macOS, WSL/Windows, and **Android** (via Termux, directly sending intents to Android apps like `vlc` or `mpv`).
+- **Custom Commands**: Create your own tailored `yt-dlp` scrapers directly from the UI and load them into the browser.
+- **Yt-x Shell Mode**: Drop directly into a shell from any menu with all video/playlist metadata exported as environment variables for custom scripting.
+- **Cross-Platform**: Supports Linux, macOS, WSL/Windows, and **Android** (via Termux, routing media directly to Android apps like VLC/MPV).
 
 ---
 
 ## 📥 Installation
 
-![Linux/BSD](https://img.shields.io/badge/-Linux/BSD-red.svg?style=for-the-badge&logo=linux) <a href="#arch-linux" target="_blank"> <img src="https://img.shields.io/badge/-Arch_Linux-black.svg?style=for-the-badge&logo=archlinux" alt="Arch Linux"> </a> ![MacOS](https://img.shields.io/badge/-MacOS-lightblue.svg?style=for-the-badge&logo=apple) ![Android](https://img.shields.io/badge/-Android-green.svg?style=for-the-badge&logo=android)
+### ❄️ NixOS / Home Manager
 
-### ❄️ NixOS or Home Manager
-
-### <samp>On NixOS, you can install packages using two main methods:</samp>
-
-1. **Imperative/Direct installation**:
+**1. Imperative / Direct installation:**
 ```bash
 nix profile install github:Benexl/yt-x
 ```
-#
-2. **Declarative/Config-based**:
 
-    2.1 Add the following to your `flake.nix`:
+**2. Declarative / Config-based:**
+Add the following to your `flake.nix`:
+```nix
+inputs = {
+  nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  yt-x = {
+    url = "github:Benexl/yt-x";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+}
+```
+*For system-wide installation in `configuration.nix`:*
+```nix
+environment.systemPackages = [ inputs.yt-x.packages."${system}".default ];
+```
+*For user-level installation in `home.nix`:*
+```nix
+home.packages = [ inputs.yt-x.packages."${system}".default ];
+```
 
-    ```nix
-    inputs = {
-      nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-      yt-x = {
-        url = "github:Benexl/yt-x";
-        inputs.nixpkgs.follows = "nixpkgs";
-      };
-      ...
-    }
-    ```
-
-    2.2 Then, add Yt-x to your packages:
-    > For system wide installation in *configuration.nix*
-    ```nix
-    environment.systemPackages = with pkgs; [
-      inputs.yt-x.packages."${system}".default
-    ];
-    ```
-
-    > For user level installation in *home.nix*
-    ```nix
-    home.packages = with pkgs; [
-      inputs.yt-x.packages."${system}".default
-    ];
-    ```
-
-### Arch Linux
-
-![AUR Version](https://img.shields.io/aur/version/yt-x-git?style=for-the-badge&color=e64553&logo=arch-linux&label=%5BAUR%5D%20yt-x-git&logocolor=85e185&labelColor=000000)
-
-**You can install [`yt-x`](https://aur.archlinux.org/packages/yt-x-git) from the Arch Linux [AUR](https://aur.archlinux.org/) repository.**
-
-**To install, use your preferred package manager [`paru`](https://aur.archlinux.org/packages/paru-bin) or [`yay`](https://aur.archlinux.org/packages/yay-bin):**
-
+### 🐧 Arch Linux (AUR)
+Install [`yt-x-git`](https://aur.archlinux.org/packages/yt-x-git) from the AUR using your preferred helper:
 ```bash
-# for paru users
 paru -S yt-x-git
-
-# for yay users
+# OR
 yay -S yt-x-git
 ```
 
-### Cross-platform
-
-
+### 🌍 Cross-Platform (macOS, Linux, Android)
+Download the script directly. *(Ensure `~/.local/bin` exists and is in your `$PATH`)*:
 ```bash
-# NOTE: ~/.local/bin should exist and be in path for this to work
 curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" -o ~/.local/bin/yt-x && chmod +x ~/.local/bin/yt-x
 ```
-
-To uninstall simply remove the file: 
-```bash
-rm ~/.local/bin/yt-x
-```
+*(To uninstall, simply run `rm ~/.local/bin/yt-x`)*
 
 ---
 
 ## 📦 Dependencies
 
 ### Required
+- **[jq](https://github.com/jqlang/jq)** - JSON parsing.
+- **[curl](https://curl.se/)** - Fetching updates and preview images.
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - The core engine for fetching YouTube data.
+- **[fzf](https://github.com/junegunn/fzf)** - The primary UI engine.
+- **sh** - Any POSIX-compliant shell.
 
-- [jq](https://github.com/jqlang/jq) - JSON parsing.
-- [curl](https://curl.se/) - Download preview images.
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Fetch YouTube data.
-- [fzf](https://github.com/junegunn/fzf) - Main UI navigation.
-- [sh](https://www.gnu.org/software/bash/) - Script interpreter (any POSIX compliant shell).
-
-### Optional
-
-- [mpv](https://mpv.io/) / [vlc](https://www.videolan.org/) / [tplay](https://github.com/maxcurzi/tplay) - Media playback.
-- [rofi](https://github.com/davatorium/rofi) - Alternate GUI launcher.
-- [gum](https://github.com/charmbracelet/gum) - Enhanced UI components (prompts, loaders).
-- **Terminal Image Viewers (For Previews):**
-  - [chafa](https://github.com/hpjansson/chafa) - Cross-terminal image rendering (highly recommended).
-  - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty)).
-  - [imgcat](https://github.com/danielgatis/imgcat).
-- [nerdfonts](https://www.nerdfonts.com/) - Required for UI icons.
+### Optional (But Highly Recommended)
+- **Media Players**: [mpv](https://mpv.io/) (default), [vlc](https://www.videolan.org/), or [tplay](https://github.com/maxcurzi/tplay).
+- **Alternate GUI**: [rofi](https://github.com/davatorium/rofi) (for desktop environments).
+- **UI Enhancements**: [gum](https://github.com/charmbracelet/gum) (for improved prompts and loaders).
+- **Terminal Image Viewers (For Previews)**:
+  - [chafa](https://github.com/hpjansson/chafa) (Cross-terminal, highly recommended)
+  - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty))
+  - [imgcat](https://github.com/danielgatis/imgcat)
+- **Fonts**: A [Nerd Font](https://www.nerdfonts.com/) is required to render UI icons correctly.
 
 ---
 
-## 🛠️ Usage
+## ⚙️ Usage
 
+### Basic Commands
 ```bash
-# Launch the UI interactively
-yt-x
+yt-x                                # Launch the interactive UI
+yt-x -h                             # Display all available CLI options
+yt-x -U                             # Check and apply script updates
+yt-x -e                             # Open the configuration file in your editor
+```
 
-# Quick jump / Direct Search bypassing the main menu
-yt-x -s 'onepiece elbaf trailer'
-yt-x -sp 'rust tutorials'           # Search for playlists directly
-yt-x -sc 'fireship'                 # Search for channels directly
+### Quick Jumping (Bypass Main Menu)
+```bash
+yt-x -s 'onepiece elbaf trailer'    # Search for videos
+yt-x -sp 'rust tutorials'           # Search specifically for playlists
+yt-x -sc 'fireship'                 # Search specifically for channels
+```
 
-# Interface & Theming
+### Advanced Customization
+```bash
 yt-x -l rofi                        # Use rofi instead of fzf
-yt-x -p vlc                         # Change the player temporarily
-yt-x -i                             # Enable the preview window
+yt-x -p vlc                         # Use VLC as the media player
+yt-x -i                             # Enable the preview window (images/text)
 yt-x -I                             # Disable the preview window
 yt-x --disown-player                # Detach the player process from the terminal
+yt-x -x themes/catppuccin.theme     # Load a specific extension/theme
+yt-x -E > ~/.local/share/applications/yt-x.desktop  # Generate a Linux desktop entry
+```
 
-# Load an Extension (Themes, Sites, Langs, Cmds)
-yt-x -x themes/catppuccin.theme
-
-# Generate Desktop Entry
-yt-x -E > ~/.local/share/applications/yt-x.desktop
-
-# Shell Completions
-yt-x completions --fish
-yt-x completions --bash
-yt-x completions --zsh
-
-# Maintenance
-yt-x -e                             # Edit your configuration file
-yt-x -U                             # Check and apply updates
-yt-x -h                             # Display all available options
+### Shell Completions
+```bash
+yt-x completions --fish             # Generate fish completions
+yt-x completions --bash             # Generate bash completions
+yt-x completions --zsh              # Generate zsh completions
 ```
 
 ---
 
-## ⚙️ Configuration & Tips
+## 🛠️ Configuration & Tips
 
-`yt-x` generates a config file sourced as a shell script at `~/.config/yt-x/config`. You can open it via the main menu's `Edit Config` option or by running `yt-x -e`.
+`yt-x` generates a configuration file at `~/.config/yt-x/config`. You can open it via the main menu's **Edit Config** option or by running `yt-x -e`.
 
-You can optionally override config settings globally by exporting environment variables starting with `YT_X_` (e.g., `YT_X_BROWSER="firefox"`).
+*(Note: You can override settings globally by exporting environment variables starting with `YT_X_`, e.g., `export YT_X_BROWSER="firefox"`).*
 
-### Enabling Imports of Subscriptions & Private Playlists
-
-To fetch your private feed, you must pass your browser's cookies to yt-dlp. Set your preferred browser in the `~/.config/yt-x/config` file:
-
+### 🔒 Accessing Private Feeds & Subscriptions
+To fetch your private feed or age-restricted content, pass your browser's cookies to `yt-dlp`. Edit your config file (`yt-x -e`):
 ```bash
 CONFIG_BROWSER="firefox"
 ```
+> **Fixing "cannot decrypt cookies" error (Chromium/Brave):**
+> If you get keyring errors, specify the exact keystore:
+> `CONFIG_BROWSER="brave+gnomekeyring:Default"`
 
-To enable `mpv` to access those same private playlists and videos, edit your `~/.config/mpv/mpv.conf` (can be done from the Miscellaneous Menu in `yt-x`):
+> [!IMPORTANT]
+> YouTube is aggressively blocking unauthenticated bot access. Setting up a **PO Token** is highly recommended to prevent HTTP 403 errors. Read the guide: [PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide).
 
+### 🎬 Optimizing MPV
+If you want `mpv` to use your browser cookies and specific qualities, add this to your `~/.config/mpv/mpv.conf`:
 ```ini
+# Pass cookies to yt-dlp inside mpv
 ytdl-raw-options=cookies-from-browser=firefox
 
-# --- bonus mpv tips ---
-# define the quality for mpv to use
-ytdl-format="bestvideo[vcodec^=avc1][height=1080]+bestaudio/best[vcodec^=avc1][height=1080]/bestvideo[vcodec^=avc1][height=720]+bestaudio/best[vcodec^=avc1][height=720]/best"
-screenshot-directory=~/Pictures/mpv_screenshots/
+# Force highest quality 1080p video + best audio
+ytdl-format="bestvideo[vcodec^=avc1][height<=1080]+bestaudio/best"
+
+# General QoL improvements
 hwdec=auto
 vo=gpu
 slang=en,eng,enUS,en-US
 sub-auto=fuzzy
-ytdl-raw-options=ignore-config=,sub-lang="en,eng,enUS,en-US",write-sub=,write-auto-sub=
 ```
 
-> [!TIP]
-> YouTube now frequently blocks unauthenticated bot access. I strongly recommend setting up a PO Token. Read more here: [PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)
+### 🎨 Theming
+`yt-x` ships with a default **Tokyo Night** palette. To "rice" it to match your system:
+1. Edit `CONFIG_FZF_OPTS` directly in `~/.config/yt-x/config`.
+2. OR create a `.theme` file in `~/.config/yt-x/extensions/themes/`.
 
-### Fixing "cannot decrypt cookies" error
-
-If you see an error about being unable to decrypt v11 cookies when syncing your subscriptions:
-This is an issue with yt-dlp accessing secure keystores (like GNOME Keyring) for chromium-based browsers. You can fix it by providing the exact profile/keyring string in your `~/.config/yt-x/config`:
-
-```bash
-CONFIG_BROWSER="brave+gnomekeyring:Default"
-```
-For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options).
-
-### Theming
-`yt-x` comes with a Tokyo Night default palette. You can completely "rice" the script by either:
-1. Setting `CONFIG_FZF_OPTS` directly in `~/.config/yt-x/config`
-2. Creating a `.theme` extension in `~/.config/yt-x/extensions/themes/` containing your `FZF_DEFAULT_OPTS`.
-
-Example Tokyonight FZF configuration:
+*Example Catppuccin / Custom config:*
 ```bash
 CONFIG_FZF_OPTS="
   --color=bg+:#283457,bg:#16161e,border:#27a1b9,fg:#c0caf5,header:#2ac3de,hl+:#2ac3de,hl:#2ac3de,info:#545c7e,marker:#ff007c,pointer:#ff007c,prompt:#2ac3de,query:#c0caf5,scrollbar:#27a1b9,separator:#ff9e64,spinner:#ff007c
@@ -251,83 +229,47 @@ CONFIG_FZF_OPTS="
 "
 ```
 
-## 📁 Custom Playlists
-
-Custom playlists are stored in `~/.config/yt-x/custom-playlists.json` and can be edited from the UI. The format is:
-
+### 📁 Custom Playlists JSON Format
+You can maintain custom playlists locally in `~/.config/yt-x/custom-playlists.json`:
 ```json
 [
   {
     "id": "PLYOURPLAYLISTID",
-    "name": "My Cool Playlist",
+    "name": "My Custom Chill Mix",
     "url": "https://www.youtube.com/playlist?list=PLYOURPLAYLISTID"
   }
 ]
 ```
 
+---
+
 ## 🔎 Extended Search Filters
 
-While searching inside `yt-x`, you can prefix your query with a `:command` to filter your request: `:<command> your_query`. You can also recall past searches using `!n` where `n` is the history index.
+While searching inside `yt-x`, you can prefix your query with `:filter` to narrow down results, or use `!n` to recall history. 
 
-### Filters & Types
-| Filter Command | Description                                |
-|----------------|--------------------------------------------|
-| `:video`       | Standard videos only                       |
-| `:movie`       | Movies                                     |
-| `:live`        | Live streams                               |
-| `:short`       | Short videos (< 4 minutes)                 |
-| `:long`        | Long videos (> 20 minutes)                 |
+*Example: `:short :4k nature timeline`*
 
-### Features & Quality
-| Filter Command | Description                                |
-|----------------|--------------------------------------------|
-| `:hd`          | High Definition videos                     |
-| `:4k`          | 4K Resolution videos                       |
-| `:hdr`         | HDR videos                                 |
-| `:subtitles`   | Videos with subtitles/CC                   |
-| `:360`         | 360° videos                                |
-| `:vr`          | VR180 videos                               |
-| `:3d`          | 3D videos                                  |
-| `:local`       | Videos filtered by location                |
-
-### Upload Date
-| Filter Command | Description                                |
-|----------------|--------------------------------------------|
-| `:hour`        | Uploaded in the last hour                  |
-| `:today`       | Uploaded today                             |
-| `:week`        | Uploaded this week                         |
-| `:month`       | Uploaded this month                        |
-| `:year`        | Uploaded this year                         |
-
-### Sorting
-| Sort Command   | Description                                |
-|----------------|--------------------------------------------|
-| `:newest`      | Sort results by upload date                |
-| `:views`       | Sort results by view count                 |
-| `:rating`      | Sort results by rating                     |
-
-### History Recall
-| History Command| Description                                |
-|----------------|--------------------------------------------|
-| `!1`           | Quickly re-run your most recent search     |
-| `!3`           | Quickly re-run your 3rd most recent search |
+| Category | Commands |
+| :--- | :--- |
+| **Content Type** | `:video`, `:movie`, `:live`, `:short` (<4 min), `:long` (>20 min) |
+| **Quality/Features**| `:hd`, `:4k`, `:hdr`, `:subtitles`, `:360`, `:vr`, `:3d`, `:local` |
+| **Upload Date** | `:hour`, `:today`, `:week`, `:month`, `:year` |
+| **Sorting** | `:newest`, `:views`, `:rating` |
+| **History Recall** | `!1` (Most recent search), `!3` (3rd most recent search) |
 
 ---
 
-## 🤝 Contribution
+## 🤝 Support & Contribution
 
-Pull requests are highly welcome! Whether it's adding a new extension logic, bug fixes, or new search parameters.
+Pull requests are highly welcome! Whether it's adding new extension logic, fixing bugs, or expanding search parameters, feel free to fork and contribute.
 
-## 💬 Support
-
-Need help? Join the community on Discord:
+**Need help or want to chat?** Join the community on Discord:
 
 <p align="center">
 <a href="https://discord.gg/HBEmAwvbHV">
-<img src="https://invidget.switchblade.xyz/C4rhMA4mmK">
+<img src="https://invidget.switchblade.xyz/C4rhMA4mmK" alt="Discord Server">
 </a>
 </p>
 
-## ⭐ Supporting the Project
-
-If you enjoy `yt-x`, please give the project a star on GitHub and consider contributing to the codebase!
+### ⭐ Supporting the Project
+If you enjoy using `yt-x` and want to support its ongoing development, **please consider leaving a Star on GitHub!**
