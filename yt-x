@@ -2520,11 +2520,7 @@ __menu_playlist_explorer() {
   # TODO: consider not using -E since its not yet posix
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
-  id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
-  # Strip a single leading zero until the string stops changing
-  while [ "${id#0}" != "$id" ]; do
-    id=${id#0}
-  done
+  id=$(printf "%s" "$title" | sed -E 's/^0*([0-9]+) .*/\1/')
 
   STATE_CURRENT_VIDEO="$(
     echo "$STATE_CURRENT_PLAYLIST_RESULTS" |
@@ -2594,11 +2590,7 @@ __menu_playlists_explorer() {
   # TODO: consider not using -E since its not yet posix
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
-  id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
-  # Strip a single leading zero until the string stops changing
-  while [ "${id#0}" != "$id" ]; do
-    id=${id#0}
-  done
+  id=$(printf "%s" "$title" | sed -E 's/^0*([0-9]+) .*/\1/')
 
   current_playlist="$(
     echo "$STATE_CURRENT_PLAYLISTS_RESULTS" |
