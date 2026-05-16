@@ -2432,7 +2432,10 @@ __menu_playlist_actions_visit_channel() {
   local channel_id
   local uploader_id
 
-  channel_url="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".channel_url // .uploader_url // empty")"
+  channel_url="$(
+    echo "$STATE_CURRENT_VIDEO" |
+      jq -r "(.channel_url // .uploader_url // empty) | if startswith(\"//\") then \"https:\" + . else . end"
+  )"
 
   if [ -z "$channel_url" ]; then
     channel_id="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".channel_id // empty")"
@@ -2448,11 +2451,10 @@ __menu_playlist_actions_visit_channel() {
     fi
   fi
 
-  case "$channel_url" in
-  //*) channel_url="https:$channel_url" ;;
-  esac
-
-  [ -z "$channel_url" ] && ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND" && return
+  if [ -z "$channel_url" ]; then
+    ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND"
+    return
+  fi
 
   if _dep_ch open; then
     open "$channel_url"
