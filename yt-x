@@ -141,7 +141,6 @@ __load_default_config() {
   : "${CONFIG_YT_DLP_ARGS:=}"
   : "${CONFIG_PLAYER:=mpv}"
   : "${CONFIG_DISOWN_PLAYER:=false}"
-  : "${CONFIG_DISOWN_DOWNLOADING_PROCESS:=false}"
   : "${CONFIG_MPV_ARGS:=}"
   : "${CONFIG_VLC_ARGS:=}"
   : "${CONFIG_TPLAY_ARGS:=}"
@@ -549,7 +548,6 @@ CONFIG_VIDEO_QUALITY="$CONFIG_VIDEO_QUALITY"
 # Whether to disown the player, process to prevent blocking the UI
 # options: true, false (Default: false)
 CONFIG_DISOWN_PLAYER="$CONFIG_DISOWN_PLAYER"
-CONFIG_DISOWN_DOWNLOADING_PROCESS="$CONFIG_DISOWN_DOWNLOADING_PROCESS"
 
 # Maximum number of search results to fetch per page
 # Options: Integer (Default: 30)
@@ -3547,8 +3545,6 @@ Options:
   -I, --no-preview               Disable the preview window
   --disown-player                Detach the player process from the terminal
   --no-disown-player             Keep player attached (default)
-  --disown-downloading-process   Detach the downloading process
-  --no-disown-downloading-process Keep downloads attached (default)
   --rofi-theme-main <path>       Path to the rofi main theme file
   --rofi-theme-preview <path>    Path to the rofi preview theme file
   --rofi-theme-prompt <path>     Path to the rofi prompt theme file
@@ -3621,8 +3617,6 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview -d "Enable preview w
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-preview -d "Disable preview window"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-player -d "Disown player"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-player -d "Do not disown player"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-downloading-process -d "Disown downloading process"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-downloading-process -d "Do not disown downloading"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-main -d "Rofi main theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-preview -d "Rofi preview theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-prompt -d "Rofi prompt theme path" --require-parameter
@@ -3683,12 +3677,6 @@ _app_cmd_line_parser() {
       ;;
     --no-disown-player)
       CONFIG_DISOWN_PLAYER=false
-      ;;
-    --disown-downloading-process)
-      CONFIG_DISOWN_DOWNLOADING_PROCESS=true
-      ;;
-    --no-disown-downloading-process)
-      CONFIG_DISOWN_DOWNLOADING_PROCESS=false
       ;;
     --rofi-theme-main)
       [ -n "$2" ] || _app_usage 1
