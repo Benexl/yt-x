@@ -23,36 +23,36 @@ _dep_ch() {
 
 __init_env_platform() {
   if _dep_ch realpath; then
-    CLI_DIR="$(dirname "$(realpath "$0")")"
+    # shellcheck disable=SC2155
+    readonly CLI_DIR="$(dirname "$(realpath "$0")")"
   else
-    CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+    # shellcheck disable=SC2155
+    readonly CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
   fi
-  CLI_PATH="$CLI_DIR/$CLI_NAME"
 
-  # If we are in Zsh, enable word splitting for the duration of the script
+  readonly CLI_PATH="$CLI_DIR/$CLI_NAME"
+
   if [ -n "$ZSH_VERSION" ]; then
     setopt shwordsplit
   fi
 
   case "$(uname -a)" in
-  *ndroid*) CLI_PLATFORM="android" ;;
-  *Darwin*) CLI_PLATFORM="mac" ;;
-  *MINGW* | *WSL2*) CLI_PLATFORM="windows" ;;
-  *) CLI_PLATFORM="linux" ;;
+  *ndroid*) readonly CLI_PLATFORM="android" ;;
+  *Darwin*) readonly CLI_PLATFORM="mac" ;;
+  *MINGW* | *WSL2*) readonly CLI_PLATFORM="windows" ;;
+  *) readonly CLI_PLATFORM="linux" ;;
   esac
 
-  # Detect if terminal
   if [ -t 1 ]; then
-    CLI_IS_TERMINAL=true
+    readonly CLI_IS_TERMINAL=true
   else
-    CLI_IS_TERMINAL=false
+    readonly CLI_IS_TERMINAL=false
   fi
 
-  # Detect if terminal supports true color
   if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
-    CLI_SUPPORTS_TRUE_COLOR=true
+    readonly CLI_SUPPORTS_TRUE_COLOR=true
   else
-    CLI_SUPPORTS_TRUE_COLOR=false
+    readonly CLI_SUPPORTS_TRUE_COLOR=false
   fi
 }
 
