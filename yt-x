@@ -2439,11 +2439,11 @@ __menu_playlist_actions_visit_channel() {
     uploader_id="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".uploader_id // empty")"
 
     if [ -n "$channel_id" ]; then
-      channel_url="https://youtube.com/channel/$channel_id"
+      channel_url="https://www.youtube.com/channel/$channel_id"
     elif [ -n "$uploader_id" ]; then
       case "$uploader_id" in
-      @*) channel_url="https://youtube.com/$uploader_id" ;;
-      *) channel_url="https://youtube.com/channel/$uploader_id" ;;
+      @*) channel_url="https://www.youtube.com/$uploader_id" ;;
+      *) channel_url="https://www.youtube.com/channel/$uploader_id" ;;
       esac
     fi
   fi
