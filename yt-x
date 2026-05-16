@@ -27,6 +27,16 @@ _dep_ch() {
 # ==============================================================================
 # SETUP ENVIRONMENT
 # ==============================================================================
+if [ -n "$BASH_VERSION" ]; then
+  readonly CLI_SHELL="bash"
+elif [ -n "$ZSH_VERSION" ]; then
+  readonly CLI_SHELL="zsh"
+elif [ -n "$KSH_VERSION" ]; then
+  readonly CLI_SHELL="ksh"
+else
+  readonly CLI_SHELL="sh"
+fi
+
 if ! _dep_ch local; then
   eval 'local() { unset -v $1; }'
 fi
