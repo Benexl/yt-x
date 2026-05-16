@@ -1989,8 +1989,13 @@ __player_mpv() {
       ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
     fi
 
-    # shellcheck disable=SC2086
-    $mpv_cmd "$url" $opts
+    if [ "$CONFIG_DISOWN_PLAYER" = "true" ]; then
+      # shellcheck disable=SC2086
+      nohup $mpv_cmd "$url" $opts &
+    else
+      # shellcheck disable=SC2086
+      $mpv_cmd "$url" $opts
+    fi
     ;;
   esac
 
@@ -2032,8 +2037,13 @@ __player_vlc() {
       ui_notify_critical "$TXT_PLAYER_NOT_FOUND"
     fi
 
-    # shellcheck disable=SC2086
-    $vlc_cmd "$url" $opts
+    if [ "$CONFIG_DISOWN_PLAYER" = "true" ]; then
+      # shellcheck disable=SC2086
+      nohup $vlc_cmd "$url" $opts &
+    else
+      # shellcheck disable=SC2086
+      $vlc_cmd "$url" $opts
+    fi
     ;;
   esac
 
