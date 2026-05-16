@@ -2521,6 +2521,11 @@ __menu_playlist_explorer() {
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
+  # Strip a single leading zero until the string stops changing
+  while [ "${id#0}" != "$id" ]; do
+    id=${id#0}
+  done
+
   STATE_CURRENT_VIDEO="$(
     echo "$STATE_CURRENT_PLAYLIST_RESULTS" |
       jq --argjson id "$((id - 1))" '.entries[$id]'
@@ -2590,6 +2595,10 @@ __menu_playlists_explorer() {
   # though apparently its suppose to be made standard soon
   # and most environments support it, so it should be fine for now
   id=$(echo "$title" | sed -E 's/^([0-9]+) .*/\1/g')
+  # Strip a single leading zero until the string stops changing
+  while [ "${id#0}" != "$id" ]; do
+    id=${id#0}
+  done
 
   current_playlist="$(
     echo "$STATE_CURRENT_PLAYLISTS_RESULTS" |
