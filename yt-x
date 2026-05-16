@@ -414,6 +414,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_PLAYLIST_ACTIONS_UNSAVE="UnSave"
   TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST="Save Playlist"
   TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST="UnSave Playlist"
+  TXT_MENU_PLAYLIST_ACTIONS_VISIT_CHANNEL="Go To Channel"
   TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE="Subscribe To Channel"
   TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD="Download"
   TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL="Download All"
@@ -422,6 +423,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_PLAYLIST_ACTIONS_BROWSER="Open in Browser"
   TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_PLAYLIST_ACTIONS_SHELL="Shell"
+  TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND="Could not determine a channel URL for this video"
 
   TXT_ENTER_PLAYLIST_TITLE="Enter playlist title"
 
@@ -2426,8 +2428,39 @@ __menu_playlist_actions_open_in_browser() {
 }
 
 __menu_playlist_actions_visit_channel() {
-  # TODO: use youtube api to enable video subscriptions
-  ui_notify_error "contribute to the project by adding this feature"
+  local channel_url
+  local channel_id
+  local uploader_id
+
+  channel_url="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".channel_url // .uploader_url // empty")"
+
+  if [ -z "$channel_url" ]; then
+    channel_id="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".channel_id // empty")"
+    uploader_id="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".uploader_id // empty")"
+
+    if [ -n "$channel_id" ]; then
+      channel_url="https://youtube.com/channel/$channel_id"
+    elif [ -n "$uploader_id" ]; then
+      case "$uploader_id" in
+      @*) channel_url="https://youtube.com/$uploader_id" ;;
+      *) channel_url="https://youtube.com/channel/$uploader_id" ;;
+      esac
+    fi
+  fi
+
+  case "$channel_url" in
+  //*) channel_url="https:$channel_url" ;;
+  esac
+
+  [ -z "$channel_url" ] && ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND" && return
+
+  if _dep_ch open; then
+    open "$channel_url"
+  elif _dep_ch xdg-open; then
+    xdg-open "$channel_url"
+  else
+    ui_notify_error "Could not find xdg-open or open"
+  fi
 }
 
 __menu_playlist_actions_subscribe_to_channel() {
@@ -2457,6 +2490,7 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SA
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰧎${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_UNSAVE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰐒${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰐒${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰑈${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_VISIT_CHANNEL}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󱑤${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰦗${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL}
@@ -2487,6 +2521,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE") __menu_playlist_actions_unsave ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST") __menu_playlist_actions_save_playlist ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST") __menu_playlist_actions_unsave_playlist ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_VISIT_CHANNEL") __menu_playlist_actions_visit_channel ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE") __menu_playlist_actions_subscribe_to_channel ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_BROWSER") __menu_playlist_actions_open_in_browser ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM") __menu_playlist_actions_toggle_enumerate_downloads ;;
