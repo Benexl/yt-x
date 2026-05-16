@@ -2431,6 +2431,7 @@ __menu_playlist_actions_visit_channel() {
   local channel_url
   local channel_id
   local uploader_id
+  local channel_entry
 
   channel_url="$(echo "$STATE_CURRENT_VIDEO" | jq -r ".channel_url // .uploader_url // empty")"
   case "$channel_url" in
@@ -2456,13 +2457,20 @@ __menu_playlist_actions_visit_channel() {
     return
   fi
 
-  if _dep_ch open; then
-    open "$channel_url"
-  elif _dep_ch xdg-open; then
-    xdg-open "$channel_url"
-  else
-    ui_notify_error "Could not find xdg-open or open"
-  fi
+  channel_entry="$(
+    echo "$STATE_CURRENT_VIDEO" |
+      jq -c --arg url "$channel_url" '{
+      "id": (.channel_id // .uploader_id // ""),
+      "title": (.channel // .uploader // .channel_id // .uploader_id // $url),
+      "url": $url
+    }'
+  )"
+
+  STATE_CURRENT_CHANNEL_URL="$channel_url"
+  STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel_entry" | jq -r ".title")"
+  STATE_CURRENT_CHANNEL_RESULTS="$(jq -n --argjson channel "$channel_entry" '{"entries":[$channel]}')"
+  _state_push
+  menu_channel_actions
 }
 
 __menu_playlist_actions_subscribe_to_channel() {
