@@ -7,6 +7,7 @@
 # META
 # ==============================================================================
 CLI_NAME="${YT_X_NAME:-yt-x}"
+CLI_ARGS="$*"
 CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
 CLI_VERSION="0.5.0"
 CLI_AUTHOR="Benexl"
@@ -3405,7 +3406,8 @@ _app_update_script() {
 
   if printf "%s" "$update" >"$CLI_PATH"; then
     if ui_confirm "Script has been updated! Would you like to re-execute it?"; then
-      exec "$CLI_PATH"
+      # shellcheck disable=SC2086
+      exec "$CLI_PATH" $CLI_ARGS
     else
       exit 0
     fi
