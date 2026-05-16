@@ -6,13 +6,13 @@
 # ==============================================================================
 # META
 # ==============================================================================
-CLI_NAME="${YT_X_NAME:-yt-x}"
-CLI_ARGS="$*"
-CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
-CLI_VERSION="0.5.0"
-CLI_AUTHOR="Benexl"
-CLI_REPO_URL="https://github.com/Benexl/yt-x"
-CLI_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x"
+readonly CLI_NAME="${YT_X_NAME:-yt-x}"
+readonly CLI_ARGS="$*"
+readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
+readonly CLI_VERSION="0.5.0"
+readonly CLI_AUTHOR="Benexl"
+readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
+readonly CLI_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x"
 
 # ==============================================================================
 # SETUP
