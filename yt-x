@@ -58,6 +58,7 @@ fi
 case "$(uname -a)" in
 *ndroid*) readonly CLI_PLATFORM="android" ;;
 *Darwin*) readonly CLI_PLATFORM="mac" ;;
+*WSL* | *microsoft* | *Microsoft*) readonly CLI_PLATFORM="linux" ;;
 *MINGW* | *MSYS* | *CYGWIN*) readonly CLI_PLATFORM="windows" ;;
 *) readonly CLI_PLATFORM="linux" ;;
 esac
