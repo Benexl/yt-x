@@ -2478,6 +2478,12 @@ __menu_playlist_actions_visit_channel() {
     fi
   fi
 
+  if [ -z "$channel_url" ] || [ "$channel_url" = "null" ]; then
+    if [ -n "$STATE_CURRENT_PLAYLIST_RESULTS" ]; then
+      channel_url="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq -r ".channel_url // .uploader_url // empty")"
+    fi
+  fi
+
   if [ -z "$channel_url" ]; then
     ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND"
     return
