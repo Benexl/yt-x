@@ -121,7 +121,9 @@ __post_init_env() {
 }
 
 _init_env() {
-  CLI_START_TIME=$(date +%s)
+  # shellcheck disable=2155
+  readonly CLI_START_TIME="$(date +%s)"
+
   __init_env_platform
   __init_env_paths
   __post_init_env
