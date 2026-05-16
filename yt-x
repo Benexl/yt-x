@@ -23,7 +23,7 @@ _dep_ch() {
 
 __init_env_platform() {
   if ! _dep_ch local; then
-    eval 'local() { unset $1; }'
+    eval 'local() { unset -v $1; }'
   fi
 
   if _dep_ch realpath; then
