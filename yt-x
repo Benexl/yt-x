@@ -3066,46 +3066,50 @@ __menu_main_search() {
   local raw_search_term
   local use_history
   local header
+  local hist_list
+  local recent
+  local choice
+  local n
+  local recall
+  local sp
+  local query_only
+  local colon_prefix
+  local maybe_sp
+  local last_entry
+  local encoded_search_term
+  local url
+
   use_history=0
+  sp="EgIQAQ%253D%253D" # default: videos
 
   if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
-    raw_search_term=$(echo "$CMD_INPUT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    raw_search_term=$(printf "%s" "$CMD_INPUT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     unset -v CMD_MAIN_ACTION CMD_INPUT
   else
-    if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
-      [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
-      local recent
-      recent=$(awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
-        "$CLI_SEARCH_HISTORY_FILE" | head -5)
-      header="\
-${header}\
-Recent searches:
+    if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] && [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
+      # Get the last 10 entries efficiently and reverse them
+      hist_list=$(tail -n 10 "$CLI_SEARCH_HISTORY_FILE" | awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}')
+      recent=$(printf "%s\n" "$hist_list" | head -n 5)
+
+      header="Recent searches:
 ${recent}
 
 "
-      # Show last 10 history entries (newest first)
-      local hist_list
-      local choice
+      choice=$(printf "New search…\n%s" "$hist_list" | ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
 
-      hist_list=$(
-        awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
-          "$CLI_SEARCH_HISTORY_FILE" | head -10
-      )
-      choice=$(printf "New search…\n%s" "$hist_list" |
-        ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
-      case "$choice" in
-      "New search…" | "") # fall through to manual input
-        ;;
-      *)
+      if [ -z "$choice" ]; then
+        # User aborted the launcher (e.g., pressed ESC)
+        return
+      elif [ "$choice" != "New search…" ]; then
         raw_search_term="$choice"
         use_history=1
-        ;;
-      esac
+      fi
     fi
+
     header="${header}${TXT_SEARCH_FILTER_HELP}"
 
     if [ "$use_history" -eq 0 ]; then
-      # Manual input – provide a hint in the prompt header (optional)
+      # Manual input – provide a hint in the prompt header
       raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
       [ -z "$raw_search_term" ] && return
     fi
@@ -3114,14 +3118,15 @@ ${recent}
   # ---- process !n recall ----
   case "$raw_search_term" in
   !*) # possible history reference
-    local n
     n="${raw_search_term#!}"
     # check if n is a positive integer
     case "$n" in
     *[!0-9]* | '') ;;
     *)
-      if n=$((n)); then # strip leading zeros, ensure numeric
-        local recall
+      # Strip leading zeros safely to prevent octal interpretation errors
+      n=$(printf "%s\n" "$n" | sed 's/^0*//')
+      [ -z "$n" ] && n=0
+      if [ "$n" -gt 0 ] 2>/dev/null; then
         recall=$(_get_search_history_entry "$n" 2>/dev/null)
         [ -n "$recall" ] && raw_search_term="$recall"
       fi
@@ -3131,17 +3136,10 @@ ${recent}
   esac
 
   # ---- parse optional colon filter ----
-  local sp
-  local query_only
-
-  sp="EgIQAQ%253D%253D" # default: videos
   query_only="$raw_search_term"
 
   case "$raw_search_term" in
   :*[\ \	]*) # starts with colon, contains space/tab
-    local colon_prefix
-    local maybe_sp
-
     colon_prefix="${raw_search_term%% *}"
     colon_prefix="${colon_prefix#:}" # remove leading ':'
 
@@ -3150,26 +3148,29 @@ ${recent}
     # shellcheck disable=SC2181
     if [ $? -eq 0 ]; then
       sp="$maybe_sp"
+      # Extract query and trim leading spaces in case of multiple spaces
       query_only="${raw_search_term#* }"
-      query_only="${query_only# }"
+      query_only=$(printf "%s" "$query_only" | sed 's/^[[:space:]]*//')
     fi
     ;;
   esac
 
   # ---- save to history ----
   if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ]; then
-    # Avoid duplicate consecutive entries
-    local last_entry
-    last_entry=$(tail -n 1 "$CLI_SEARCH_HISTORY_FILE" 2>/dev/null)
-    if [ "$last_entry" != "$raw_search_term" ]; then
-      echo "$raw_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
+    if [ -f "$CLI_SEARCH_HISTORY_FILE" ]; then
+      # 1. Remove older occurrences of this exact search term to prevent duplicates
+      grep -v -x -F "$raw_search_term" "$CLI_SEARCH_HISTORY_FILE" >"${CLI_SEARCH_HISTORY_FILE}.tmp" 2>/dev/null || true
+
+      # 2. Cap the history size (e.g., keep only the last 99 entries)
+      tail -n 99 "${CLI_SEARCH_HISTORY_FILE}.tmp" >"$CLI_SEARCH_HISTORY_FILE" 2>/dev/null || true
+      rm "${CLI_SEARCH_HISTORY_FILE}.tmp"
     fi
+
+    # 3. Append the new term as the most recent entry
+    printf "%s\n" "$raw_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
   fi
 
   # ---- build URL and fetch ----
-  local encoded_search_term
-  local url
-
   encoded_search_term=$(printf '%s' "$query_only" | jq -Rr '@uri')
   url="results?search_query=$encoded_search_term&sp=$sp"
 
