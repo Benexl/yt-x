@@ -1593,6 +1593,7 @@ __fetch_yt_dlp() {
 }
 
 __sanitize_json_stream() {
+  # Strip non-whitespace ASCII control chars that can break jq JSON parsing.
   tr -d '\000-\010\013-\037'
 }
 
