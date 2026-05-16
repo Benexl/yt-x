@@ -60,7 +60,7 @@
 ### 🖥️ Interface & Navigation
 
 - **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless, blazing-fast navigation.
-- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, or native `icat` (Kitty/Ghostty).
+- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, `tycat` (Terminology), or native `icat` (Kitty/Ghostty).
 - **YouTube Ecosystem**: Access your Feed, Trending, Playlists, Watch Later, Subscriptions, Liked Videos, and Clips.
 - **Channel Exploration**: Deep dive into channels—browse their videos, streams, podcasts, shorts, and playlists.
 - **History & Recents**: Automatically tracks your watched media and allows instant recall of previous searches.
@@ -154,6 +154,7 @@ _(To uninstall, simply run `rm ~/.local/bin/yt-x`)_
   - [chafa](https://github.com/hpjansson/chafa) (Cross-terminal, highly recommended)
   - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty))
   - [imgcat](https://github.com/danielgatis/imgcat)
+  - `tycat` (Built into [Terminology](https://www.enlightenment.org/about-terminology.md))
 - **Fonts**: A [Nerd Font](https://www.nerdfonts.com/) is required to render UI icons correctly.
 
 ### Basic Commands
@@ -278,7 +279,7 @@ _Example: `:short :4k nature timeline`_
 > - **User Interface & Navigation:** [`fzf`](https://github.com/junegunn/fzf) (terminal) or [`rofi`](https://github.com/davatorium/rofi) (desktop)
 > - **Media Playback:** [`mpv`](https://mpv.io/) or [`vlc`](https://www.videolan.org/)
 > - **Data Parsing:** [`jq`](https://jqlang.github.io/jq/)
-> - **Image Rendering:** [`chafa`](https://github.com/hpjansson/chafa), `icat`, or `imgcat`
+> - **Image Rendering:** [`chafa`](https://github.com/hpjansson/chafa), `icat`, `imgcat`, or `tycat`
 >
 > **If you experience issues with downloading, format extraction, buffering, unsupported browsers, or UI rendering, the issue—and the solution—often lies with the upstream tool.** Always check the documentation for `yt-dlp`, `mpv`, or `fzf` for advanced configurations or tool-specific bugs.
 
@@ -317,6 +318,7 @@ sub-auto=fuzzy
 
 - **Overlapping text:** Usually means your terminal's font size/cell dimensions are confusing the renderer. Try adjusting your terminal window size or font.
 - **Kitty / Ghostty:** Set `CONFIG_IMAGE_RENDERER="icat"`.
+- **Terminology:** Set `CONFIG_IMAGE_RENDERER="tycat"`.
 - **Other Terminals:** Set `CONFIG_IMAGE_RENDERER="chafa"`. If you have a Sixel-compatible terminal (like Foot or WezTerm), you can force Sixel by setting `CONFIG_CHAFA_ARGS="-f sixel"` in your config.
 - **macOS Users:** Ensure you have installed the required dependencies (like `chafa` and `jq`) via Homebrew.
 

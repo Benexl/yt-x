@@ -527,7 +527,7 @@ CONFIG_ENABLE_PREVIEW="$CONFIG_ENABLE_PREVIEW"
 CONFIG_ENABLE_PREVIEW_IMAGES="$CONFIG_ENABLE_PREVIEW_IMAGES"
 
 # The tool used to render previews in the terminal
-# Options: chafa, icat, imgcat (Default: chafa)
+# Options: chafa, icat, imgcat, tycat (Default: chafa)
 CONFIG_IMAGE_RENDERER="$CONFIG_IMAGE_RENDERER"
 
 # Extra arguments for specific image renderers
@@ -1096,6 +1096,9 @@ fzf_preview() {
     else
       chafa -s "$dim" "$file"
     fi
+  elif [ "$CONFIG_IMAGE_RENDERER" = "tycat" ] && command -v tycat >/dev/null 2>&1; then
+    tycat "$file"
+
   elif command -v chafa >/dev/null 2>&1; then
     case "$CLI_PLATFORM" in
     android) chafa -s "$dim" "$file" ;;
@@ -1109,7 +1112,7 @@ fzf_preview() {
 
   else
     echo please install a terminal image viewer
-    echo either icat for kitty terminal and wezterm or imgcat or chafa
+    echo either icat for kitty terminal and wezterm or imgcat or chafa or tycat for terminology
   fi
 }
 EOF
