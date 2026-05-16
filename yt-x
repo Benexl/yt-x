@@ -3728,24 +3728,39 @@ _app_cmd_line_parser() {
       _app_update_check || echo "No updates found" && exit 1
       ;;
     -s | --search)
-      [ -n "$2" ] || _app_usage 1
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
-      CMD_INPUT="$2"
-      shift_count=2
+
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "Enter search term")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
       ;;
     -sp | --search-playlist)
-      [ -n "$2" ] || _app_usage 1
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_PLAYLISTS"
-      CMD_INPUT="$2"
-      shift_count=2
+
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "Enter playlist search term")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
       ;;
     -sc | --search-channel)
-      [ -n "$2" ] || _app_usage 1
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_CHANNELS"
-      CMD_INPUT="$2"
-      shift_count=2
+
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "Enter channel search term")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
       ;;
     -l | --launcher)
       [ -n "$2" ] || _app_usage 1
