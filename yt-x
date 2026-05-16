@@ -2457,19 +2457,28 @@ __menu_playlist_actions_visit_channel() {
     return
   fi
 
-  channel_entry="$(
+  if ! channel_entry="$(
     echo "$STATE_CURRENT_VIDEO" |
       jq -c --arg url "$channel_url" '{
       "id": (.channel_id // .uploader_id // ""),
       "title": (.channel // .uploader // $url),
       "url": $url
     }'
-  )"
-  [ -z "$channel_entry" ] && ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND" && return
+  )"; then
+    ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND"
+    return
+  fi
+  if ! echo "$channel_entry" | jq -e ". != null" >/dev/null 2>&1; then
+    ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND"
+    return
+  fi
 
   STATE_CURRENT_CHANNEL_URL="$channel_url"
   STATE_CURRENT_CHANNEL_TITLE="$(echo "$channel_entry" | jq -r ".title")"
-  STATE_CURRENT_CHANNEL_RESULTS="$(jq -n --argjson channel "$channel_entry" '{"entries":[$channel]}')"
+  if ! STATE_CURRENT_CHANNEL_RESULTS="$(jq -n --argjson channel "$channel_entry" '{"entries":[$channel]}')"; then
+    ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_CHANNEL_NOT_FOUND"
+    return
+  fi
   _state_push
   menu_channel_actions
 }
