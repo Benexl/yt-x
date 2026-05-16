@@ -22,6 +22,10 @@ _dep_ch() {
 }
 
 __init_env_platform() {
+  if ! _dep_ch local; then
+    eval 'local() { unset $1; }'
+  fi
+
   if _dep_ch realpath; then
     # shellcheck disable=SC2155
     readonly CLI_DIR="$(dirname "$(realpath "$0")")"
@@ -650,7 +654,8 @@ _util_generate_hash() {
 }
 
 _util_file_edit() {
-  local file_path="$1"
+  local file_path
+  file_path="$1"
 
   if _dep_ch "$CONFIG_EDITOR"; then
     "$CONFIG_EDITOR" "$file_path"
@@ -1328,7 +1333,8 @@ _preview_fzf_download_imgs() {
   local output_path
 
   data_to_preview="$1"
-  local i=0
+  local i
+  i=0
 
   printf "%s\n" "$data_to_preview" | jq -r '.entries[].thumbnails[-1].url' | while IFS= read -r url; do
     # handle relative protocol URLs
@@ -1376,19 +1382,26 @@ preview_fzf() {
 }
 
 _preview_rofi() {
-  local data_to_preview="$1"
+  local data_to_preview
+  data_to_preview="$1"
 
   if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
-    local log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+    local log_base_path
+    log_base_path="$CLI_CURRENT_STATE_DIR/$STATE_CURRENT"
+
     [ ! -d "$log_base_path" ] && log_base_path="$CLI_CURRENT_STATE_DIR"
 
-    local num_entries=0
+    local num_entries
+    num_entries=0
+
     if [ -n "$data_to_preview" ] && [ "$data_to_preview" != "null" ]; then
       # Count the number of media items so we know exactly how many lines to ignore from stdin
       num_entries=$(printf "%s\n" "$data_to_preview" | jq -r 'if .entries then (.entries | length) else 0 end' 2>/dev/null || echo 0)
 
       {
-        local i=0
+        local i
+        i=0
+
         # Output URL first to protect against tabs inside video titles!
         printf "%s\n" "$data_to_preview" | jq -r '.entries[]? | "\(.thumbnails[-1]?.url // "")\t\(.title)"' | while IFS="$(printf '\t')" read -r url title; do
 
@@ -1397,7 +1410,9 @@ _preview_rofi() {
             //*) url="https:$url" ;;
             esac
 
-            local url_hash img_path
+            local url_hash
+            local img_path
+
             url_hash="$(printf "%s\n" "$url" | _util_generate_hash)"
             img_path="$CLI_PREVIEW_IMGS_DIR/${url_hash}.jpg"
 
@@ -2233,7 +2248,12 @@ _remove_saved_playlist() {
 }
 
 _get_search_history_entry() {
-  local n="$1" total line
+  local n
+  local total
+  local line
+
+  n="$1"
+
   total=$(wc -l <"$CLI_SEARCH_HISTORY_FILE")
   n=$((total - n + 1))
   [ "$n" -lt 1 ] && return 1
@@ -2515,6 +2535,7 @@ _menu_playlist_explorer() {
   local titles
   local choice
   local base_state
+
   base_state="$STATE_CURRENT"
 
   other_choices="\
@@ -2583,6 +2604,7 @@ _menu_playlists_explorer() {
   local titles
   local choice
   local base_state
+
   base_state="$STATE_CURRENT"
 
   other_choices="\
@@ -2757,6 +2779,7 @@ _menu_channels_explorer() {
   local titles
   local choice
   local base_state
+
   base_state="$STATE_CURRENT"
 
   other_choices="\
@@ -3031,8 +3054,8 @@ __menu_main_subscriptions_feed() {
 __menu_main_search() {
   local raw_search_term
   local use_history
-  use_history=0
   local header
+  use_history=0
 
   if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
     raw_search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
@@ -3133,7 +3156,9 @@ ${recent}
   fi
 
   # ---- build URL and fetch ----
-  local encoded_search_term url
+  local encoded_search_term
+  local url
+
   encoded_search_term=$(printf '%s' "$query_only" | jq -Rr '@uri')
   url="results?search_query=$encoded_search_term&sp=$sp"
 
