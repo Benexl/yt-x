@@ -2795,8 +2795,13 @@ __menu_miscellaneous_explore_channels() {
   local search_term
   local url
 
-  search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT" | jq -Rr '@uri')
-  [ -z "$search_term" ] && return
+  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_CHANNELS" ] && [ -n "$CMD_INPUT" ]; then
+    search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+  else
+    search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT" | jq -Rr '@uri')
+    [ -z "$search_term" ] && return
+  fi
 
   url="results?search_query=$search_term&sp=EgIQAg%253D%253D"
 
@@ -2808,8 +2813,13 @@ __menu_miscellaneous_explore_playlists() {
   local search_term
   local url
 
-  search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT" | jq -Rr '@uri')
-  [ -z "$search_term" ] && return
+  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_PLAYLISTS" ] && [ -n "$CMD_INPUT" ]; then
+    search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+  else
+    search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT" | jq -Rr '@uri')
+    [ -z "$search_term" ] && return
+  fi
 
   url="results?search_query=$search_term&sp=EgIQAw%253D%253D"
 
@@ -2970,7 +2980,11 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰆴${THEME_RESET}  ${TXT_MENU_MISC_CLEAR_SEARCH_HI
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   while true; do
-    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
+    if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_MISC" ] && [ -n "$CMD_MISC_ACTION" ]; then
+      action="$CMD_MISC_ACTION"
+    else
+      action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
+    fi
 
     case "$action" in
     "$TXT_MENU_MISC_EXPLORE_CHANNELS") __menu_miscellaneous_explore_channels ;;
@@ -3022,40 +3036,47 @@ __menu_main_search() {
   use_history=0
   local header
 
-  if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
-    [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
-    local recent
-    recent=$(awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
-      "$CLI_SEARCH_HISTORY_FILE" | head -5)
-    header="${header}Recent searches:
+  if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
+    raw_search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    unset -v CMD_MAIN_ACTION CMD_INPUT
+  else
+    if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
+      [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
+      local recent
+      recent=$(awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
+        "$CLI_SEARCH_HISTORY_FILE" | head -5)
+      header="\
+${header}\
+Recent searches:
 ${recent}
 
 "
-    # Show last 10 history entries (newest first)
-    local hist_list
-    local choice
+      # Show last 10 history entries (newest first)
+      local hist_list
+      local choice
 
-    hist_list=$(
-      awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
-        "$CLI_SEARCH_HISTORY_FILE" | head -10
-    )
-    choice=$(printf "New search…\n%s" "$hist_list" |
-      ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
-    case "$choice" in
-    "New search…" | "") # fall through to manual input
-      ;;
-    *)
-      raw_search_term="$choice"
-      use_history=1
-      ;;
-    esac
-  fi
-  header="${header}${TXT_SEARCH_FILTER_HELP}"
+      hist_list=$(
+        awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' \
+          "$CLI_SEARCH_HISTORY_FILE" | head -10
+      )
+      choice=$(printf "New search…\n%s" "$hist_list" |
+        ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
+      case "$choice" in
+      "New search…" | "") # fall through to manual input
+        ;;
+      *)
+        raw_search_term="$choice"
+        use_history=1
+        ;;
+      esac
+    fi
+    header="${header}${TXT_SEARCH_FILTER_HELP}"
 
-  if [ "$use_history" -eq 0 ]; then
-    # Manual input – provide a hint in the prompt header (optional)
-    raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    [ -z "$raw_search_term" ] && return
+    if [ "$use_history" -eq 0 ]; then
+      # Manual input – provide a hint in the prompt header (optional)
+      raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      [ -z "$raw_search_term" ] && return
+    fi
   fi
 
   # ---- process !n recall ----
@@ -3368,7 +3389,11 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
-    action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
+    if [ -n "$CMD_MAIN_ACTION" ]; then
+      action="$CMD_MAIN_ACTION"
+    else
+      action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
+    fi
     case "$action" in
     "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
     "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
@@ -3548,7 +3573,9 @@ Options:
   -v, --version                  Print version information and exit
   -e, --edit-config              Open the config file in your editor
   -U, --update                   Check for and apply an update for $CLI_NAME
-  -S, --search <terms>           Search for videos directly
+  -s, --search <term>            Search for videos directly
+  -sp, --search-playlist <term>  Search for playlists directly
+  -sc, --search-channel <term>   Search for channels directly
   -l, --launcher <launcher>      Menu launcher: fzf or rofi
   -p, --player <player>          Media player: mpv, vlc or tplay
   -i, --preview                  Enable the preview window (images/text)
@@ -3560,7 +3587,7 @@ Options:
   --rofi-theme-prompt <path>     Path to the rofi prompt theme file
   --rofi-theme-confirm <path>    Path to the rofi confirm theme file
   --rofi-theme-pager <path>      Path to the rofi pager theme file
-  -x, --extension <ext>         Load an extension file (absolute path or relative to $HOME/.config/$CLI_NAME/extensions)
+  -x, --extension <ext>          Load an extension file (absolute path or relative to $HOME/.config/$CLI_NAME/extensions)
   -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
 
 Sub‑commands:
@@ -3572,7 +3599,9 @@ Sub‑commands:
 
 Examples:
   $CLI_NAME                                 Start the interactive browser
-  $CLI_NAME -S \"cute cats\"                 Search for \"cute cats\" immediately
+  $CLI_NAME -s 'onepiece elbaf trailer'     Search for 'onepiece elbaf trailer' immediately
+  $CLI_NAME -sp 'rust tutorial'             Search for 'rust tutorial' immediately
+  $CLI_NAME -sc 'learn coding'              Search for 'learn coding' immediately
   $CLI_NAME --launcher rofi --preview       Use rofi with previews
   $CLI_NAME -x themes/catppuccin.theme      Load the catppuccin theme extension
   $CLI_NAME -x langs/es.lang                Load the catppuccin theme extension
@@ -3622,7 +3651,9 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s h -l help -d "Show help and 
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show version and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s S -l search -d "Search for videos" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s l -l launcher -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s p -l player -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
@@ -3669,10 +3700,24 @@ _app_cmd_line_parser() {
     -U | --update)
       _app_update_check || echo "No updates found" && exit 1
       ;;
-    -S | --search)
+    -s | --search)
       [ -n "$2" ] || _app_usage 1
-      CMD_ACTION="Search"
-      CMD_SEARCH_TERMS="$2"
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
+      CMD_INPUT="$2"
+      shift_count=2
+      ;;
+    -sp | --search-playlist)
+      [ -n "$2" ] || _app_usage 1
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_PLAYLISTS"
+      CMD_INPUT="$2"
+      shift_count=2
+      ;;
+    -sc | --search-channel)
+      [ -n "$2" ] || _app_usage 1
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_CHANNELS"
+      CMD_INPUT="$2"
       shift_count=2
       ;;
     -l | --launcher)
