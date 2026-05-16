@@ -1637,6 +1637,29 @@ __fetch_audio_url() {
   ui_load yt-dlp "$url" --quiet --no-warnings --get-url | tail -n 1
 }
 
+__fetch_video_info() {
+  local url
+  url="$1"
+
+  yt-dlp --dump-json "$url"
+}
+
+__fetch_video_info_by_field() {
+  local url
+  local field
+  url="$1"
+  field="$2"
+
+  yt-dlp --print "$field" "$url"
+}
+
+__fetch_video_oembed() {
+  local url
+  url="$1"
+
+  curl -s "https://www.youtube.com/oembed?url=$url&format=json"
+}
+
 _fetch_media() {
   local url
   local playlist_start
@@ -2482,6 +2505,14 @@ __menu_playlist_actions_visit_channel() {
     if [ -n "$STATE_CURRENT_PLAYLIST_RESULTS" ]; then
       channel_url="$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq -r ".channel_url // .uploader_url // empty")"
     fi
+  fi
+
+  if [ -z "$channel_url" ] || [ "$channel_url" = "null" ]; then
+    channel_url="$(__fetch_video_oembed "$STATE_CURRENT_VIDEO_URL" | jq -r ".author_url // empty")"
+  fi
+
+  if [ -z "$channel_url" ] || [ "$channel_url" = "null" ]; then
+    channel_url="$(__fetch_video_info_by_field "$STATE_CURRENT_VIDEO_URL" "channel_url")"
   fi
 
   if [ -z "$channel_url" ]; then
