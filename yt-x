@@ -3069,7 +3069,7 @@ __menu_main_search() {
   use_history=0
 
   if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
-    raw_search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    raw_search_term=$(echo "$CMD_INPUT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     unset -v CMD_MAIN_ACTION CMD_INPUT
   else
     if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] &&
