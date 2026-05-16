@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/env bash
 # shellcheck disable=SC3043,SC2034,SC1090
 # yt-x - Browse media from the terminal
 # MIT License - Copyright (c) 2024-2026 Benexl
@@ -74,7 +74,7 @@ else
   readonly CLI_SUPPORTS_TRUE_COLOR=false
 fi
 
-export SHELL="sh"
+export SHELL="bash"
 
 # ==============================================================================
 # SETUP PATHS
