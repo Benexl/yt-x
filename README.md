@@ -50,10 +50,9 @@
 - [Usage](#%EF%B8%8F-usage)
 - [Configuration & Tips](#%EF%B8%8F-configuration--tips)
 - [Extended Search Filters](#-extended-search-filters)
+- [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
 - [Support & Contribution](#-support--contribution)
-
----
-
+  
 ## 🚀 Features
 
 ### 🖥️ Interface & Navigation
@@ -258,6 +257,70 @@ While searching inside `yt-x`, you can prefix your query with `:filter` to narro
 | **History Recall** | `!1` (Most recent search), `!3` (3rd most recent search) |
 
 ---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+> ⚠️ **IMPORTANT NOTE: `yt-x` is a shell wrapper!**  
+> `yt-x` is not a standalone application. It is a highly integrated **shell wrapper** built on top of powerful command-line tools:
+> - **Data Fetching & Extraction:** [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
+> - **User Interface & Navigation:** [`fzf`](https://github.com/junegunn/fzf) (terminal) or [`rofi`](https://github.com/davatorium/rofi) (desktop)
+> - **Media Playback:** [`mpv`](https://mpv.io/) or [`vlc`](https://www.videolan.org/)
+> - **Data Parsing:** [`jq`](https://jqlang.github.io/jq/)
+> - **Image Rendering:** [`chafa`](https://github.com/hpjansson/chafa), `icat`, or `imgcat`
+> 
+> **If you experience issues with downloading, format extraction, buffering, unsupported browsers, or UI rendering, the issue—and the solution—often lies with the upstream tool.** Always check the documentation for `yt-dlp`, `mpv`, or `fzf` for advanced configurations or tool-specific bugs.
+
+---
+
+### 🌐 Fetching & Playback Issues (`yt-dlp` / `mpv`)
+
+**Q: I'm getting HTTP 403 errors, "No video format found", or YouTube asks to confirm I'm not a bot.**  
+**A:** This is a known YouTube anti-bot measure affecting `yt-dlp`. 
+1. Pass your browser cookies by setting `CONFIG_BROWSER="your_browser"` in `~/.config/yt-x/config`.
+2. Generate and provide a **PO Token**. Please read the official [`yt-dlp` PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide) for instructions.
+
+**Q: I get "WARNING: cannot decrypt v11 cookies: no key found" when syncing subscriptions.**  
+**A:** `yt-dlp` cannot access the secure keystore (like GNOME Keyring) used by Chromium-based browsers (Brave, Chrome, Edge). You can fix this by explicitly defining your browser and keyring in `~/.config/yt-x/config`.
+Example: `CONFIG_BROWSER="brave+gnomekeyring:Default"`
+
+**Q: My browser (Zen, Vivaldi, Flatpak Brave) isn't working with `CONFIG_BROWSER`.**  
+**A:** `yt-dlp` must officially support your browser to extract cookies automatically. Furthermore, Flatpak browsers often block access to their cookie databases.
+*Workaround:* Export your YouTube cookies to a text file (using a browser extension like Get cookies.txt LOCALLY) and add this to your config:  
+`CONFIG_YT_DLP_ARGS="--cookies /path/to/cookies.txt"`
+
+**Q: How do I change video quality/resolution or enable subtitles?**  
+**A:** `yt-x` delegates playback to your media player. To set a default quality or enable subtitles, edit your player's config file. For `mpv`, open `~/.config/mpv/mpv.conf` (can be done via the `yt-x` Misc menu) and add:
+```ini
+# Force 1080p maximum
+ytdl-format="bestvideo[height<=1080]+bestaudio/best"
+# Auto-load English subtitles
+slang=en,eng
+sub-auto=fuzzy
+```
+
+### 🖼️ UI, Previews, & Visuals (`fzf` / `chafa`)
+
+**Q: Thumbnails aren't showing, look bad, or overlap text in my terminal.**  
+**A:** Image previews depend heavily on your terminal emulator and renderer.
+- **Overlapping text:** Usually means your terminal's font size/cell dimensions are confusing the renderer. Try adjusting your terminal window size or font.
+- **Kitty / Ghostty:** Set `CONFIG_IMAGE_RENDERER="icat"`.
+- **Other Terminals:** Set `CONFIG_IMAGE_RENDERER="chafa"`. If you have a Sixel-compatible terminal (like Foot or WezTerm), you can force Sixel by setting `CONFIG_CHAFA_ARGS="-f sixel"` in your config.
+- **macOS Users:** Ensure you have installed the required dependencies (like `chafa` and `jq`) via Homebrew.
+
+**Q: How do I change the colors/theme of `yt-x`?**  
+**A:** The entire UI coloring is handled by `fzf`. You can change the colors by editing the `CONFIG_FZF_OPTS` variable in `~/.config/yt-x/config` to match your preferred theme (e.g., Pywal, Catppuccin).
+
+### ⌨️ Navigation & Controls
+
+**Q: Can I use Vim keybindings (j/k) to navigate the menus?**  
+**A:** Yes! Because the menu is just `fzf`, you can add custom keybinds by appending them to `CONFIG_FZF_OPTS` in your config:
+```bash
+CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --bind=ctrl-j:down,ctrl-k:up,j:down,k:up"
+```
+
+**Q: I keep getting "Invalid Action" or "Malformed State" errors.**  
+**A:** This occasionally happens if the state tracking gets corrupted or if a menu choice is interrupted abruptly. Press `Esc` or select `Back` to pop the state. If it persists, you can clear the runtime cache manually: `rm -rf ~/.cache/yt-x/state/`.
+
 
 ## 🤝 Support & Contribution
 
