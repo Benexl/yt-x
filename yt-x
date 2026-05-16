@@ -58,7 +58,7 @@ fi
 case "$(uname -a)" in
 *ndroid*) readonly CLI_PLATFORM="android" ;;
 *Darwin*) readonly CLI_PLATFORM="mac" ;;
-*MINGW* | *WSL2*) readonly CLI_PLATFORM="windows" ;;
+*MINGW* | *MSYS* | *CYGWIN*) readonly CLI_PLATFORM="windows" ;;
 *) readonly CLI_PLATFORM="linux" ;;
 esac
 
@@ -665,12 +665,34 @@ _util_file_edit() {
     "$CONFIG_EDITOR" "$file_path"
   elif _dep_ch "$EDITOR"; then
     $EDITOR "$file_path"
-  elif _dep_ch open; then
-    open "$file_path"
-  elif _dep_ch xdg-open; then
-    xdg-open "$file_path"
-  else
+  elif ! _util_open "$file_path"; then
     ui_notify_warning "Failed to edit $file_path: $TXT_EDITOR_NOT_FOUND"
+  fi
+}
+
+_util_open() {
+  local target
+  local converted_target
+  target="$1"
+
+  if _dep_ch open; then
+    open "$target"
+  elif _dep_ch xdg-open; then
+    xdg-open "$target"
+  elif _dep_ch wslview; then
+    wslview "$target"
+  elif _dep_ch cmd.exe; then
+    converted_target="$target"
+
+    if _dep_ch cygpath; then
+      converted_target="$(cygpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+    elif _dep_ch wslpath; then
+      converted_target="$(wslpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+    fi
+
+    cmd.exe /C start "" "$converted_target" >/dev/null 2>&1
+  else
+    return 1
   fi
 }
 
@@ -2416,13 +2438,7 @@ EOF
 }
 
 __menu_playlist_actions_open_in_browser() {
-  if _dep_ch open; then
-    open "$STATE_CURRENT_VIDEO_URL"
-  elif _dep_ch xdg-open; then
-    xdg-open "$STATE_CURRENT_VIDEO_URL"
-  else
-    ui_notify_error "Could not find xdg-open or open"
-  fi
+  _util_open "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "Could not find a supported URL opener (open, xdg-open, wslview, or cmd.exe)"
 }
 
 __menu_playlist_actions_visit_channel() {

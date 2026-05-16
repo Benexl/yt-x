@@ -135,6 +135,13 @@ curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" 
 
 _(To uninstall, simply run `rm ~/.local/bin/yt-x`)_
 
+### 🪟 Windows (Git Bash/Cygwin) & WSL Notes
+
+- `yt-x` runs in **Git Bash**, **Cygwin**, and **WSL**.
+- Use `fzf` as the launcher on Windows terminals (`rofi` is Linux desktop-oriented).
+- Make sure Windows/WSL-accessible binaries are in `PATH` (`yt-dlp`, `jq`, `fzf`, and a player like `mpv.exe` or `vlc.exe`).
+- Browser/config opening supports `xdg-open`, `wslview`, or `cmd.exe`.
+
 ## 📦 Dependencies
 
 ### Required
