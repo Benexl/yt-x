@@ -42,30 +42,24 @@ https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61
 
 </details>
 
-## Features
+## 🚀 Features
 
 - **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless navigation.
-- **YouTube-Specific Menus**: Access your feed, trending videos, playlists, watch later, subscriptions feed, liked videos, clips.
-- **Playback Support**: Play videos and audio via `mpv`, `vlc`, or `tplay`.
-- **Search and filter Functionality**: Search for videos, channels and playlists directly.
+- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, or Kitty/Ghostty's native `icat`.
+- **YouTube-Specific Menus**: Access your feed, trending videos, playlists, watch later, subscriptions, liked videos, and clips.
+- **Playback Support**: Play videos and audio natively via `mpv`, `vlc`, or `tplay`. Fully supports detaching (`disowning`) players from the terminal.
+- **Search & Filter Functionality**: Search for videos, channels, and playlists directly, including advanced filters (`:today`, `:long`, `:4k`) and history recall (`!1`).
 - **Channel Exploration**: Explore channels, including their videos, streams, podcasts, shorts, and playlists.
-- **Saved Channels**: Bookmark your favorite channels for quick access, with support for importing existing subscriptions.
-- **Saved Videos**: Save videos to watch later.
-- **Mixes**: Generate and explore YouTube song mixes.
-- **Yt-x Shell:** Run custom yt-dlp and mpv commands for downloading and viewing videos and playlists
-- **Custom Playlists**: Save playlists for easier access.
-- **Download Management**: Download videos, audio, and playlists using `yt-dlp`.
-- **History & Recents**: Track your recent videos and search history.
-- **Configuration Management**: Customize and manage configurations for yt-x, mpv and yt-dlp with ease.
-- **Extensions:** Extend yt-x with your own custom ui and preview logic allowing more precise coverage of other sites that yt-dlp supports
-- **Custom Commands:** Basically a simple way to achieve the same thing with extensions. A custom command is just a yt-dlp command that loads a playlist or playlist like json.
-- **Multi language support:** through lang extensions
-- **Muli site support:** though site extensions
-- **themable:** rice yt-x to your hearts content and make it yours through theme extensions and the config with nice defualts (tokyo night)
-- **intuitive code architecture:** an easy to understand to codebase with intuitive state management. yes even if its over 3.5k line lol
-- **Miscellaneous Features**:
-  - Shell completions for `bash`, `zsh`, and `fish`.
-  - Desktop entry generation for easy access.
+- **Saved Channels**: Bookmark favorite channels and import your existing YouTube subscriptions.
+- **Mixes**: Generate and explore YouTube song mixes automatically.
+- **Yt-x Shell Mode:** Drop directly into a shell from any menu with all video/playlist metadata exported as environment variables for custom scripting.
+- **Download Management**: Download individual videos, audio, or entire playlists automatically tracked via yt-dlp archives.
+- **History & Recents**: Track your watched media and recall previous searches instantly.
+- **Extensions Architecture**: Easily extend `yt-x` with your own UI logic, themes, languages, and site definitions via `~/.config/yt-x/extensions/`.
+- **Custom Commands Menu**: Create your own tailored `yt-dlp` commands (e.g., custom site scrapers) directly from the UI to load them into the browser.
+- **Cross-Platform**: Supports Linux, macOS, WSL/Windows, and **Android** (via Termux, directly sending intents to Android apps like `vlc` or `mpv`).
+
+---
 
 ## 📥 Installation
 
@@ -139,8 +133,9 @@ To uninstall simply remove the file:
 rm ~/.local/bin/yt-x
 ```
 
+---
 
-## Dependencies
+## 📦 Dependencies
 
 ### Required
 
@@ -148,203 +143,146 @@ rm ~/.local/bin/yt-x
 - [curl](https://curl.se/) - Download preview images.
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Fetch YouTube data.
 - [fzf](https://github.com/junegunn/fzf) - Main UI navigation.
-- [mpv](https://mpv.io/) - Video and audio playback.
-- [ffmpeg](https://www.ffmpeg.org/) - Proper HLS stream downloading.
-- [sh](https://www.gnu.org/software/bash/) - Script interpreter (any posix compliant shell).
-- [nerdfont](https://www.nerdfonts.com/) - for the icons
+- [sh](https://www.gnu.org/software/bash/) - Script interpreter (any POSIX compliant shell).
 
 ### Optional
 
-- [gum](https://github.com/charmbracelet/gum) - Enhanced UI (highly recommended).
-- [rofi](https://github.com/davatorium/rofi) - Alternate UI.
-- [tplay](https://github.com/maxcurzi/tplay) - Terminal-based ASCII video player (optional, for individual video playback).
-- **terminal image viewer:**
-  - [chafa](https://github.com/hpjansson/chafa) - Cross-terminal image rendering (recommended).
-  - [icat](https://sw.kovidgoyal.net/kitty/kittens/icat/) - recommended for kitty terminal and ghostty
-  - [imgcat](https://github.com/danielgatis/imgcat)
-- **terminal with image rendering support:**
-  - [kitty](https://sw.kovidgoyal.net/kitty/) - currently has the best image rendering capabilities (recommended)
-  - [wezterm](https://wezfurlong.org/wezterm/index.html)
-  - [ghostty](https://github.com/ghostty-org/ghostty)
-   
+- [mpv](https://mpv.io/) / [vlc](https://www.videolan.org/) / [tplay](https://github.com/maxcurzi/tplay) - Media playback.
+- [rofi](https://github.com/davatorium/rofi) - Alternate GUI launcher.
+- [gum](https://github.com/charmbracelet/gum) - Enhanced UI components (prompts, loaders).
+- **Terminal Image Viewers (For Previews):**
+  - [chafa](https://github.com/hpjansson/chafa) - Cross-terminal image rendering (highly recommended).
+  - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty)).
+  - [imgcat](https://github.com/danielgatis/imgcat).
+- [nerdfonts](https://www.nerdfonts.com/) - Required for UI icons.
+
 ---
 
-## Usage
+## 🛠️ Usage
 
 ```bash
-# Launch the UI
+# Launch the UI interactively
 yt-x
 
-# Edit configuration
-yt-x -e
+# Quick jump / Direct Search bypassing the main menu
+yt-x -s 'onepiece elbaf trailer'
+yt-x -sp 'rust tutorials'           # Search for playlists directly
+yt-x -sc 'fireship'                 # Search for channels directly
 
-# load an extension
-# extensions are located at ~/.config/yt-x/extensions
-# the extension name is the name of a file in the extensions folder
-yt-x -x <extension-name>
+# Interface & Theming
+yt-x -l rofi                        # Use rofi instead of fzf
+yt-x -p vlc                         # Change the player temporarily
+yt-x -i                             # Enable the preview window
+yt-x -I                             # Disable the preview window
+yt-x --disown-player                # Detach the player process from the terminal
 
-# Specify player at runtime
-yt-x --player <mpv/vlc/tplay>
+# Load an Extension (Themes, Sites, Langs, Cmds)
+yt-x -x themes/catppuccin.theme
 
-# Set selector at runtime
-yt-x -s <fzf/rofi>
+# Generate Desktop Entry
+yt-x -E > ~/.local/share/applications/yt-x.desktop
 
-# Specify Rofi theme path
-yt-x --rofi-theme <path>
-
-# Enable/disable preview
-yt-x --preview / yt-x --no-preview
-
-# Print desktop entry
-yt-x -E
-
-# Print shell completions
+# Shell Completions
+yt-x completions --fish
 yt-x completions --bash
 yt-x completions --zsh
-yt-x completions --fish
 
-# Update the script
-yt-x --update
-
-# Display help
-yt-x --help
+# Maintenance
+yt-x -e                             # Edit your configuration file
+yt-x -U                             # Check and apply updates
+yt-x -h                             # Display all available options
 ```
 
 ---
 
-## Tips
+## ⚙️ Configuration & Tips
+
+`yt-x` generates a config file sourced as a shell script at `~/.config/yt-x/config`. You can open it via the main menu's `Edit Config` option or by running `yt-x -e`.
+
+You can optionally override config settings globally by exporting environment variables starting with `YT_X_` (e.g., `YT_X_BROWSER="firefox"`).
 
 ### Enabling Imports of Subscriptions & Private Playlists
 
-Set your preferred browser in the configuration file:
+To fetch your private feed, you must pass your browser's cookies to yt-dlp. Set your preferred browser in the `~/.config/yt-x/config` file:
 
-```ini
-PREFERRED_BROWSER: firefox
+```bash
+CONFIG_BROWSER="firefox"
 ```
 
-To enable `mpv` to access private playlists and videos, add something like this to `mpv.conf` (you can also use the ui to edit `mpv.conf`):
+To enable `mpv` to access those same private playlists and videos, edit your `~/.config/mpv/mpv.conf` (can be done from the Miscellaneous Menu in `yt-x`):
 
 ```ini
 ytdl-raw-options=cookies-from-browser=firefox
 
 # --- bonus mpv tips ---
-
 # define the quality for mpv to use
 ytdl-format="bestvideo[vcodec^=avc1][height=1080]+bestaudio/best[vcodec^=avc1][height=1080]/bestvideo[vcodec^=avc1][height=720]+bestaudio/best[vcodec^=avc1][height=720]/best"
-
-# defines where screenshots will be saved
 screenshot-directory=~/Pictures/mpv_screenshots/
-
-# enable hardware accelaration
 hwdec=auto
 vo=gpu
-
-# for subs something like this
 slang=en,eng,enUS,en-US
 sub-auto=fuzzy
 ytdl-raw-options=ignore-config=,sub-lang="en,eng,enUS,en-US",write-sub=,write-auto-sub=
 ```
 
-To customise download options with yt-dlp you can add something like this to `yt-dlp.conf` (you can also use the ui to edit `yt-dlp.conf`)
-
-```bash
--f bestvideo[vcodec^=avc1][height=1080]+bestaudio/best[vcodec^=avc1][height=1080]/bestvideo[vcodec^=avc1][height=720]+bestaudio/best[vcodec^=avc1][height=720]/best
---embed-chapters
---sponsorblock-mark all
---embed-metadata
---embed-thumbnail
---add-metadata
---embed-subs
---sub-lang en
---merge-output-format mkv
-```
-
 > [!TIP]
-> I also recommend setting up a po token. read more here https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide
->
-> Recommended plugin to help you with that https://github.com/Brainicism/bgutil-ytdlp-pot-provider
+> YouTube now frequently blocks unauthenticated bot access. I strongly recommend setting up a PO Token. Read more here: [PO-Token-Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)
 
-For additional enhancements, consider:
+### Fixing "cannot decrypt cookies" error
 
-- [uosc](https://github.com/tomasklaen/uosc) for a modern `mpv` UI.
-- [thumbfast](https://github.com/po5/thumbfast) for thumbnail timeline previews.
-
-### Fixing "cannot decrypt cookies" error synchronizing subscriptions
-
-If you find this error while trying to synchronize your YouTube subscriptions ("Miscellaneous" > "Sync YouTube Subscriptions" option in yt-x):
+If you see an error about being unable to decrypt v11 cookies when syncing your subscriptions:
+This is an issue with yt-dlp accessing secure keystores (like GNOME Keyring) for chromium-based browsers. You can fix it by providing the exact profile/keyring string in your `~/.config/yt-x/config`:
 
 ```bash
-Syncing subscriptions... WARNING: cannot decrypt v11 cookies: no key found WARNING: [youtube:tab] unable to extract yt initial data; please report this issue on https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using yt-dlp -U WARNING: [youtube:tab] Incomplete yt initial data received. Retrying (1/3)...
+CONFIG_BROWSER="brave+gnomekeyring:Default"
 ```
+For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options).
 
-You can fix it by setting the [yt-dlp](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options) `--cookies-from-browser` option in your `yt-x.conf` file ("Edit Config." option in yt-x) to match your browser and profile. For example, if you use Brave's default profile with GNOME Keyring, configure this `PREFERRED_BROWSER` value in your `yt-x.conf` file:
+### Theming
+`yt-x` comes with a Tokyo Night default palette. You can completely "rice" the script by either:
+1. Setting `CONFIG_FZF_OPTS` directly in `~/.config/yt-x/config`
+2. Creating a `.theme` extension in `~/.config/yt-x/extensions/themes/` containing your `FZF_DEFAULT_OPTS`.
 
+Example Tokyonight FZF configuration:
 ```bash
-PREFERRED_BROWSER: brave+gnomekeyring:Default
+CONFIG_FZF_OPTS="
+  --color=bg+:#283457,bg:#16161e,border:#27a1b9,fg:#c0caf5,header:#2ac3de,hl+:#2ac3de,hl:#2ac3de,info:#545c7e,marker:#ff007c,pointer:#ff007c,prompt:#2ac3de,query:#c0caf5,scrollbar:#27a1b9,separator:#ff9e64,spinner:#ff007c
+  --border=rounded --prompt=' >' --marker=' >' --pointer='◆' --layout=reverse --cycle
+"
 ```
 
-To find the correct `PREFERRED_BROWSER` value for your browser and profile, use the yt-dlp `--cookies-from-browser` option in terminal. In the previous example, with Brave and GNOME Keyring, the following command should correctly extract your Brave browsers cookies:
+## 📁 Custom Playlists
 
-```bash
-yt-dlp \
-  --cookies-from-browser "brave+gnomekeyring:Default" \
-  --skip-download \
-  --flat-playlist \
-  "https://www.youtube.com/feed/channels" \
-```
-
-In your tests, replace `brave+gnomekeyring:Default` with your browser and profile. For more details, refer to the [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options).
-
-> [!NOTE]
-> This is not an issue with yt-x itself, but rather with yt-dlp's ability to access browser cookies.
-
-## Custom Playlists
-
-Define custom playlists by editing `~/.config/yt-x/custom_playlists.json` (or use the UI):
+Custom playlists are stored in `~/.config/yt-x/custom-playlists.json` and can be edited from the UI. The format is:
 
 ```json
 [
   {
-    "name": "<playlist name>",
-    "playlistUrl": "https://www.youtube.com/playlist?list=<playlist-id>",
-    "playlistWatchUrl": "https://www.youtube.com/watch?list=<playlist-id>"
+    "id": "PLYOURPLAYLISTID",
+    "name": "My Cool Playlist",
+    "url": "https://www.youtube.com/playlist?list=PLYOURPLAYLISTID"
   }
 ]
 ```
-## Theming
-To change the default colorscheme, set `YT_X_FZF_OPTS` env var and give it custom fzf opts.
 
-eg. (.bashrc)
+## 🔎 Extended Search Filters
 
-```
-#yt-x
-export YT_X_FZF_OPTS=$FZF_DEFAULT_OPTS'
---color=fg:#e0def4,fg+:#e0def4,bg:#232136,bg+:#44415a
---color=hl:#3e8fb0,hl+:#9ccfd8,info:#f6c177,marker:#3e8fb0
---color=prompt:#eb6f92,spinner:#c4a7e7,pointer:#c4a7e7,header:#3e8fb0
---color=border:#44415a,label:#ea9a97,query:#f6c177
---border="rounded" --border-label="" --preview-window="border-rounded" --prompt="> "
---marker=">" --pointer="◆" --separator="─" --scrollbar="│"'
-```
+While searching inside `yt-x`, you can prefix your query with a `:command` to filter your request: `:<command> your_query`. You can also recall past searches using `!n` where `n` is the history index.
 
-## Extended search
- While searching, you can prefix your query with a `:command` to filter your search request: `:<command> your_query`. Only one command can be used per query.
-
-### List of commands
-
-| Command        | Description                                |
+### Filters & Types
+| Filter Command | Description                                |
 |----------------|--------------------------------------------|
-| `:live`        | Show only live streams                     |
-| `:today`       | Videos uploaded today                      |
-| `:week`        | Videos uploaded this week                  |
-| `:month`       | Videos uploaded this month                 |
-| `:year`        | Videos uploaded this year                  |
-| `:short`       | Short videos (< 4 minutes)                 |
-| `:long`        | Long videos (> 4 minutes)                  |
-| `:playlist`    | Show playlists only                        |
+| `:video`       | Standard videos only                       |
 | `:movie`       | Movies                                     |
-| `:hd`          | HD videos                                  |
-| `:4k`          | 4K videos                                  |
+| `:live`        | Live streams                               |
+| `:short`       | Short videos (< 4 minutes)                 |
+| `:long`        | Long videos (> 20 minutes)                 |
+
+### Features & Quality
+| Filter Command | Description                                |
+|----------------|--------------------------------------------|
+| `:hd`          | High Definition videos                     |
+| `:4k`          | 4K Resolution videos                       |
 | `:hdr`         | HDR videos                                 |
 | `:subtitles`   | Videos with subtitles/CC                   |
 | `:360`         | 360° videos                                |
@@ -352,18 +290,35 @@ export YT_X_FZF_OPTS=$FZF_DEFAULT_OPTS'
 | `:3d`          | 3D videos                                  |
 | `:local`       | Videos filtered by location                |
 
-### Sorting Options
-| Command        | Description                                |
+### Upload Date
+| Filter Command | Description                                |
 |----------------|--------------------------------------------|
+| `:hour`        | Uploaded in the last hour                  |
+| `:today`       | Uploaded today                             |
+| `:week`        | Uploaded this week                         |
+| `:month`       | Uploaded this month                        |
+| `:year`        | Uploaded this year                         |
+
+### Sorting
+| Sort Command   | Description                                |
+|----------------|--------------------------------------------|
+| `:newest`      | Sort results by upload date                |
 | `:views`       | Sort results by view count                 |
 | `:rating`      | Sort results by rating                     |
-| `:newest`      | Sort results by upload date                |
 
-## Contribution
+### History Recall
+| History Command| Description                                |
+|----------------|--------------------------------------------|
+| `!1`           | Quickly re-run your most recent search     |
+| `!3`           | Quickly re-run your 3rd most recent search |
 
-Pull requests are highly welcome!
+---
 
-## Support
+## 🤝 Contribution
+
+Pull requests are highly welcome! Whether it's adding a new extension logic, bug fixes, or new search parameters.
+
+## 💬 Support
 
 Need help? Join the community on Discord:
 
@@ -373,7 +328,6 @@ Need help? Join the community on Discord:
 </a>
 </p>
 
-## Supporting the Project
+## ⭐ Supporting the Project
 
-Give the project a star and consider contributing to the codebase.
-
+If you enjoy `yt-x`, please give the project a star on GitHub and consider contributing to the codebase!
