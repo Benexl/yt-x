@@ -3550,8 +3550,7 @@ Options:
   --rofi-theme-prompt <path>     Path to the rofi prompt theme file
   --rofi-theme-confirm <path>    Path to the rofi confirm theme file
   --rofi-theme-pager <path>      Path to the rofi pager theme file
-  -x, --extensions <ext>         Load an extension file (absolute path or
-                                 relative to $HOME/.config/$CLI_NAME/extensions)
+  -x, --extension <ext>         Load an extension file (absolute path or relative to $HOME/.config/$CLI_NAME/extensions)
   -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
 
 Sub‑commands:
@@ -3625,7 +3624,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-confirm -d "Rofi 
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-pager -d "Rofi pager theme path" --require-parameter
 
 # Extensions – list all files in the extensions directory tree, return relative paths
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extensions -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extension -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
 
 # Subcommands
 complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
@@ -3736,7 +3735,7 @@ _app_cmd_line_parser() {
       # shellcheck disable=SC2317
       shift_count=2
       ;;
-    -x | --extensions)
+    -x | --extension)
       [ -n "$2" ] || _app_usage 1
       if [ "${2#/}" != "$2" ]; then
         . "$2"
