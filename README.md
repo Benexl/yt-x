@@ -46,14 +46,30 @@
 
 ## 📖 Table of Contents
 
-- [Features](#-features)
-- [Installation](#-installation)
-- [Dependencies](#-dependencies)
-- [Usage](#%EF%B8%8F-usage)
-- [Configuration & Tips](#%EF%B8%8F-configuration--tips)
-- [Extended Search Filters](#-extended-search-filters)
-- [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-- [Support & Contribution](#-support--contribution)
+- [🚀 Features](#-features)
+  - [🔍 Search & Discovery](#-search--discovery)
+  - [🖥️ User Interface & Experience](#️-user-interface--experience)
+  - [🎬 Playback & Media Handling](#-playback--media-handling)
+  - [💾 Downloading & Archival](#-downloading--archival)
+  - [📚 Library & Data Management](#-library--data-management)
+  - [⚙️ Extensibility & Power User Features](#️-extensibility--power-user-features)
+  - [🛠️ Cross-Platform & Infrastructure](#️-cross-platform--infrastructure)
+- [📥 Installation](#-installation)
+  - [⚙️ Prerequisites](#️-prerequisites)
+  - [🌍 Universal Installation (macOS, Linux, Android)](#-universal-installation-macos-linux-android)
+  - [📦 Platform-Specific Instructions](#-platform-specific-instructions)
+- [Usage](#usage)
+  - [Synopsis](#synopsis)
+  - [Quick Start](#quick-start)
+  - [Command-Line Options](#command-line-options)
+  - [Inline Search Syntax & Filters](#inline-search-syntax--filters)
+  - [Environment Variables](#environment-variables)
+  - [Examples & Workflows](#examples--workflows)
+- [Configuration](#configuration)
+  - [Configuration File Location](#configuration-file-location)
+  - [Configuration Variables](#configuration-variables)
+- [❓ Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
+- [🤝 Support & Contribution](#-support--contribution)
 
 ## 🚀 Features
 
