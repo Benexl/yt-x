@@ -112,16 +112,78 @@
 
 ## 📥 Installation
 
-### ❄️ NixOS / Home Manager
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
+![macOS](https://img.shields.io/badge/macOS-000000?style=flat-square&logo=apple&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
+![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=white)
+![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=flat-square&logo=arch-linux&logoColor=white)
+![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=flat-square&logo=nixos&logoColor=white)
+
+### ⚙️ Prerequisites
+Before installing, ensure your system meets the following requirements. 
+
+**Required:**
+*   `yt-dlp` - The core engine for fetching media data.
+*   `fzf` - The primary terminal UI engine.
+*   `jq` - For robust JSON parsing.
+*   `curl` - Used for fetching script updates and preview images.
+*   `sh` - Any POSIX-compliant shell (Bash, Zsh, Dash, etc.).
+*   **Nerd Font** - A Nerd Font is heavily required to render the UI icons correctly.
+
+**Optional (But Highly Recommended):**
+*   **Media Players:** `mpv` (default), `vlc`, or `tplay` (for playback).
+*   **Terminal Image Viewers (For Previews):**
+    *   `chafa` *(Cross-terminal, highly recommended)*
+    *   `icat` *(Built natively into Kitty and Ghostty)*
+    *   `imgcat` *(For iTerm2/WezTerm)*
+*   **Alternate GUI:** `rofi` *(For running `yt-x` as a desktop application menu).*
+*   **UI Enhancements:** `gum` *(For improved, polished prompts and loaders).*
+
+---
+
+### 🌍 Universal Installation (macOS, Linux, Android)
+The quickest and most universal way to install `yt-x` is to download the standalone script directly into your local binary directory. 
+
+Ensure `~/.local/bin` exists and is added to your system's `$PATH`.
+
+```bash
+# Download the script and make it executable
+curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" -o ~/.local/bin/yt-x
+chmod +x ~/.local/bin/yt-x
+```
+
+*To uninstall later, simply run: `rm ~/.local/bin/yt-x`*
+
+---
+
+### 📦 Platform-Specific Instructions
+
+<details>
+<summary><b>🐧 Arch Linux (AUR)</b></summary>
+
+Arch Linux users can install the bleeding-edge version directly from the Arch User Repository using their preferred AUR helper:
+
+```bash
+# Using yay
+yay -S yt-x-git
+
+# Using paru
+paru -S yt-x-git
+```
+</details>
+
+<details>
+<summary><b>❄️ Nix / NixOS</b></summary>
+
+You can install `yt-x` either imperatively or declaratively using Nix flakes.
 
 **1. Imperative / Direct installation:**
-
 ```bash
 nix profile install github:Benexl/yt-x
 ```
 
 **2. Declarative / Config-based:**
-Add the following to your `flake.nix`:
+First, add the repository to your `flake.nix` inputs:
 
 ```nix
 inputs = {
@@ -133,121 +195,262 @@ inputs = {
 }
 ```
 
-_For system-wide installation in `configuration.nix`:_
+*   **For system-wide installation** (in `configuration.nix`):
+    ```nix
+    environment.systemPackages = [ inputs.yt-x.packages."${system}".default ];
+    ```
 
-```nix
-environment.systemPackages = [ inputs.yt-x.packages."${system}".default ];
-```
+*   **For user-level installation** (via Home Manager in `home.nix`):
+    ```nix
+    home.packages = [ inputs.yt-x.packages."${system}".default ];
+    ```
+</details>
 
-_For user-level installation in `home.nix`:_
+<details>
+<summary><b>🪟 Windows (Git Bash, Cygwin) & WSL</b></summary>
 
-```nix
-home.packages = [ inputs.yt-x.packages."${system}".default ];
-```
+`yt-x` is fully compatible with Windows, provided you are running it inside a compatible terminal environment.
 
-### 🐧 Arch Linux (AUR)
+*   **Environment Detection:** `yt-x` treats WSL natively as a Linux environment. However, if you are using Git Bash or MSYS/Cygwin, it correctly detects and treats them as Windows terminals.
+*   **Launcher:** You **must** use `fzf` as your launcher on Windows terminals. (`rofi` is specifically designed for Linux desktop environments).
+*   **PATH Requirements:** Ensure that Windows executables (like `yt-dlp.exe`, `jq.exe`, `fzf.exe`, and a media player like `mpv.exe` or `vlc.exe`) are accessible within your terminal's `$PATH`.
+*   **URL Opening:** The script automatically supports Windows URL launching. It utilizes `wslview` (for WSL setups) or `cmd.exe /C start` (for Git Bash/Cygwin) to open links smoothly in your native Windows browser.
+</details>
 
-Install [`yt-x-git`](https://aur.archlinux.org/packages/yt-x-git) from the AUR using your preferred helper:
+## Usage
 
+`yt-x` is designed to be highly flexible. You can launch it in fully interactive mode, pass direct search arguments, or integrate it into desktop environments using custom UI launchers.
+
+### Synopsis
 ```bash
-paru -S yt-x-git
-# OR
-yay -S yt-x-git
+yt-x [OPTIONS]
+yt-x completions [--fish | --bash | --zsh | --help]
 ```
 
-### 🌍 Cross-Platform (macOS, Linux, Android)
-
-Download the script directly. _(Ensure `~/.local/bin` exists and is in your `$PATH`)_:
-
+### Quick Start
+To launch the interactive terminal interface with your default settings, simply run:
 ```bash
-curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" -o ~/.local/bin/yt-x && chmod +x ~/.local/bin/yt-x
+yt-x
 ```
 
-_(To uninstall, simply run `rm ~/.local/bin/yt-x`)_
+---
 
-### 🪟 Windows (Git Bash/Cygwin) & WSL Notes
+### Command-Line Options
 
-- `yt-x` runs in **Git Bash**, **Cygwin**, and **WSL**.
-- `yt-x` treats **WSL** as a Linux environment, while **Git Bash/Cygwin** are treated as Windows terminals.
-- Use `fzf` as the launcher on Windows terminals (`rofi` is Linux desktop-oriented).
-- Make sure Windows/WSL-accessible binaries are in `PATH` (`yt-dlp`, `jq`, `fzf`, and a player like `mpv.exe` or `vlc.exe`).
-- Browser/config opening supports `open`, `xdg-open`, `wslview`, or `cmd.exe`.
+#### 🔍 Search & Navigation
+*   `-s, --search <term>` : Immediately execute a video search and bypass the main menu.
+*   `-sp, --search-playlist <term>` : Immediately execute a playlist search.
+*   `-sc, --search-channel <term>` : Immediately execute a channel search.
 
-## 📦 Dependencies
+#### 🖥️ UI & Interface
+*   `-l, --launcher <fzf|rofi>` : Override the default menu launcher.
+*   `-i, --preview` : Enable the media preview window (images and metadata).
+*   `-I, --no-preview` : Disable the media preview window.
+*   `-x, --extension <ext>` : Load a specific extension file (accepts absolute paths or paths relative to `~/.config/yt-x/extensions/`).
 
-### Required
+#### 🎬 Player & Playback
+*   `-p, --player <mpv|vlc|tplay>` : Specify the media player to use for playback.
+*   `--disown-player` : Detach the player process from the terminal (allows you to keep browsing while watching).
+*   `--no-disown-player` : Keep the player attached to the terminal session (default).
 
-- **[jq](https://github.com/jqlang/jq)** - JSON parsing.
-- **[curl](https://curl.se/)** - Fetching updates and preview images.
-- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - The core engine for fetching YouTube data.
-- **[fzf](https://github.com/junegunn/fzf)** - The primary UI engine.
-- **sh** - Any POSIX-compliant shell.
+#### ⚙️ General & Utilities
+*   `-e, --edit-config` : Open the `yt-x` configuration file in your `$EDITOR`.
+*   `-U, --update` : Check for and apply the latest script update from GitHub.
+*   `-E, --generate-desktop-entry` : Print a `.desktop` application entry to `stdout` (useful for Linux application menus).
+*   `-v, --version` : Print version information and exit.
+*   `-h, --help` : Show the help message and exit.
 
-### Optional (But Highly Recommended)
+#### 🎨 Rofi Theming
+If using `rofi` as your launcher, you can pass custom `.rasi` paths dynamically:
+*   `--rofi-theme-main <path>` 
+*   `--rofi-theme-preview <path>`
+*   `--rofi-theme-prompt <path>`
+*   `--rofi-theme-confirm <path>`
+*   `--rofi-theme-pager <path>`
 
-- **Media Players**: [mpv](https://mpv.io/) (default), [vlc](https://www.videolan.org/), or [tplay](https://github.com/maxcurzi/tplay).
-- **Alternate GUI**: [rofi](https://github.com/davatorium/rofi) (for desktop environments).
-- **UI Enhancements**: [gum](https://github.com/charmbracelet/gum) (for improved prompts and loaders).
-- **Terminal Image Viewers (For Previews)**:
-  - [chafa](https://github.com/hpjansson/chafa) (Cross-terminal, highly recommended)
-  - `icat` (Built into [Kitty](https://sw.kovidgoyal.net/kitty/) and [Ghostty](https://github.com/ghostty-org/ghostty))
-  - [imgcat](https://github.com/danielgatis/imgcat)
-- **Fonts**: A [Nerd Font](https://www.nerdfonts.com/) is required to render UI icons correctly.
+---
 
-### Basic Commands
+### Inline Search Syntax & Filters
+When entering a search query (either via the `-s` flag or within the interactive prompt), `yt-x` supports powerful inline filters. 
 
+**Quick Filters (Colon Syntax)**
+Append a colon prefix to your search term to apply YouTube API filters:
+*   **Time:** `:hour`, `:today`, `:week`, `:month`, `:year`
+*   **Format:** `:video`, `:movie`, `:live`, `:short`, `:long`
+*   **Quality/Features:** `:4k`, `:hd`, `:hdr`, `:360`, `:vr`, `:3d`, `:local`, `:subtitles`
+*   **Sorting:** `:newest`, `:views`, `:rating`
+
+*Example:* `:4k nature documentary` (Searches for nature documentaries specifically in 4K resolution).
+
+**History Recall (Bang Syntax)**
+Recall previous searches seamlessly without typing them out:
+*   `!1` : Re-run your most recent search.
+*   `!2` : Re-run your second most recent search, etc.
+
+---
+
+### Environment Variables
+Almost all CLI options can be permanently set in `~/.config/yt-x/config` or overridden on-the-fly using environment variables. 
+*   `YT_X_LAUNCHER` (e.g., `fzf` or `rofi`)
+*   `YT_X_PLAYER` (e.g., `mpv`)
+*   `YT_X_ENABLE_PREVIEW` (`true` or `false`)
+*   `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
+*   `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`)
+*   `YT_X_VIDEO_QUALITY` (`1080`, `720`, etc.)
+*   `YT_X_BROWSER` (e.g., `firefox`, `brave` - extracts cookies for restricted content)
+
+---
+
+### Examples & Workflows
+
+**1. Fast Search with Previews**
+Search for a specific topic instantly while enabling image previews:
 ```bash
-yt-x                                # Launch the interactive UI
-yt-x -h                             # Display all available CLI options
-yt-x -U                             # Check and apply script updates
-yt-x -e                             # Open the configuration file in your editor
+yt-x --preview -s "cyberpunk 2077 ost"
 ```
 
-### Quick Jumping (Bypass Main Menu)
-
+**2. Desktop/GUI Mode**
+Launch `yt-x` as a graphical application using Rofi (great for mapping to a keyboard shortcut in your Window Manager):
 ```bash
-yt-x -s 'onepiece elbaf trailer'    # Search for videos
-yt-x -sp 'rust tutorials'           # Search specifically for playlists
-yt-x -sc 'fireship'                 # Search specifically for channels
+yt-x --launcher rofi --preview --disown-player
 ```
 
-### Advanced Customization
-
+**3. Audio-Only Background Music**
+Search for a playlist, and use `mpv` to handle it in the background:
 ```bash
-yt-x -l rofi                        # Use rofi instead of fzf
-yt-x -p vlc                         # Use VLC as the media player
-yt-x -i                             # Enable the preview window (images/text)
-yt-x -I                             # Disable the preview window
-yt-x --disown-player                # Detach the player process from the terminal
-yt-x -x themes/catppuccin.theme     # Load a specific extension/theme
-yt-x -E > ~/.local/share/applications/yt-x.desktop  # Generate a Linux desktop entry
+yt-x -p mpv --disown-player -sp "lofi hip hop radio"
+# Once in the menu, select "Listen" or "Listen To All"
 ```
 
-### Shell Completions
-
+**4. Generate a Desktop Entry (Linux)**
+Create a native application shortcut in your desktop environment:
 ```bash
-yt-x completions --fish             # Generate fish completions
-yt-x completions --bash             # Generate bash completions
-yt-x completions --zsh              # Generate zsh completions
+yt-x -E > ~/.local/share/applications/yt-x.desktop
+update-desktop-database ~/.local/share/applications/
 ```
 
-## 🛠️ Configuration & Tips
-
-`yt-x` generates a configuration file at `~/.config/yt-x/config`. You can open it via the main menu's **Edit Config** option or by running `yt-x -e`.
-
-_(Note: You can override settings globally by exporting environment variables starting with `YT_X_`, e.g., `export YT*X_BROWSER="firefox"`).*
-
-### 🔒 Accessing Private Feeds & Subscriptions
-
-To fetch your private feed or age-restricted content, pass your browser's cookies to `yt-dlp`. Edit your config file (`yt-x -e`):
-
+**5. Shell Completions**
+Generate and apply autocomplete scripts for your shell (e.g., Fish):
 ```bash
-CONFIG_BROWSER="firefox"
+yt-x completions --fish > ~/.config/fish/completions/yt-x.fish
 ```
 
-### 🎬 Optimizing MPV
+## Configuration
 
-If you want `mpv` to use your browser cookies and specific qualities, add this to your `~/.config/mpv/mpv.conf`:
+`yt-x` is highly customizable. On its first run, it automatically generates a configuration file. Because the configuration file is sourced natively as a shell script, it remains lightweight and extremely fast, while allowing for dynamic shell evaluations if needed.
+
+### Configuration File Location
+By default, the main configuration file is located at:
+```bash
+~/.config/yt-x/config
+```
+*(Note: It respects the `$XDG_CONFIG_HOME` environment variable if set).*
+
+**Quick Edit:** You can open your configuration file in your default text editor at any time directly from the CLI:
+```bash
+yt-x --edit-config
+```
+
+---
+
+### Configuration Variables
+
+Below is a categorized breakdown of the available configuration options you can define in your `config` file.
+
+#### 🖥️ Display & Interface
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_LAUNCHER` | `fzf` | The menu launcher tool to use. Options: `fzf` or `rofi`. |
+| `CONFIG_ENABLE_COLORS` | `true` | Enable or disable ANSI true-color (24-bit) formatting in the UI. |
+| `CONFIG_PER_PAGE` | `30` | Maximum number of search/list results to fetch and display per page. |
+| `CONFIG_EDITOR` | `vi` (or `$EDITOR`) | Text editor used for editing config files, histories, and extensions. |
+| `CONFIG_NOTIFICATION_DURATION`| `5` | Duration (in seconds) for desktop/CLI notifications to remain visible. |
+
+#### 🖼️ Media Previews
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_ENABLE_PREVIEW` | `false` | Enable or disable the preview window (metadata & descriptions). |
+| `CONFIG_ENABLE_PREVIEW_IMAGES`| `false` | Download and render high-quality thumbnails in the preview window. |
+| `CONFIG_IMAGE_RENDERER` | `chafa` | Tool used to render images in the terminal. Options: `chafa`, `icat`, `imgcat`. |
+| `CONFIG_CHAFA_ARGS` | `""` | Pass custom arguments to `chafa` (e.g., `--polite on`). |
+| `CONFIG_ICAT_ARGS` | `""` | Pass custom arguments to `icat` / `kitty +kitten icat`. |
+| `CONFIG_IMGCAT_ARGS` | `""` | Pass custom arguments to `imgcat`. |
+
+#### 🎬 Playback & Media Handling
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_PLAYER` | `mpv` | Preferred media player. Options: `mpv`, `vlc`, `tplay`. |
+| `CONFIG_DISOWN_PLAYER` | `false` | Set to `true` to run the player in the background without blocking the UI. |
+| `CONFIG_VIDEO_QUALITY` | `1080` | Preferred video resolution. Options: `2160`, `1440`, `1080`, `720`, `480`. |
+| `CONFIG_MPV_ARGS` | `""` | Custom arguments passed directly to `mpv`. |
+| `CONFIG_VLC_ARGS` | `""` | Custom arguments passed directly to `vlc`. |
+| `CONFIG_TPLAY_ARGS` | `""` | Custom arguments passed directly to `tplay`. |
+
+#### 🌐 Web Integration & `yt-dlp`
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_BROWSER` | `""` | Highly Recommended. Specify a browser (`brave`, `chrome`, `firefox`, `edge`, etc.) to securely extract cookies. Grants access to YouTube Subscriptions, age-restricted, and member-only videos. |
+| `CONFIG_YT_DLP_ARGS` | `""` | Global fallback arguments passed directly to the `yt-dlp` backend. |
+
+#### 💾 Downloading & Archival
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_DOWNLOAD_DIR` | `~/Videos/yt-x` | Base directory where all downloaded videos and audio files are saved. |
+| `CONFIG_DOWNLOADS_ENUMERATE` | `false` | Set to `true` to prepend numbers (`01 - `, `02 - `) to downloaded playlist items. |
+
+#### 📚 History & Caching
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_ENABLE_SEARCH_HISTORY`| `true` | Save local search history to track and quickly recall past queries. |
+| `CONFIG_NO_OF_RECENT` | `10` | The number of recent "Watch History" items to retain locally. |
+| `CONFIG_CACHE_RETENTION_DAYS` | `7` | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
+
+#### ⚙️ Advanced UI Tuning (FZF & Rofi)
+*   **FZF:**
+    *   `CONFIG_FZF_HEADER`: Sets a custom header (like the default ASCII logo) for `fzf`.
+    *   `CONFIG_FZF_OPTS`: Fine-tune `fzf` layout, colors, pointers, and bind keys. (Defaults to a highly customized "Tokyo Night" theme).
+*   **Rofi:** Provide absolute paths to custom `.rasi` theme files to seamlessly integrate `yt-x` into your desktop graphical environment.
+    *   `CONFIG_ROFI_THEME_MAIN`
+    *   `CONFIG_ROFI_THEME_PREVIEW`
+    *   `CONFIG_ROFI_THEME_PROMPT`
+    *   `CONFIG_ROFI_THEME_CONFIRM`
+    *   `CONFIG_ROFI_THEME_PAGER`
+
+#### 🧩 System & Extensions
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `CONFIG_AUTOLOADED_EXTENSIONS`| `""` | Comma-separated list of extension scripts to load automatically on startup. |
+| `CONFIG_CHECK_FOR_UPDATES` | `true` | Periodically check the GitHub repository for updates and prompt to install. |
+
+## ❓ Frequently Asked Questions (FAQ)
+
+<details>
+<summary><b>Is yt-x a standalone media downloader or player? (Reporting Bugs)</b></summary>
+<br>
+
+No. `yt-x` is a highly advanced **wrapper** that orchestrates several powerful underlying tools. Before opening an issue on GitHub, please determine if the bug is actually related to `yt-x` or one of its backend utilities:
+
+*   **Media Fetching/Downloading fails:** This is handled by **[`yt-dlp`](https://github.com/yt-dlp/yt-dlp)**. If a specific site breaks or videos refuse to download, try updating `yt-dlp` first (`yt-dlp -U`).
+*   **Video Playback stutters or crashes:** This is handled by your media player (**[`mpv`](https://mpv.io/)**, `vlc`, etc.).
+*   **Menu rendering issues / freezes:** This is handled by **[`fzf`](https://github.com/junegunn/fzf)** or **[`rofi`](https://github.com/davatorium/rofi)**.
+*   **State management, navigation, or UI logic fails:** This is handled by `yt-x`. Please open an issue!
+
+</details>
+
+<details>
+<summary><b>How do I access age-restricted or members-only videos?</b></summary>
+<br>
+
+You need to pass your browser cookies to `yt-dlp`. You can do this natively in `yt-x` by editing your config (`~/.config/yt-x/config`) and setting the `CONFIG_BROWSER` variable to your daily browser (e.g., `firefox`, `chrome`, `brave`). 
+
+*Note: For the best playback experience, you should also configure your media player to use these cookies (see the MPV optimization tip below).*
+</details>
+
+<details>
+<summary><b>🎬 How can I optimize MPV playback (Quality, Cookies, Hardware Decoding)?</b></summary>
+<br>
+
+By default, `mpv` handles streaming via `yt-dlp` under the hood. To ensure `mpv` uses your browser cookies (for age-restricted content) and defaults to 1080p hardware-accelerated playback, add the following to your `~/.config/mpv/mpv.conf`:
 
 ```ini
 # Pass cookies to yt-dlp inside mpv
@@ -262,26 +465,32 @@ vo=gpu
 slang=en,eng,enUS,en-US
 sub-auto=fuzzy
 ```
+</details>
 
-### 🎨 Theming
+<details>
+<summary><b>🎨 How do I change the colors or theme of yt-x?</b></summary>
+<br>
 
-`yt-x` ships with a default **Tokyo Night** palette. To "rice" it to match your system:
+`yt-x` ships with a default *Tokyo Night* color palette. You can easily "rice" it to match your system theme by either:
+1.  Editing `CONFIG_FZF_OPTS` directly in `~/.config/yt-x/config`.
+2.  Creating a dedicated `.theme` file inside `~/.config/yt-x/extensions/themes/` and autoloading it.
 
-1. Edit `CONFIG_FZF_OPTS` directly in `~/.config/yt-x/config`.
-2. OR create a `.theme` file in `~/.config/yt-x/extensions/themes/`.
-
-_Example Catppuccin / Custom config:_
-
+**Example: Custom Catppuccin-style Config**
 ```bash
 CONFIG_FZF_OPTS="
   --color=bg+:#283457,bg:#16161e,border:#27a1b9,fg:#c0caf5,header:#2ac3de,hl+:#2ac3de,hl:#2ac3de,info:#545c7e,marker:#ff007c,pointer:#ff007c,prompt:#2ac3de,query:#c0caf5,scrollbar:#27a1b9,separator:#ff9e64,spinner:#ff007c
   --border=rounded --prompt=' >' --marker=' >' --pointer='◆' --layout=reverse --cycle
 "
 ```
+</details>
 
-### 📁 Custom Playlists JSON Format
+<details>
+<summary><b>📁 How do I manually add or edit Custom Playlists?</b></summary>
+<br>
 
-You can maintain custom playlists locally in `~/.config/yt-x/custom-playlists.json`:
+You can save custom playlists via the `yt-x` UI, but you can also manually maintain them locally. They are stored in a simple JSON file located at `~/.config/yt-x/custom-playlists.json`.
+
+Ensure your file follows this structure:
 
 ```json
 [
@@ -292,86 +501,18 @@ You can maintain custom playlists locally in `~/.config/yt-x/custom-playlists.js
   }
 ]
 ```
+</details>
 
-## 🔎 Extended Search Filters
+<details>
+<summary><b>🖼️ Why are my image previews not showing up?</b></summary>
+<br>
 
-While searching inside `yt-x`, you can prefix your query with `:filter` to narrow down results, or use `!n` to recall history.
-
-_Example: `:short :4k nature timeline`_
-
-| Category             | Commands                                                           |
-| :------------------- | :----------------------------------------------------------------- |
-| **Content Type**     | `:video`, `:movie`, `:live`, `:short` (<4 min), `:long` (>20 min)  |
-| **Quality/Features** | `:hd`, `:4k`, `:hdr`, `:subtitles`, `:360`, `:vr`, `:3d`, `:local` |
-| **Upload Date**      | `:hour`, `:today`, `:week`, `:month`, `:year`                      |
-| **Sorting**          | `:newest`, `:views`, `:rating`                                     |
-| **History Recall**   | `!1` (Most recent search), `!3` (3rd most recent search)           |
-
-## ❓ Frequently Asked Questions (FAQ)
-
-> [!NOTE]
-> `yt-x` is not a standalone application. It is a highly integrated shell wrapper built on top of powerful command-line tools:
->
-> - **Data Fetching & Extraction:** [`yt-dlp`](https://github.com/yt-dlp/yt-dlp)
-> - **User Interface & Navigation:** [`fzf`](https://github.com/junegunn/fzf) (terminal) or [`rofi`](https://github.com/davatorium/rofi) (desktop)
-> - **Media Playback:** [`mpv`](https://mpv.io/) or [`vlc`](https://www.videolan.org/)
-> - **Data Parsing:** [`jq`](https://jqlang.github.io/jq/)
-> - **Image Rendering:** [`chafa`](https://github.com/hpjansson/chafa), `icat`, or `imgcat`
->
-> **If you experience issues with downloading, format extraction, buffering, unsupported browsers, or UI rendering, the issue—and the solution—often lies with the upstream tool.** Always check the documentation for `yt-dlp`, `mpv`, or `fzf` for advanced configurations or tool-specific bugs.
-
-### 🌐 Fetching & Playback Issues (`yt-dlp` / `mpv`)
-
-**Q: I'm getting HTTP 403 errors, "No video format found", or YouTube asks to confirm I'm not a bot.**  
-**A:** This is a known YouTube anti-bot measure affecting `yt-dlp`.
-
-1. Pass your browser cookies by setting `CONFIG_BROWSER="your_browser"` in `~/.config/yt-x/config`.
-2. Generate and provide a **PO Token**. Please read the official [`yt-dlp` PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide) for instructions.
-
-**Q: I get "WARNING: cannot decrypt v11 cookies: no key found" when syncing subscriptions.**  
-**A:** `yt-dlp` cannot access the secure keystore (like GNOME Keyring) used by Chromium-based browsers (Brave, Chrome, Edge). You can fix this by explicitly defining your browser and keyring in `~/.config/yt-x/config`.
-Example: `CONFIG_BROWSER="brave+gnomekeyring:Default"`
-
-**Q: My browser (Zen, Vivaldi, Flatpak Brave) isn't working with `CONFIG_BROWSER`.**  
-**A:** `yt-dlp` must officially support your browser to extract cookies automatically. Furthermore, Flatpak browsers often block access to their cookie databases.
-_Workaround:_ Export your YouTube cookies to a text file (using a browser extension like Get cookies.txt LOCALLY) and add this to your config:  
-`CONFIG_YT_DLP_ARGS="--cookies /path/to/cookies.txt"`
-
-**Q: How do I change video quality/resolution or enable subtitles?**  
-**A:** `yt-x` delegates playback to your media player. To set a default quality or enable subtitles, edit your player's config file. For `mpv`, open `~/.config/mpv/mpv.conf` (can be done via the `yt-x` Misc menu) and add:
-
-```ini
-# Force 1080p maximum
-ytdl-format="bestvideo[height<=1080]+bestaudio/best"
-# Auto-load English subtitles
-slang=en,eng
-sub-auto=fuzzy
-```
-
-### 🖼️ UI, Previews, & Visuals (`fzf` / `chafa`)
-
-**Q: Thumbnails aren't showing, look bad, or overlap text in my terminal.**  
-**A:** Image previews depend heavily on your terminal emulator and renderer.
-
-- **Overlapping text:** Usually means your terminal's font size/cell dimensions are confusing the renderer. Try adjusting your terminal window size or font.
-- **Kitty / Ghostty:** Set `CONFIG_IMAGE_RENDERER="icat"`.
-- **Other Terminals:** Set `CONFIG_IMAGE_RENDERER="chafa"`. If you have a Sixel-compatible terminal (like Foot or WezTerm), you can force Sixel by setting `CONFIG_CHAFA_ARGS="-f sixel"` in your config.
-- **macOS Users:** Ensure you have installed the required dependencies (like `chafa` and `jq`) via Homebrew.
-
-**Q: How do I change the colors/theme of `yt-x`?**  
-**A:** The entire UI coloring is handled by `fzf`. You can change the colors by editing the `CONFIG_FZF_OPTS` variable in `~/.config/yt-x/config` to match your preferred theme (e.g., Pywal, Catppuccin).
-
-### ⌨️ Navigation & Controls
-
-**Q: Can I use Vim keybindings (j/k) to navigate the menus?**  
-**A:** Yes! Because the menu is just `fzf`, you can add custom keybinds by appending them to `CONFIG_FZF_OPTS` in your config:
-
-```bash
-CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS --bind=ctrl-j:down,ctrl-k:up,j:down,k:up"
-```
-
-**Q: I keep getting "Invalid Action" or "Malformed State" errors.**  
-**A:** This occasionally happens if the state tracking gets corrupted or if a menu choice is interrupted abruptly. Press `Esc` or select `Back` to pop the state. If it persists, you can clear the runtime cache manually: `rm -rf ~/.cache/yt-x/state/`.
+Image previews require a few components to work together:
+1.  Ensure you have enabled them in your config: `CONFIG_ENABLE_PREVIEW=true` and `CONFIG_ENABLE_PREVIEW_IMAGES=true`.
+2.  Ensure you have a supported image renderer installed (e.g., `chafa`, `icat`, or `imgcat`).
+3.  Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`.
+4.  Ensure your terminal emulator actually supports image rendering (sixel, kitty graphics protocol, or iTerm2 protocol). If it doesn't, stick with `chafa`, which falls back to excellent ASCII/block character rendering.
+</details>
 
 ## 🤝 Support & Contribution
 
