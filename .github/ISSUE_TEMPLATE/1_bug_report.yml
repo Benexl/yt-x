@@ -1,0 +1,63 @@
+name: Bug report
+description: Report a bug related to yt-x UI, navigation, state management, or shell logic
+labels: [triage, bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > `yt-x` is a wrapper. Before filing this bug, **ensure it is actually a bug in `yt-x`** and not an issue with the underlying tools (`yt-dlp`, `fzf`, `mpv`, `chafa`, etc.).
+        > Not providing the required (*) information will result in your issue being closed.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      description: |
+        Carefully read and work through this check list to prevent upstream or duplicate issues:
+      options:
+        - label: I am **NOT** reporting a site extraction or "No video format found" error (This belongs to [yt-dlp](https://github.com/yt-dlp/yt-dlp/issues))
+          required: true
+        - label: I am **NOT** reporting a video playback or audio crash (This belongs to your media player, e.g., mpv or vlc)
+          required: true
+        - label: I have verified that I am running the latest version of `yt-x` (Run `yt-x -U`)
+          required: true
+        - label: I have verified that I am running the latest version of `yt-dlp` (Run `yt-dlp -U`)
+          required: true
+        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#%E2%9D%93-frequently-asked-questions-faq) and the bug tracker for similar issues **including closed ones**. DO NOT post duplicates.
+          required: true
+  - type: input
+    id: environment
+    attributes:
+      label: System & Environment
+      description: What OS, Terminal Emulator, and Shell are you using?
+      placeholder: e.g., macOS Sequoia / Kitty / zsh 5.9
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Dependency Versions
+      description: Output of `yt-dlp --version`, `fzf --version`, and `jq --version`
+      placeholder: yt-dlp 2024.04.09, fzf 0.50.0, jq 1.7
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description & Steps to Reproduce
+      description: Describe the bug clearly. Provide exact steps, inputs, or search terms used to reproduce the issue.
+      placeholder: |
+        1. Run `yt-x`
+        2. Search for "nature documentary"
+        3. Press enter on the first result
+        4. The script crashes with "Malformed state"
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Error Logs / Console Output
+      description: Paste any error messages, stack traces, or relevant terminal output here.
+      render: shell
+    validations:
+      required: false

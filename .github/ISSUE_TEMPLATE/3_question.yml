@@ -1,0 +1,31 @@
+name: Ask a question
+description: Ask a question about configuring or using yt-x
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > ### Make sure you are **only** asking a question and not reporting a bug.
+        > If you are reporting a crash, please use the **Bug Report** template instead.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I am asking a question and **not** reporting a bug or requesting a feature.
+          required: true
+        - label: I have thoroughly read through the [README](https://github.com/Benexl/yt-x#readme) and [Configuration details](https://github.com/Benexl/yt-x#configuration).
+          required: true
+        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#%E2%9D%93-frequently-asked-questions-faq).
+          required: true
+        - label: I've searched the issue tracker for similar questions **including closed ones**. DO NOT post duplicates.
+          required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Provide clear details. If you are asking about styling, previews, or playback, include your config snippets.
+      placeholder: How do I configure fzf colors to look like Catppuccin, and which image renderer should I use for WezTerm?
+    validations:
+      required: true
