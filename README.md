@@ -530,6 +530,108 @@ Image previews require a few components to work together:
 4.  Ensure your terminal emulator actually supports image rendering (sixel, kitty graphics protocol, or iTerm2 protocol). If it doesn't, stick with `chafa`, which falls back to excellent ASCII/block character rendering.
 </details>
 
+<details>
+<summary><b>🔑 How do I fix "Cannot decrypt v11 cookies", Flatpak, or unsupported browser errors?</b></summary>
+<br>
+
+`yt-x` passes the `CONFIG_BROWSER` variable directly to `yt-dlp`. 
+*   **Chromium v11+ / Brave / Edge:** Modern Chromium browsers encrypt cookies via your OS keyring (GNOME Keyring, KWallet). `yt-dlp` needs access to this keyring to decrypt them.
+*   **Flatpaks / Snaps:** `yt-dlp` cannot easily read cookies from containerized browsers due to sandboxing. Use natively installed browsers (deb/rpm/AUR/Homebrew) for the best cookie compatibility.
+*   **Alternative:** If your browser (like Zen) isn't supported natively, use an extension like "Get cookies.txt LOCALLY", save the file, and pass it via your config: `CONFIG_YT_DLP_ARGS="--cookies /path/to/cookies.txt"`.
+</details>
+
+<details>
+<summary><b>🖼️ Previews overlap text or look distorted. How do I fix this?</b></summary>
+<br>
+
+If your images are overlapping with UI text, your terminal may not properly support the image clearing sequences used by `chafa`.
+1.  **Kitty / Ghostty:** Set `CONFIG_IMAGE_RENDERER="icat"`. These terminals have native, high-performance image protocols.
+2.  **iTerm2 / WezTerm:** Try `CONFIG_IMAGE_RENDERER="imgcat"`.
+3.  **Other Terminals:** Stick to `CONFIG_IMAGE_RENDERER="chafa"`, but ensure your terminal supports **Sixel** or true-color ASCII. If overlaps persist, disable image previews (`CONFIG_ENABLE_PREVIEW_IMAGES=false`) and use text-only previews.
+</details>
+
+<details>
+<summary><b>⌨️ How do I add Vim motions (j/k) or change menu keybindings?</b></summary>
+<br>
+
+Since the UI is driven by `fzf`, you can easily customize keybindings by modifying the `CONFIG_FZF_OPTS` variable in your `~/.config/yt-x/config` file.
+Add `--bind` flags to map your preferred keys. For example, to add Vim motions and page scrolling:
+```bash
+CONFIG_FZF_OPTS="...your existing options... --bind 'j:down,k:up,ctrl-u:half-page-up,ctrl-d:half-page-down'"
+```
+</details>
+
+<details>
+<summary><b>⏯️ How do I return to the menu while a video is playing?</b></summary>
+<br>
+
+By default, `yt-x` blocks the terminal until the media player is closed. To browse while watching, enable background playback by setting `CONFIG_DISOWN_PLAYER=true` in your config, or launch the script with the `--disown-player` flag.
+</details>
+
+<details>
+<summary><b>🍎 I'm on macOS and getting `command not found`, `_load_config`, or `jq` errors.</b></summary>
+<br>
+
+macOS ships with an outdated version of Bash (v3.x) and older standard utilities. `yt-x` requires modern tooling. Ensure you have installed the core dependencies via Homebrew (`brew install yt-dlp fzf jq chafa mpv`). If you encounter shell-specific errors, ensure your terminal is executing the script using a modern, Homebrew-installed shell environment rather than Apple's legacy `/bin/sh`.
+</details>
+
+<details>
+<summary><b>📺 Why is a video playing in the wrong quality (e.g., 4K instead of 1080p) or throwing "Requested Format not available"?</b></summary>
+<br>
+
+While you can set `CONFIG_VIDEO_QUALITY` in `yt-x`, the actual stream negotiation is done by your media player (like `mpv`) via `yt-dlp`. If `mpv` decides to override the quality, you will get the maximum available resolution. 
+To strictly enforce video quality, you **must** configure your media player. Add this to your `~/.config/mpv/mpv.conf`:
+`ytdl-format="bestvideo[height<=?1080]+bestaudio/best"` (Change `1080` to your preferred maximum height).
+</details>
+
+<details>
+<summary><b>🤖 I have no audio when playing videos on Termux / Android.</b></summary>
+<br>
+
+On Android, `yt-x` does not play the media inside the terminal. Instead, it uses Android `am start` intents to pass the stream URL to an installed GUI application (like the VLC or MPV Android apps). If you have no audio or video, ensure you have the actual MPV or VLC Android application installed on your device, and check the app's internal settings.
+</details>
+
+<details>
+<summary><b>💥 I'm getting "Malformed State" or "Invalid Action" errors constantly.</b></summary>
+<br>
+
+This typically happens for two reasons:
+1.  **Corrupt Cache:** A previous `yt-x` session crashed and didn't clean up its state files. You can manually fix this by deleting the cache directory: `rm -rf ~/.cache/yt-x/state/`.
+2.  **FZF Aliases:** If you have customized `fzf` in your `.bashrc`/`.zshrc` with aliases that alter its default output formatting, it will break `yt-x`'s state parsing. Ensure `fzf` operates normally.
+</details>
+
+<details>
+<summary><b>🎨 I customized my colors and now the script crashes with "Invalid color specification".</b></summary>
+<br>
+
+This is an `fzf` error. If you modified `CONFIG_FZF_OPTS` to add custom hex colors (e.g., `#2ac3de`), you must ensure your terminal emulator actually supports **True Color (24-bit)**. If it doesn't, `fzf` will crash. Revert to standard ANSI colors (like `blue`, `red`, `cyan`) in your config if your terminal lacks True Color support.
+</details>
+
+<details>
+<summary><b>🔄 Why am I being prompted to update the script every single time I run it?</b></summary>
+<br>
+
+This happens if `yt-x` lacks the correct permissions to write to its own file. If you installed `yt-x` system-wide using `sudo` (e.g., to `/usr/local/bin`), the auto-updater running as your normal user cannot overwrite the binary. 
+**Fix:** Reinstall `yt-x` to your local user directory (`~/.local/bin/yt-x`) as shown in the Installation guide, or disable the updater by setting `CONFIG_CHECK_FOR_UPDATES=false` in your config.
+</details>
+
+<details>
+<summary><b>🗂️ How do I populate the Channels/Subscriptions tab? It says my JSON is empty.</b></summary>
+<br>
+
+You need to sync your subscriptions first. 
+1. Ensure `CONFIG_BROWSER` is set to the browser where you are logged into YouTube.
+2. Go to the **Main Menu -> Miscellaneous -> Sync YouTube Subscriptions**.
+`yt-dlp` will use your browser cookies to fetch your subscriptions and populate the `~/.config/yt-x/subscriptions.json` file.
+</details>
+
+<details>
+<summary><b>🖼️ Can I get image previews when using Rofi instead of FZF?</b></summary>
+<br>
+
+Yes! `yt-x` uses `rofi`'s native `\0icon\x1f` protocol to display images. Ensure you have `CONFIG_ENABLE_PREVIEW_IMAGES=true` enabled in your `yt-x` config. Furthermore, your custom Rofi `.rasi` theme (`CONFIG_ROFI_THEME_PREVIEW`) must be configured to actually display the `element-icon` property.
+</details>
+
 ## 🤝 Support & Contribution
 
 Pull requests are highly welcome! Whether it's adding new extension logic, fixing bugs, or expanding search parameters, feel free to fork and contribute.
