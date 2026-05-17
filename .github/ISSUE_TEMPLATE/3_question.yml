@@ -17,7 +17,7 @@ body:
           required: true
         - label: I have thoroughly read through the [README](https://github.com/Benexl/yt-x#readme) and [Configuration details](https://github.com/Benexl/yt-x#configuration).
           required: true
-        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#%E2%9D%93-frequently-asked-questions-faq).
+        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#-frequently-asked-questions-faq).
           required: true
         - label: I've searched the issue tracker for similar questions **including closed ones**. DO NOT post duplicates.
           required: true

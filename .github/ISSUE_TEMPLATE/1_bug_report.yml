@@ -23,7 +23,7 @@ body:
           required: true
         - label: I have verified that I am running the latest version of `yt-dlp` (Run `yt-dlp -U`)
           required: true
-        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#%E2%9D%93-frequently-asked-questions-faq) and the bug tracker for similar issues **including closed ones**. DO NOT post duplicates.
+        - label: I have read the [FAQ](https://github.com/Benexl/yt-x#-frequently-asked-questions-faq) and the bug tracker for similar issues **including closed ones**. DO NOT post duplicates.
           required: true
   - type: input
     id: environment
