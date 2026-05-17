@@ -57,28 +57,58 @@
 
 ## 🚀 Features
 
-### 🖥️ Interface & Navigation
+### 🔍 Search & Discovery
+*   **Comprehensive Search Capabilities**: Directly search for videos, playlists, or channels.
+*   **Advanced Search Filters**: Apply colon-prefixed quick filters directly to search queries:
+    *   *Time*: `:hour`, `:today`, `:week`, `:month`, `:year`
+    *   *Type*: `:video`, `:movie`, `:live`, `:short`, `:long`
+    *   *Features*: `:4k`, `:hd`, `:hdr`, `:subtitles`, `:360`, `:vr`, `:3d`, `:local`
+    *   *Sort by*: `:newest`, `:views`, `:rating`
+*   **Search History & Recall**: Automatically saves search history. Allows quick recall of previous searches using bang syntax (e.g., `!1` for the most recent search, `!2` for the second, etc.).
+*   **YouTube Feeds**: Access personal feeds including the Home Feed, Trending, Watch Later, Liked Videos, Watch History, and Clips.
+*   **Channel Browsing**: Deep dive into channels with dedicated menus for Videos, Featured content, Playlists, Shorts, Live Streams, Podcasts, and Channel-specific search.
 
-- **Interactive Menu**: Text-based UI using `fzf` or `rofi` for seamless, blazing-fast navigation.
-- **Asynchronous Previews**: Rich thumbnail and metadata previews powered by `chafa`, `imgcat`, or native `icat` (Kitty/Ghostty).
-- **YouTube Ecosystem**: Access your Feed, Trending, Playlists, Watch Later, Subscriptions, Liked Videos, and Clips.
-- **Channel Exploration**: Deep dive into channels—browse their videos, streams, podcasts, shorts, and playlists.
-- **History & Recents**: Automatically tracks your watched media and allows instant recall of previous searches.
+### 🖥️ User Interface & Experience
+*   **Dual Launcher Support**: Operates flawlessly in the terminal using **FZF** (Fuzzy Finder) or as a graphical desktop menu using **Rofi**.
+*   **Rich Media Previews**: Supports inline previews for search results containing:
+    *   High-resolution thumbnails rendered directly in the terminal via `chafa`, `icat`, `kitten icat`, or `imgcat`.
+    *   Detailed metadata including Channel Name, Follower Count, View Count, Duration, Upload Timestamp, Live Status, and formatted descriptions.
+*   **Theming & Styling**: True-color (24-bit) support with a default "Tokyo Night" inspired color scheme. Fully customizable UI formatting.
+*   **Multi-language Support**: Loadable language files (`.lang`) to easily localize the UI prompts and messages.
+*   **Pagination**: Smoothly browse through massive lists with Next/Previous pagination controls (fetches a configurable number of items per page, default is 30).
 
-### 🎵 Playback & Media Management
+### 🎬 Playback & Media Handling
+*   **Multiple Player Support**: Out-of-the-box integration with `mpv`, `vlc`, and `tplay`. 
+*   **Video & Audio Modes**: Choose to "Watch" (video) or "Listen" (audio-only, launching without a video window).
+*   **Playlist Actions**: Play individual videos, queue/play entire playlists, or queue "Listen to All" for audio-only marathon sessions.
+*   **Auto-Mix Generation**: Dynamically generates `.m3u8` playlist mixes based on a single video (YouTube "Mix" feature replication).
+*   **Background Playback**: Option to disown the media player process (`CONFIG_DISOWN_PLAYER`), allowing the UI to remain unblocked while media plays.
 
-- **Native Playback**: Play videos and audio directly via `mpv`, `vlc`, or `tplay`.
-- **Background Mode**: Fully supports detaching (`disowning`) players so you can keep browsing while watching.
-- **Download Management**: Download individual videos, audio, or entire playlists (automatically tracked via `yt-dlp` archives to prevent duplicates).
-- **Auto-Mixes**: Generate and explore YouTube song mixes automatically.
+### 💾 Downloading & Archival
+*   *Powered natively by `yt-dlp`.*
+*   **Granular Downloads**: Download single videos, entire playlists, or extract audio-only (MP3 format).
+*   **Smart Archiving**: Utilizes a download archive directory to track previously downloaded media and prevent duplicate downloads.
+*   **Organized File Structure**: Automatically routes downloads into structured directories (e.g., `video/individual/ChannelName/` or `audio/PlaylistName/ChannelName/`).
+*   **Enumeration Toggle**: Easily toggle file prefix enumeration (`01 - `, `02 - `) to keep downloaded playlist items in order.
 
-### 🛠️ Advanced Tools
+### 📚 Library & Data Management
+*   **Local Subscriptions Sync**: Syncs your actual YouTube subscriptions locally by passing browser cookies to `yt-dlp`, creating a private, locally stored subscription feed.
+*   **Local Watch History (Recent)**: Automatically tracks recently watched media in a local JSON file to resume or re-watch easily.
+*   **Saved Videos & Playlists**: Create local "Saved Videos" and "Custom Playlists" natively within the CLI without needing a YouTube account.
+*   **Cookie Integration**: Seamlessly imports cookies from installed browsers (Brave, Chrome, Firefox, Safari, Edge, etc.) to access age-restricted or account-specific content.
 
-- **Powerful Search**: Search with built-in advanced filters (`:today`, `:long`, `:4k`) and history recall (e.g., `!1`).
-- **Extensions Architecture**: Easily extend `yt-x` with your own UI logic, themes, languages, and site definitions via `~/.config/yt-x/extensions/`.
-- **Custom Commands**: Create your own tailored `yt-dlp` scrapers directly from the UI and load them into the browser.
-- **Yt-x Shell Mode**: Drop directly into a shell from any menu with all video/playlist metadata exported as environment variables for custom scripting.
-- **Cross-Platform**: Supports Linux, macOS, WSL/Windows, and **Android** (via Termux, routing media directly to Android apps like VLC/MPV).
+### ⚙️ Extensibility & Power User Features
+*   **Custom Commands**: Create custom macros that execute specific URLs and `yt-dlp` options (e.g., setting up a command to browse a completely different streaming site).
+*   **Extension System**: Modular architecture allowing the autoloading of custom scripts, sites, themes, and commands placed in `$HOME/.config/yt-x/extensions/`.
+*   **Stateful Sub-Shell Execution**: Drop into a system shell (`fish` or `sh`) pre-loaded with the environment variables of your current session (current video title, URL, channel info, etc.) for advanced custom scripting on the fly.
+*   **Desktop Integration**: Built-in command (`-E`) to generate a `.desktop` entry file, allowing `yt-x` to be launched natively from application menus (Linux).
+*   **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a configurable retention period (default 7 days).
+
+### 🛠️ Cross-Platform & Infrastructure
+*   **OS Support**: Works across Linux, macOS, Windows (via WSL/MSYS/Cygwin), and Android (uses `am start` intents to open media natively in Android apps like VLC or MPV).
+*   **Configuration Management**: Generates a robust `config` file automatically on first run. Allows editing configuration files directly from the UI menu.
+*   **Auto-Updater**: Built-in update checker that securely pulls the latest version from GitHub and prompts the user to apply updates inline.
+*   **Shell Completions**: Generates native shell autocomplete definitions (currently supporting `fish`).
 
 ## 📥 Installation
 
