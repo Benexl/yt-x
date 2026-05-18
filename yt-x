@@ -3878,7 +3878,7 @@ Direct shortcuts (skip the main menu):
   --custom-playlists             Browse custom playlists you've saved
   --saved                        Open saved videos
   --recent                       Show recently watched videos
-  --liked-videos                 Open your Liked Videos playlist
+  --liked                        Open your Liked Videos playlist
   --watch-history                Show your watch history
   --clips                        Browse your clips
   --new-custom-cmd               Go straight to creating a custom command
@@ -4032,7 +4032,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l playlists -d "Show saved You
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l custom-playlists -d "Browse custom playlists"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l saved -d "Open saved videos"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l recent -d "Show recently watched videos"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l liked-videos -d "Open Liked Videos playlist"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l liked -d "Open Liked Videos playlist"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l watch-history -d "Show watch history"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l clips -d "Browse your clips"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l new-custom-cmd -d "Create a new custom command"
@@ -4149,7 +4149,7 @@ _app_cmd_line_parser() {
     --custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS" ;;
     --saved) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED" ;;
     --recent) CMD_MAIN_ACTION="$TXT_MENU_MAIN_RECENT" ;;
-    --liked-videos) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED_VIDEOS" ;;
+    --liked) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED_VIDEOS" ;;
     --watch-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_HISTORY" ;;
     --clips) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CLIPS" ;;
     --new-custom-cmd) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_NEW_CUSTOM_CMD" ;;

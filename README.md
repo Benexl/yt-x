@@ -126,7 +126,7 @@
 - **Stateful Sub-Shell Execution**: Drop into a system shell (`fish` or `sh`) pre-loaded with the environment variables of your current session (current video title, URL, channel info, etc.) for advanced custom scripting on the fly.
 - **Desktop Integration**: Built-in command (`-E`) to generate a `.desktop` entry file, allowing `yt-x` to be launched natively from application menus (Linux).
 - **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a configurable retention period (default 7 days).
-- **Direct Shortcut Flags**: Skip the interactive menu entirely with dedicated flags like `--feed`, `--subscriptions-feed`, `--watch-later`, `--saved`, `--recent`, `--liked-videos`, `--watch-history`, `--clips`, and more – ideal for keybindings and scripting.
+- **Direct Shortcut Flags**: Skip the interactive menu entirely with dedicated flags like `--feed`, `--subscriptions-feed`, `--watch-later`, `--saved`, `--recent`, `--liked`, `--watch-history`, `--clips`, and more – ideal for keybindings and scripting.
 
 ### 🛠️ Cross-Platform & Infrastructure
 
@@ -323,7 +323,7 @@ If using `rofi` as your launcher, you can pass custom `.rasi` paths dynamically:
 - `--custom-playlists` : Browse custom playlists you've saved.
 - `--saved` : Open saved videos.
 - `--recent` : Show recently watched videos.
-- `--liked-videos` : Open your Liked Videos playlist.
+- `--liked` : Open your Liked Videos playlist.
 - `--watch-history` : Show your watch history.
 - `--clips` : Browse your clips.
 - `--new-custom-cmd` : Jump straight to creating a custom command.
