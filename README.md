@@ -860,6 +860,315 @@ Once configured, any compatible desktop widget or notification daemon will autom
 
 </details>
 
+<details>
+<summary><b>⚡ How can I play or download something without any interactive menus? (Non‑interactive mode)</b></summary>
+<br>
+
+`yt-x` now supports several flags that let you bypass all menus and run actions non‑interactively – perfect for scripting, keybindings, or quick one‑off commands.
+
+- `--playlist-skip` (`-ps`) : Automatically picks the first item in any list (search results, playlist, etc.) without showing the selection menu.
+- `--play-all`, `--listen-all`, `--download-all`, `--download-audio-all`, `--save-playlist` : These implicitly enable `--playlist-skip` and act on the whole playlist immediately.
+- `--media-exit` (`-me`) : After performing a media action (play, download, save, etc.), exit the script.
+- `--cmd-exit` (`-ce`) : After processing any shortcut menu command (e.g., `--feed`, `--subscriptions-feed`), exit.
+
+**Examples:**
+
+```bash
+# Play the first video from a search and exit
+yt-x --playlist-skip --play -s "cute kittens" --media-exit
+
+# Download the whole Watch Later playlist without any prompts
+yt-x --download-all --watch-later
+
+# Save the current playlist as a custom playlist and exit
+yt-x --save-playlist --media-exit
+```
+
+</details>
+
+<details>
+<summary><b>📁 How do I directly open a specific saved video or custom playlist without browsing the menu?</b></summary>
+<br>
+
+Use the `-sv` / `--saved-video` and `-cp` / `--custom-playlist` flags to jump straight to an item.  
+In supported shells (Fish), you get tab completion for the names.
+
+```bash
+# Open a specific saved video by its title
+yt-x -sv "My favourite coding tutorial"
+
+# Open a specific custom playlist
+yt-x -cp "Jazz for studying"
+```
+
+If you omit the argument, `yt-x` will prompt you to select from the list interactively.
+
+</details>
+
+<details>
+<summary><b>🐚 What is the `--shell` flag and when should I use it?</b></summary>
+<br>
+
+`--shell` drops you into a subshell (either `fish` or POSIX `sh`) that is pre‑loaded with all the current session’s state variables. This is a power‑user feature for advanced scripting or ad‑hoc manipulation.
+
+**Available variables in the subshell:**
+
+- `STATE_CURRENT_VIDEO`, `STATE_CURRENT_VIDEO_URL`, `STATE_CURRENT_VIDEO_TITLE`
+- `STATE_CURRENT_PLAYLIST_RESULTS`, `STATE_CURRENT_PLAYLIST_URL`, `STATE_CURRENT_PLAYLIST_TITLE`
+- Channel info, pagination indices, etc.
+
+You can use this to, for example, manually run `yt-dlp` commands on the current video, extract metadata, or automate custom post‑processing.
+
+```bash
+yt-x --shell   # After navigating to a video, you'll get a shell with that video's info loaded
+```
+
+Type `exit` to return to `yt-x`.
+
+</details>
+
+<details>
+<summary><b>🔁 Why does `--play-all` skip the item selection menu automatically?</b></summary>
+<br>
+
+`--play-all`, `--listen-all`, `--download-all`, `--download-audio-all`, and `--save-playlist` are designed for **whole‑playlist actions**. They assume you want to act on the entire list, not a single item, so they automatically set `--playlist-skip` internally. This saves you from having to type both flags and makes command‑line usage more intuitive.
+
+If you *do* want to select a specific item from a playlist before playing the whole list, just use `--play` (without `-all`) and choose interactively.
+
+</details>
+
+<details>
+<summary><b>⌨️ How do I get tab completion for custom playlist names or saved video titles?</b></summary>
+<br>
+
+Fish shell completions are fully supported and include dynamic completion for:
+- `-cp` / `--custom-playlist` : reads playlist names from `~/.config/yt-x/custom-playlists.json`
+- `-sv` / `--saved-video` : reads video titles from `~/.config/yt-x/saved-videos.json`
+- `channels -n` : reads channel names from `~/.config/yt-x/subscriptions.json`
+- `-x` / `--extension` : lists files in `~/.config/yt-x/extensions/`
+
+To install Fish completions:
+
+```bash
+yt-x completions --fish > ~/.config/fish/completions/yt-x.fish
+```
+
+Bash and Zsh completions are not yet implemented – contributions are welcome!
+
+</details>
+
+<details>
+<summary><b>🛑 Why does `--cmd-exit` not exit immediately after some commands?</b></summary>
+<br>
+
+`--cmd-exit` works by setting a flag that tells `yt-x` to exit once the current “command” (menu or action) returns to the main loop. If you use `--cmd-exit` with a shortcut that opens another menu (e.g., `--saved` followed by selecting a video), the exit will only happen after you fully exit that sub‑menu (by pressing Back/Exit). For a hard exit right after a media action, use `--media-exit` instead.
+
+</details>
+
+<details>
+<summary><b>🔍 How do I search for videos, playlists, channels, shorts, or movies without going through the main menu?</b></summary>
+<br>
+
+Use the dedicated search flags to jump straight to results:
+
+- `-s, --search <term>` : Video search
+- `-sp, --search-playlist <term>` : Playlist search
+- `-sc, --search-channel <term>` : Channel search
+- `-ss, --search-short <term>` : Shorts search
+- `-sm, --search-movie <term>` : Movie search
+
+If you omit the search term, `yt-x` will prompt you to enter one interactively.
+
+**Example:**
+```bash
+yt-x -s "linux kernel tutorial"
+yt-x -sp "jazz playlist"
+yt-x -sc "tech news"
+```
+
+</details>
+
+<details>
+<summary><b>⚙️ Can I temporarily change the launcher (fzf/rofi) or media player without editing the config file?</b></summary>
+<br>
+
+Yes, use the `-l` / `--launcher` and `-p` / `--player` flags. These override the config file settings for a single run.
+
+```bash
+# Use rofi as the menu launcher for this session
+yt-x -l rofi
+
+# Use vlc as the media player
+yt-x -p vlc
+
+# Combine with other options
+yt-x -l rofi -p vlc --preview
+```
+
+</details>
+
+<details>
+<summary><b>🖼️ How do I temporarily enable or disable previews (images and metadata) from the command line?</b></summary>
+<br>
+
+Use `-i` to enable previews or `-I` to disable them. This overrides your `CONFIG_ENABLE_PREVIEW` setting for that run.
+
+```bash
+# Run with previews enabled
+yt-x -i
+
+# Run with previews disabled (useful for slow connections)
+yt-x -I
+```
+
+Previews can also be toggled inside `fzf` using `ctrl-/` (if not disabled in your config).
+
+</details>
+
+<details>
+<summary><b>📦 How do I create a desktop shortcut (Linux) to launch yt-x from my app menu?</b></summary>
+<br>
+
+Use the `-E` / `--generate-desktop-entry` flag. It prints a `.desktop` file to stdout, which you can redirect to the appropriate directory.
+
+```bash
+# For a terminal‑based launcher (fzf)
+yt-x -E > ~/.local/share/applications/yt-x.desktop
+
+# For a GUI‑style launcher with rofi (no terminal window)
+# (Modify the generated file to set Terminal=false and add --launcher rofi)
+```
+
+After saving, run `update-desktop-database ~/.local/share/applications/` to refresh the menu.
+
+</details>
+
+<details>
+<summary><b>🔄 How do I manually update yt‑x to the latest version?</b></summary>
+<br>
+
+Run `yt-x -U` or `yt-x --update`. The script will check the GitHub repository for changes, show you a diff if available, and prompt you to apply the update. If you installed `yt-x` to a system‑wide location (e.g., `/usr/local/bin`) without proper write permissions, you may need to reinstall it in your `~/.local/bin` directory for the auto‑updater to work.
+
+To disable automatic update checks, set `CONFIG_CHECK_FOR_UPDATES=false` in your config file.
+
+</details>
+
+<details>
+<summary><b>🧩 How do I load an extension without restarting yt‑x or editing the config?</b></summary>
+<br>
+
+Use the `-x` / `--extension` flag followed by the extension file name (relative to `~/.config/yt-x/extensions/`) or an absolute path. Extensions can be anything from theme files (`.theme`), language files (`.lang`), site definitions (`.site`), or custom command scripts (`.cmd`).
+
+```bash
+# Load a theme
+yt-x -x themes/catppuccin.theme
+
+# Load a site extension for a different video platform
+yt-x -x sites/dailymotion.site
+
+# Load a custom command script
+yt-x -x cmd/my-search
+```
+
+Multiple `-x` flags can be used. To autoload extensions on every startup, list them in `CONFIG_AUTOLOADED_EXTENSIONS` (comma‑separated) in your config file.
+
+</details>
+
+<details>
+<summary><b>🌐 How do I override configuration settings using environment variables?</b></summary>
+<br>
+
+Every config variable can be overridden by an environment variable prefixed with `YT_X_`. This is useful for scripting or one‑off changes without touching the config file.
+
+**Examples:**
+```bash
+# Use rofi as launcher for this session
+YT_X_LAUNCHER=rofi yt-x
+
+# Enable previews and use chafa for images
+YT_X_ENABLE_PREVIEW=true YT_X_IMAGE_RENDERER=chafa yt-x
+
+# Change download directory temporarily
+YT_X_DOWNLOAD_DIR="$HOME/Downloads/temp" yt-x --download-all
+```
+
+See the config file for all available variables (e.g., `YT_X_PLAYER`, `YT_X_BROWSER`, `YT_X_PER_PAGE`, etc.).
+
+</details>
+
+<details>
+<summary><b>🗑️ How does yt‑x manage cache, and can I clean it manually?</b></summary>
+<br>
+
+`yt-x` automatically cleans up old cache files (preview images, auto‑generated playlists, logs) based on `CONFIG_CACHE_RETENTION_DAYS` (default 7 days). The cache directories are located under `~/.cache/yt-x/`.
+
+To manually clean everything:
+```bash
+rm -rf ~/.cache/yt-x/
+```
+
+To keep the cache but remove only stale items older than a certain number of days (e.g., 3):
+```bash
+find ~/.cache/yt-x/ -type f -mtime +3 -delete
+```
+
+Clearing the cache will not affect your saved videos, custom playlists, or subscriptions – those are stored in `~/.config/yt-x/`.
+
+</details>
+
+<details>
+<summary><b>📺 How do I use the `channels` subcommand non‑interactively?</b></summary>
+<br>
+
+The `channels` subcommand accepts `-n` (channel name) plus an action flag. You can combine it with `--cmd-exit` to exit after browsing the channel.
+
+**Examples:**
+```bash
+# Open a channel's videos and exit when you go back
+yt-x channels -n "Linus Tech Tips" -v --cmd-exit
+
+# Search within a channel without any interactive channel selection
+yt-x channels -n "freeCodeCamp.org" -s "python tutorial"
+
+# List a channel's playlists and then exit
+yt-x channels -n "StarTalk" -p --cmd-exit
+```
+
+If `-n` is omitted, you'll be prompted to pick from your subscriptions. If no action flag is given, you'll enter the channel's interactive menu.
+
+</details>
+
+<details>
+<summary><b>🎛️ What are all the direct menu shortcuts I can use to skip the main menu?</b></summary>
+<br>
+
+These flags take you straight to specific sections:
+
+| Flag | Destination |
+|------|-------------|
+| `--feed` | Your personalised feed |
+| `--subscriptions-feed` | Subscriptions feed |
+| `--watch-later` | Watch Later playlist |
+| `--playlists` | Saved YouTube playlists |
+| `--custom-playlists` | Your local custom playlists |
+| `--saved` | Your saved videos |
+| `--recent` | Recently watched |
+| `--liked` | Liked videos |
+| `--watch-history` | Watch history |
+| `--clips` | Your clips |
+| `--new-custom-cmd` | Create a new custom command |
+| `--custom-cmds` | Run an existing custom command |
+| `--search-history` | Browse search history |
+| `--edit-search-history` | Edit search history file |
+| `--edit-custom-playlists` | Edit custom playlists JSON |
+| `--edit-mpv-config` | Edit mpv config |
+| `--edit-yt-dlp-config` | Edit yt‑dlp config |
+| `--edit-custom-cmds` | Edit custom commands JSON |
+
+Combine these with `--cmd-exit` for non‑interactive workflows.
+
+</details>
+
 ## 🤝 Support & Contribution
 
 Pull requests are highly welcome! Whether it's adding new extension logic, fixing bugs, or expanding search parameters, feel free to fork and contribute.
