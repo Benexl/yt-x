@@ -3997,7 +3997,9 @@ _app_completions_fish() {
   cat <<EOF
 # Fish completions for $CLI_NAME
 
-# Global options (only when no subcommand is active)
+# ==========================================================================
+# Global options (available when no subcommand is active)
+# ==========================================================================
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s h -l help -d "Show help and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show version and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
@@ -4020,13 +4022,55 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-prompt -d "Rofi p
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-confirm -d "Rofi confirm theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-pager -d "Rofi pager theme path" --require-parameter
 
-# Extensions – list all files in the extensions directory tree, return relative paths
+# ==========================================================================
+# Direct menu shortcuts (boolean flags)
+# ==========================================================================
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l feed -d "Open your personalised feed"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l subscriptions-feed -d "Show latest videos from subscriptions"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l watch-later -d "Open Watch Later playlist"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l playlists -d "Show saved YouTube playlists"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l custom-playlists -d "Browse custom playlists"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l saved -d "Open saved videos"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l recent -d "Show recently watched videos"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l liked-videos -d "Open Liked Videos playlist"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l watch-history -d "Show watch history"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l clips -d "Browse your clips"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l new-custom-cmd -d "Create a new custom command"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l custom-cmds -d "Execute an existing custom command"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-search-history -d "Edit search history file"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-playlists -d "Edit custom playlists file"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-mpv-config -d "Edit mpv configuration"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-yt-dlp-config -d "Edit yt‑dlp configuration"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-cmds -d "Edit custom commands file"
+
+# ==========================================================================
+# Extensions – dynamic list of files in the extensions directory tree
+# ==========================================================================
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extension -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
 
+# ==========================================================================
 # Subcommands
+# ==========================================================================
 complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
+complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a channels -d "Browse or search within a specific channel"
 
+# ==========================================================================
+# Channels subcommand options
+# ==========================================================================
+# --name: dynamic completion from subscriptions file
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o n -l name -d "Channel name" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SUBSCRIPTIONS_FILE'" 2>/dev/null)'
+
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o v -l videos -d "List channel videos"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o f -l featured -d "Show featured playlists"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o s -l search -d "Search within channel" --require-parameter
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o p -l playlists -d "List channel playlists"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o sh -l shorts -d "Show channel shorts"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o st -l streams -d "Show live streams & past broadcasts"
+complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o po -l podcasts -d "Show channel podcasts"
+
+# ==========================================================================
 # Completions sub‑options
+# ==========================================================================
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s f -l fish -d "Print fish completions"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s b -l bash -d "Print bash completions"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s z -l zsh -d "Print zsh completions"
