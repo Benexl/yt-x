@@ -3911,9 +3911,9 @@ Options:
 
 Examples:
   $CLI_NAME channels -n 'Linus Tech Tips' -v     Open channel and list videos
-  $CLI_NAME channels -n 'Benexl' -s 'bash tutorial'   Search within a channel
-  $CLI_NAME channels -n 'Some Channel' -p          Show channel playlists
-  $CLI_NAME channels -n 'Some Channel' -st         Show channel streams
+  $CLI_NAME channels -n 'iambenexl' -s 'bash tutorial'   Search within a channel
+  $CLI_NAME channels -n 'StarTalk' -p          Show channel playlists
+  $CLI_NAME channels -n 'The PrimeTime' -st         Show channel streams
 
 If --name is omitted, you'll be asked to pick a channel from your subscriptions.
 If --name is given without an action, the interactive channel menu will open.
