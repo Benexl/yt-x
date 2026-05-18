@@ -3910,11 +3910,15 @@ Options:
   -e, --edit-config              Open the config file in your editor
   -U, --update                   Check for and apply an update for $CLI_NAME
   -ce, --cmd-exit                Exit after shortcut menu commandline options
+  -ps, --playlist-skip           Skip the item selection menu and automatically pick the first entry
+  -me, --media-exit              Exit after performing a media action (watch, listen, etc.)
   -s, --search <term>            Search for videos directly
   -sp, --search-playlist <term>  Search for playlists directly
   -sc, --search-channel <term>   Search for channels directly
   -ss, --search-short <term>     Search for shorts directly
   -sm, --search-movie <term>     Search for movies directly
+  -cp, --custom-playlist <name>  Open a specific custom playlist by its saved name
+  -sv, --saved-video <title>     Open a specific saved video by its title
   -l, --launcher <launcher>      Menu launcher: fzf or rofi
   -p, --player <player>          Media player: mpv, vlc or tplay
   -i, --preview                  Enable the preview window (images/text)
@@ -3930,7 +3934,21 @@ Options:
   -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
 
 ────────────────────────────────────────────────────────────────────
-Direct shortcuts (skip the main menu):
+Direct media action shortcuts (skip the media action menu):
+  --play                         Immediately watch the selected video (you still choose from the list)
+  --play-all                     Immediately play the whole playlist (implies --playlist-skip)
+  --listen                       Immediately listen to the audio of the selected video
+  --listen-all                   Immediately listen to the whole playlist (audio only, implies --playlist-skip)
+  --download                     Download the selected video
+  --download-all                 Download the whole playlist (video, implies --playlist-skip)
+  --download-audio               Download only the audio of the selected video
+  --download-audio-all           Download the whole playlist as audio (implies --playlist-skip)
+  --save                         Save the selected video to your saved videos list
+  --save-playlist                Save the current playlist to your custom playlists (implies --playlist-skip)
+  --shell                        Open a subshell with current context variables
+
+────────────────────────────────────────────────────────────────────
+Direct menu shortcuts (skip the main menu):
   --feed                         Open your personalised feed
   --subscriptions-feed           Show latest videos from subscriptions
   --watch-later                  Open the Watch Later playlist
@@ -3977,15 +3995,37 @@ Examples:
   $CLI_NAME -sp 'rust tutorial'             # Search playlists immediately
   $CLI_NAME -sc 'learn coding'              # Search channels immediately
   $CLI_NAME --launcher rofi --preview       # Use rofi with previews
+
+  # Media action shortcuts
+  $CLI_NAME --play                          # Play the selected video (interactive selection)
+  $CLI_NAME --playlist-skip --play          # Automatically play the first video without selection
+  $CLI_NAME --play-all                      # Play the entire current playlist (no selection)
+  $CLI_NAME --listen-all                    # Listen to the whole playlist as audio
+  $CLI_NAME --download-all                  # Download the whole playlist (video)
+  $CLI_NAME --download-audio-all            # Download the whole playlist as audio
+  $CLI_NAME --save-playlist                 # Save the current playlist (no selection needed)
+
+  $CLI_NAME --save                          # Save the current video to saved list
+  $CLI_NAME --shell                         # Open a subshell with state variables
+
+  # Skip and exit helpers
+  $CLI_NAME --playlist-skip --play          # Automatically play the first item
+  $CLI_NAME --media-exit --download         # Download and then exit the script
+  $CLI_NAME -cp 'Jazz Favourites'           # Open a saved custom playlist by name
+  $CLI_NAME -sv 'My favourite video'        # Open a specific saved video by title
+
+  # Extensions and desktop entry
   $CLI_NAME -x themes/catppuccin.theme      # Load a theme extension
   $CLI_NAME -x langs/es.lang                # Load a language extension
   $CLI_NAME -x sites/dailymotion.site       # Load a site extension
   $CLI_NAME -x cmd/downloads                # Execute a cmd extension
   $CLI_NAME completions --fish              # Print fish completions
   $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop
+
+  # Channel subcommand examples
   $CLI_NAME channels -n 'Linus Tech Tips' -v   # Browse channel videos
   $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools' # search within a channel
-  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' -p # Browse freecodecamp playlists and immediately exit on back
+  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' -p # Browse freecodecamp playlists and exit on back
   $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' # useful for setting aliases eg a shortcut to always go to freecodecamp channel 'freecodecamp'
   $CLI_NAME --launcher rofi --cmd-exit channels -n 'freeCodeCamp.org' # or as an app eg  'freecodecamp-app'
 
