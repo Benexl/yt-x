@@ -3218,6 +3218,91 @@ __menu_main_subscriptions_feed() {
   menu_playlist_explorer
 }
 
+_search_expand_history_recall() {
+  local term
+  term="$1"
+  case "$term" in
+  ![!0-9]* | !)
+    printf '%s\n' "$term"
+    ;;
+  !*)
+    local n
+    n="${term#!}"
+    n="${n%%[!0-9]*}"
+    local rest
+    rest="${term#!"$n"}"
+    rest="${rest# }"
+    local recalled
+    recalled=$(_get_search_history_entry "$n" 2>/dev/null)
+    if [ -n "$recalled" ]; then
+      term="$recalled $rest"
+      # Use literal space and tab for maximum POSIX compatibility
+      term=$(printf '%s\n' "$term" | sed 's/^[ 	]*//;s/[ 	]*$//')
+    fi
+    printf '%s\n' "$term"
+    ;;
+  *)
+    # Catch-all for normal queries without "!" triggers
+    printf '%s\n' "$term"
+    ;;
+  esac
+}
+
+_search_apply_filters() {
+  local term
+  term="$1"
+  local sp
+  sp="EgIQAQ%253D%253D"
+  local orig
+  orig="$term"
+  local filter_applied
+  filter_applied=0
+  local colon_part
+  local cand
+  local maybe_sp
+  local suffix
+
+  case "$term" in
+  :*)
+    # Extract first word using literal space and tab as delimiter
+    colon_part="${term%%[ 	]*}"
+    cand="${colon_part#:}"
+    maybe_sp=$(_parse_search_filter "$cand" 2>/dev/null)
+    if [ $? -eq 0 ]; then
+      sp="$maybe_sp"
+      if [ "$colon_part" = "$term" ]; then
+        term=""
+      else
+        # Remove the filter and any leading spaces from the remaining string
+        term=$(printf '%s\n' "$term" | sed 's/^[^ 	]\{1,\}[ 	]*//')
+      fi
+      filter_applied=1
+    fi
+    ;;
+  esac
+
+  if [ "$filter_applied" -eq 0 ]; then
+    # Extract suffix filter if it exists using POSIX BRE
+    suffix=$(printf '%s\n' "$term" | sed -n 's/.*[ 	]\{1,\}:\([^ 	]\{1,\}\)$/\1/p')
+    if [ -n "$suffix" ]; then
+      maybe_sp=$(_parse_search_filter "$suffix" 2>/dev/null)
+      if [ $? -eq 0 ]; then
+        sp="$maybe_sp"
+        # Strip the suffix filter from the term
+        term=$(printf '%s\n' "$term" | sed 's/[ 	]\{1,\}:[^ 	]\{1,\}$//')
+        filter_applied=1
+      fi
+    fi
+  fi
+
+  if [ "$filter_applied" -eq 1 ] && [ -z "$term" ]; then
+    term="$orig"
+    sp="EgIQAQ%253D%253D"
+  fi
+
+  printf '%s\n%s\n' "$term" "$sp"
+}
+
 __menu_main_search() {
   local raw_search_term
   local use_history
@@ -3225,36 +3310,26 @@ __menu_main_search() {
   local hist_list
   local recent
   local choice
-  local n
-  local recall
   local sp
-  local query_only
-  local colon_prefix
-  local maybe_sp
-  local last_entry
   local encoded_search_term
   local url
+  local filter_output
 
   use_history=0
-  sp="EgIQAQ%253D%253D" # default: videos
 
   if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
-    raw_search_term=$(printf "%s" "$CMD_INPUT" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    raw_search_term=$(printf "%s" "$CMD_INPUT" | sed 's/^[ 	]*//;s/[ 	]*$//')
     unset -v CMD_MAIN_ACTION CMD_INPUT
   else
     if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] && [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
-      # Get the last 10 entries efficiently and reverse them
       hist_list=$(tail -n 10 "$CLI_SEARCH_HISTORY_FILE" | awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}')
       recent=$(printf "%s\n" "$hist_list" | head -n 5)
-
       header="Recent searches:
 ${recent}
 
 "
       choice=$(printf "New search…\n%s" "$hist_list" | ui_launcher "$TXT_MENU_MAIN_SEARCH_OR_HISTORY_PROMPT" || true)
-
       if [ -z "$choice" ]; then
-        # User aborted the launcher (e.g., pressed ESC)
         return
       elif [ "$choice" != "New search…" ]; then
         raw_search_term="$choice"
@@ -3265,69 +3340,29 @@ ${recent}
     header="${header}${TXT_SEARCH_FILTER_HELP}"
 
     if [ "$use_history" -eq 0 ]; then
-      # Manual input – provide a hint in the prompt header
-      raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      raw_search_term=$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT" "$header" | sed 's/^[ 	]*//;s/[ 	]*$//')
       [ -z "$raw_search_term" ] && return
     fi
   fi
 
-  # ---- process !n recall ----
-  case "$raw_search_term" in
-  !*) # possible history reference
-    n="${raw_search_term#!}"
-    # check if n is a positive integer
-    case "$n" in
-    *[!0-9]* | '') ;;
-    *)
-      # Strip leading zeros safely to prevent octal interpretation errors
-      n=$(printf "%s\n" "$n" | sed 's/^0*//')
-      [ -z "$n" ] && n=0
-      if [ "$n" -gt 0 ] 2>/dev/null; then
-        recall=$(_get_search_history_entry "$n" 2>/dev/null)
-        [ -n "$recall" ] && raw_search_term="$recall"
-      fi
-      ;;
-    esac
-    ;;
-  esac
+  raw_search_term=$(_search_expand_history_recall "$raw_search_term")
 
-  # ---- parse optional colon filter ----
-  query_only="$raw_search_term"
+  filter_output=$(_search_apply_filters "$raw_search_term")
+  # Extract sp (strictly the last line) and raw_search_term (all previous lines) cleanly
+  sp=$(printf '%s\n' "$filter_output" | sed -n '$p')
+  raw_search_term=$(printf '%s\n' "$filter_output" | sed '$d')
 
-  case "$raw_search_term" in
-  :*[\ \	]*) # starts with colon, contains space/tab
-    colon_prefix="${raw_search_term%% *}"
-    colon_prefix="${colon_prefix#:}" # remove leading ':'
-
-    maybe_sp=$(parse_search_filter "$colon_prefix" 2>/dev/null)
-
-    # shellcheck disable=SC2181
-    if [ $? -eq 0 ]; then
-      sp="$maybe_sp"
-      # Extract query and trim leading spaces in case of multiple spaces
-      query_only="${raw_search_term#* }"
-      query_only=$(printf "%s" "$query_only" | sed 's/^[[:space:]]*//')
-    fi
-    ;;
-  esac
-
-  # ---- save to history ----
   if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ]; then
     if [ -f "$CLI_SEARCH_HISTORY_FILE" ]; then
-      # 1. Remove older occurrences of this exact search term to prevent duplicates
-      grep -v -x -F "$raw_search_term" "$CLI_SEARCH_HISTORY_FILE" >"${CLI_SEARCH_HISTORY_FILE}.tmp" 2>/dev/null || true
-
-      # 2. Cap the history size (e.g., keep only the last 99 entries)
+      # -e ensures hyphenated search terms are treated strictly as patterns, not illegal grep flags
+      grep -v -x -F -e "$raw_search_term" "$CLI_SEARCH_HISTORY_FILE" >"${CLI_SEARCH_HISTORY_FILE}.tmp" 2>/dev/null || true
       tail -n 99 "${CLI_SEARCH_HISTORY_FILE}.tmp" >"$CLI_SEARCH_HISTORY_FILE" 2>/dev/null || true
-      rm "${CLI_SEARCH_HISTORY_FILE}.tmp"
+      rm -f "${CLI_SEARCH_HISTORY_FILE}.tmp"
     fi
-
-    # 3. Append the new term as the most recent entry
     printf "%s\n" "$raw_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
   fi
 
-  # ---- build URL and fetch ----
-  encoded_search_term=$(printf '%s' "$query_only" | jq -Rr '@uri')
+  encoded_search_term=$(printf '%s' "$raw_search_term" | jq -Rr '@uri')
   url="results?search_query=$encoded_search_term&sp=$sp"
 
   fetch_playlist "$url"
