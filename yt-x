@@ -2681,11 +2681,17 @@ $TXT_MENU_EXIT"
 
   while true; do
     titles=$(echo "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
-    choice="$(
-      printf "%s\n%s" "$titles" "$other_choices" |
-        preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
-    )"
+
+    if [ "$CMD_PLAYLIST_RESULTS_SKIP" = "true" ]; then
+      choice="$(echo "$titles" | head -n 1)"
+      unset -v CMD_PLAYLIST_RESULTS_SKIP
+    else
+      choice="$(
+        printf "%s\n%s" "$titles" "$other_choices" |
+          preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
+      )"
+    fi
 
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlist_explorer_next ;;
@@ -3541,10 +3547,16 @@ __menu_main_custom_playlists() {
 
   if [ -s "$CLI_CUSTOM_PLAYLISTS_FILE" ]; then
     while true; do
-      playlist_title=$(
-        printf "%s\n%s" "$(jq -r '.|reverse|.[].name' "$CLI_CUSTOM_PLAYLISTS_FILE")" "$TXT_MENU_BACK" |
-          ui_launcher "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT"
-      )
+      if [ -n "$CMD_INPUT" ]; then
+        playlist_title="$CMD_INPUT"
+        unset -v CMD_INPUT
+      else
+        playlist_title=$(
+          printf "%s\n%s" "$(jq -r '.|reverse|.[].name' "$CLI_CUSTOM_PLAYLISTS_FILE")" "$TXT_MENU_BACK" |
+            ui_launcher "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT"
+        )
+      fi
+
       case "$playlist_title" in
       "$TXT_MENU_BACK" | "") break ;;
       *)
@@ -3563,6 +3575,9 @@ __menu_main_custom_playlists() {
         menu_playlist_explorer
         ;;
       esac
+      if [ "$CMD_EXIT" = true ]; then
+        _util_byebye
+      fi
     done
   else
     ui_notify_warning "$TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND"
@@ -4138,6 +4153,7 @@ _app_cmd_line_parser() {
     -i | --preview) CONFIG_ENABLE_PREVIEW=true ;;
     -I | --no-preview) CONFIG_ENABLE_PREVIEW=false ;;
     -ce | --cmd-exit) CMD_EXIT=true ;;
+    -ps | --playlist-skip) CMD_PLAYLIST_RESULTS_SKIP=true ;;
     -me | --media-exit) CMD_MEDIA_EXIT=true ;;
     -x | --extension)
       [ -n "$2" ] || _app_usage 1
@@ -4215,6 +4231,16 @@ _app_cmd_line_parser() {
     --edit-mpv-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_MPV_CONFIG" ;;
     --edit-yt-dlp-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_YTDLP_CONFIG" ;;
     --edit-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CMDS" ;;
+    -cp | --custom-playlist)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS"
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
     -s | --search)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
       if [ -z "$2" ]; then
