@@ -288,7 +288,24 @@ yt-x
 - `-l, --launcher <fzf|rofi>` : Override the default menu launcher.
 - `-i, --preview` : Enable the media preview window (images and metadata).
 - `-I, --no-preview` : Disable the media preview window.
-- `-x, --extension <ext>` : Load a specific extension file (accepts absolute paths or paths relative to `~/.config/yt-x/extensions/`; _supports fish tab complete_).
+- `-x, --extension <ext>` : Load a specific extension file (absolute path or relative to `~/.config/yt-x/extensions/`; _supports fish tab complete_).
+- `-ce, --cmd-exit` : Exit after shortcut menu command‑line options (useful for scripting).
+- `-ps, --playlist-skip` : Skip the item selection menu and automatically pick the first entry in a playlist.
+- `-me, --media-exit` : Exit after performing a media action (watch, listen, download, etc.).
+
+#### 🎬 Media Action Shortcuts (skip the media action menu)
+
+- `--play` : Immediately watch the selected video (you still choose from the list).
+- `--play-all` : Immediately play the whole playlist (implies `--playlist-skip`).
+- `--listen` : Immediately listen to the audio of the selected video.
+- `--listen-all` : Immediately listen to the whole playlist (audio only, implies `--playlist-skip`).
+- `--download` : Download the selected video.
+- `--download-all` : Download the whole playlist (video, implies `--playlist-skip`).
+- `--download-audio` : Download only the audio of the selected video.
+- `--download-audio-all` : Download the whole playlist as audio (implies `--playlist-skip`).
+- `--save` : Save the selected video to your local saved videos list.
+- `--save-playlist` : Save the current playlist to your custom playlists (implies `--playlist-skip`).
+- `--shell` : Open a subshell with the current state variables.
 
 #### 🎬 Player & Playback
 
@@ -301,7 +318,6 @@ yt-x
 - `-e, --edit-config` : Open the `yt-x` configuration file in your `$EDITOR`.
 - `-U, --update` : Check for and apply the latest script update from GitHub.
 - `-E, --generate-desktop-entry` : Print a `.desktop` application entry to `stdout` (useful for Linux application menus).
-- `-ce, --cmd-exit` : Exit after shortcut menu commandline options.
 - `-v, --version` : Print version information and exit.
 - `-h, --help` : Show the help message and exit.
 
@@ -427,18 +443,40 @@ yt-x --launcher rofi --preview --no-disown-player
 Search for a playlist and let `mpv` handle it in the background:
 
 ```bash
-yt-x -l fzf -p mpv --disown-player -sp "lofi hip hop radio"
-# Once in the menu, select "Listen" or "Listen To All"
+yt-x -l fzf -p mpv --disown-player --listen-all -sp "lofi hip hop radio" # skip playlist results menu
+# or
+yt-x -l fzf -p mpv --disown-player --listen -sp "lofi hip hop radio" # choose specific video to listen to
 ```
 
-**4. Jump Directly to a Channel**  
+**4. Non‑Interactive Actions (Scripting)**  
+Automatically play the first video in a search result, then exit:
+
+```bash
+yt-x --playlist-skip --play -s "cute cats"
+```
+
+**5. Play Whole Playlist Immediately**  
+Skip both the main menu and the item selection – jump straight into playing a whole playlist:
+
+```bash
+yt-x --play-all --watch-later
+```
+
+**6. Save Current Playlist Without Any Menus**  
+When browsing a playlist, save it as a custom playlist and exit:
+
+```bash
+yt-x --save-playlist --media-exit
+```
+
+**7. Jump Directly to a Channel**  
 Open a subscribed channel’s videos without going through the main menu:
 
 ```bash
 yt-x channels -n "Linus Tech Tips" -v
 ```
 
-**5. Generate a Desktop Entry (Linux)**  
+**8. Generate a Desktop Entry (Linux)**  
 Create a native application shortcut in your desktop environment:
 
 ```bash
@@ -446,11 +484,18 @@ yt-x -E > ~/.local/share/applications/yt-x.desktop
 update-desktop-database ~/.local/share/applications/
 ```
 
-**6. Shell Completions**  
-Generate and apply autocomplete scripts for your shell (e.g., Fish).
+**9. Shell Completions**  
+Generate and apply autocomplete scripts for your shell (e.g., Fish):
 
 ```bash
 yt-x completions --fish > ~/.config/fish/completions/yt-x.fish
+```
+
+**10. Open a Specific Saved Video**  
+Bypass the saved videos menu and jump straight to a particular saved video:
+
+```bash
+yt-x -sv "My favourite video"
 ```
 
 ## Configuration
