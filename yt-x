@@ -3590,9 +3590,12 @@ __menu_main_saved_videos() {
   local selection
 
   if [ -s "$CLI_SAVED_VIDEOS_FILE" ]; then
-    saved_videos="$(
-      cat "$CLI_SAVED_VIDEOS_FILE" |
-        jq '
+    if [ -n "$CMD_INPUT" ]; then
+      saved_videos="$(cat "$CLI_SAVED_VIDEOS_FILE")"
+    else
+      saved_videos="$(
+        cat "$CLI_SAVED_VIDEOS_FILE" |
+          jq '
           .entries=(
             .entries
             |reverse
@@ -3601,14 +3604,20 @@ __menu_main_saved_videos() {
             |map(.value)
           )
           '
-    )"
+      )"
+    fi
 
     while true; do
-      selection=$(
-        printf "%s\n%s" "$(echo "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-          preview "$saved_videos" |
-          ui_launcher_with_preview "$TXT_MENU_MAIN_SAVED_PROMPT"
-      )
+      if [ -n "$CMD_INPUT" ]; then
+        selection="$CMD_INPUT"
+        unset -v CMD_INPUT
+      else
+        selection=$(
+          printf "%s\n%s" "$(echo "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+            preview "$saved_videos" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_SAVED_PROMPT"
+        )
+      fi
 
       case "$selection" in
       "$TXT_MENU_BACK" | "") break ;;
@@ -3629,6 +3638,9 @@ __menu_main_saved_videos() {
         ;;
       esac
     done
+    if [ -n "$CMD_EXIT" ]; then
+      _util_byebye
+    fi
   else
     ui_notify_warning "$TXT_SAVED_VIDEOS_FILE_NOT_FOUND"
   fi
@@ -4235,6 +4247,16 @@ _app_cmd_line_parser() {
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS"
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
+    -sv | --saved-video)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED"
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_SAVED_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
