@@ -133,6 +133,19 @@ mkdir -p \
   "$CLI_LOG_DIR"
 
 # ==============================================================================
+# Declarations for lsp
+# ==============================================================================
+CMD_EXIT=""
+CMD_PLAYLIST_RESULTS_SKIP=""
+CMD_MEDIA_EXIT=""
+CMD_MEDIA_ACTION=""
+CMD_MAIN_ACTION=""
+CMD_MISC_ACTION=""
+CMD_CHANNEL=""
+CMD_CHANNEL_ACTION=""
+CMD_INPUT=""
+
+# ==============================================================================
 # CONFIGURATION & ENVIRONMENT
 # ==============================================================================
 __load_default_config() {
