@@ -2551,7 +2551,7 @@ __menu_playlist_actions_visit_channel() {
 }
 
 __menu_playlist_actions_subscribe_to_channel() {
-  # TODO: use youtube api to enable video subscriptions
+  # TODO: use youtube oembed and yt-dlp to enable channel subscriptions
   ui_notify_error "contribute to the project by adding this feature"
 }
 
@@ -2590,10 +2590,15 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
-    media_action="$(
-      printf "%s" "$actions" |
-        ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g'
-    )"
+    if [ -n "$CMD_MEDIA_ACTION" ]; then
+      media_action="$CMD_MEDIA_ACTION"
+      unset -v CMD_MEDIA_ACTION
+    else
+      media_action="$(
+        printf "%s" "$actions" |
+          ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g'
+      )"
+    fi
     case "$media_action" in
     "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_playlist_actions_watch ;;
     "$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL") __menu_playlist_actions_watch_all ;;
@@ -2617,6 +2622,9 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify "${TXT_MENU_INVALID_ACTION}: $media_action" ;;
     esac
+    if [ "$CMD_MEDIA_EXIT" = true ]; then
+      _util_byebye
+    fi
   done
 }
 
@@ -4130,6 +4138,7 @@ _app_cmd_line_parser() {
     -i | --preview) CONFIG_ENABLE_PREVIEW=true ;;
     -I | --no-preview) CONFIG_ENABLE_PREVIEW=false ;;
     -ce | --cmd-exit) CMD_EXIT=true ;;
+    -me | --media-exit) CMD_MEDIA_EXIT=true ;;
     -x | --extension)
       [ -n "$2" ] || _app_usage 1
       if [ "${2#/}" != "$2" ]; then
@@ -4177,6 +4186,17 @@ _app_cmd_line_parser() {
       CONFIG_ROFI_THEME_PAGER="$2"
       shift_count=2
       ;;
+    --play) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_WATCH" ;;
+    --play-all) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL" ;;
+    --listen) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_LISTEN" ;;
+    --listen-all) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL" ;;
+    --download) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD" ;;
+    --download-all) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL" ;;
+    --download-audio) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO" ;;
+    --download-audio-all) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO" ;;
+    --save) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_SAVE" ;;
+    --save-playlist) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST" ;;
+    --shell) CMD_MEDIA_ACTION="$TXT_MENU_PLAYLIST_ACTIONS_SHELL" ;;
     --feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_FEED" ;;
     --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBS_FEED" ;;
     --watch-later) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_LATER" ;;
