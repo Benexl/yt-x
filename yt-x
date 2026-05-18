@@ -3908,6 +3908,7 @@ Direct shortcuts (skip the main menu):
   --clips                        Browse your clips
   --new-custom-cmd               Go straight to creating a custom command
   --custom-cmds                  Execute an existing custom command
+  --search-history               Browse your search history
   --edit-search-history          Edit the search history file
   --edit-custom-playlists        Edit the custom playlists JSON file
   --edit-mpv-config              Edit mpv's configuration file
@@ -4069,6 +4070,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l watch-history -d "Show watch
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l clips -d "Browse your clips"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l new-custom-cmd -d "Create a new custom command"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l custom-cmds -d "Execute an existing custom command"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l search-history -d "Show search history"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-search-history -d "Edit search history file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-playlists -d "Edit custom playlists file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-mpv-config -d "Edit mpv configuration"
@@ -4187,6 +4189,7 @@ _app_cmd_line_parser() {
     --clips) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CLIPS" ;;
     --new-custom-cmd) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_NEW_CUSTOM_CMD" ;;
     --custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS" ;;
+    --search-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_SEARCH_HISTORY" ;;
     --edit-search-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_SEARCH_HISTORY" ;;
     --edit-custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_PLAYLISTS" ;;
     --edit-mpv-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_MPV_CONFIG" ;;

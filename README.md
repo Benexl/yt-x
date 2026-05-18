@@ -329,6 +329,7 @@ If using `rofi` as your launcher, you can pass custom `.rasi` paths dynamically:
 - `--clips` : Browse your clips.
 - `--new-custom-cmd` : Jump straight to creating a custom command.
 - `--custom-cmds` : Execute an existing custom command.
+- `--search-history` : Browse your search history.
 - `--edit-search-history` : Edit the search history file.
 - `--edit-custom-playlists` : Edit the custom playlists JSON file.
 - `--edit-mpv-config` : Edit mpv’s configuration.
