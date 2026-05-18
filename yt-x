@@ -4112,13 +4112,15 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show versio
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o ce -l cmd-exit -d "Exit after shortcut menu commandline options"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ps -l playlist-skip -d "Skip item selection and auto‑pick first entry"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o me -l media-exit -d "Exit after performing a media action"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sm -l search-movie -d "Search for movies" --require-parameter
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s l -l launcher -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s p -l player -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l launcher -s l -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l player -s p -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview -d "Enable preview window"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-preview -d "Disable preview window"
@@ -4129,6 +4131,21 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-preview -d "Rofi 
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-prompt -d "Rofi prompt theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-confirm -d "Rofi confirm theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-pager -d "Rofi pager theme path" --require-parameter
+
+# ==========================================================================
+# Direct media action shortcuts
+# ==========================================================================
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l play -d "Watch selected video"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l play-all -d "Play whole playlist"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l listen -d "Listen to selected video"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l listen-all -d "Listen to whole playlist"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l download -d "Download selected video"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l download-all -d "Download whole playlist (video)"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l download-audio -d "Download audio only"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l download-audio-all -d "Download whole playlist as audio"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l save -d "Save video to saved list"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l save-playlist -d "Save playlist to custom list"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l shell -d "Open subshell with context"
 
 # ==========================================================================
 # Direct menu shortcuts (boolean flags)
@@ -4151,6 +4168,14 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-playlists -d "Ed
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-mpv-config -d "Edit mpv configuration"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-yt-dlp-config -d "Edit yt‑dlp configuration"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-cmds -d "Edit custom commands file"
+
+# ==========================================================================
+# Options that take a parameter with dynamic completion
+# ==========================================================================
+# --custom-playlist / -cp : complete from custom playlists JSON file
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o cp -l custom-playlist -d "Open a saved custom playlist" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_PLAYLISTS_FILE'" 2>/dev/null)'
+# --saved-video / -sv : complete from saved videos JSON file
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sv -l saved-video -d "Open a specific saved video" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SAVED_VIDEOS_FILE'" 2>/dev/null | sed "s/^[0-9]* //")'
 
 # ==========================================================================
 # Extensions – dynamic list of files in the extensions directory tree
