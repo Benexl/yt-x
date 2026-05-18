@@ -3305,6 +3305,7 @@ _search_apply_filters() {
 
 __menu_main_search() {
   local raw_search_term
+  local history_search_term
   local use_history
   local header
   local hist_list
@@ -3347,6 +3348,9 @@ ${recent}
 
   raw_search_term=$(_search_expand_history_recall "$raw_search_term")
 
+  # Preserve the query including its filters for the history file
+  history_search_term="$raw_search_term"
+
   filter_output=$(_search_apply_filters "$raw_search_term")
   # Extract sp (strictly the last line) and raw_search_term (all previous lines) cleanly
   sp=$(printf '%s\n' "$filter_output" | sed -n '$p')
@@ -3355,11 +3359,11 @@ ${recent}
   if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ]; then
     if [ -f "$CLI_SEARCH_HISTORY_FILE" ]; then
       # -e ensures hyphenated search terms are treated strictly as patterns, not illegal grep flags
-      grep -v -x -F -e "$raw_search_term" "$CLI_SEARCH_HISTORY_FILE" >"${CLI_SEARCH_HISTORY_FILE}.tmp" 2>/dev/null || true
+      grep -v -x -F -e "$history_search_term" "$CLI_SEARCH_HISTORY_FILE" >"${CLI_SEARCH_HISTORY_FILE}.tmp" 2>/dev/null || true
       tail -n 99 "${CLI_SEARCH_HISTORY_FILE}.tmp" >"$CLI_SEARCH_HISTORY_FILE" 2>/dev/null || true
       rm -f "${CLI_SEARCH_HISTORY_FILE}.tmp"
     fi
-    printf "%s\n" "$raw_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
+    printf "%s\n" "$history_search_term" >>"$CLI_SEARCH_HISTORY_FILE"
   fi
 
   encoded_search_term=$(printf '%s' "$raw_search_term" | jq -Rr '@uri')
