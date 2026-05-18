@@ -3892,6 +3892,39 @@ For any more queries visit the readme and read the [faqs](https://github.com/Ben
   exit "${1:-0}"
 }
 
+_app_usage_channels() {
+  local help_msg
+  help_msg="\
+Browse YouTube channels or search within them directly from the command line.
+
+Usage: $CLI_NAME channels [OPTIONS]
+
+Options:
+  -n, --name <channel>        Specify the channel name (exact match, case‑sensitive)
+  -v, --videos                List the channel's uploaded videos
+  -f, --featured              Show the channel's featured playlists
+  -s, --search <query>        Search inside the channel's uploads
+  -p, --playlists             List the channel's playlists
+  -sh, --shorts               Show the channel's short videos
+  -st, --streams              Show live streams & past broadcasts
+  -po, --podcasts             Show the channel's podcasts
+
+Examples:
+  $CLI_NAME channels -n 'Linus Tech Tips' -v     Open channel and list videos
+  $CLI_NAME channels -n 'Benexl' -s 'bash tutorial'   Search within a channel
+  $CLI_NAME channels -n 'Some Channel' -p          Show channel playlists
+  $CLI_NAME channels -n 'Some Channel' -st         Show channel streams
+
+If --name is omitted, you'll be asked to pick a channel from your subscriptions.
+If --name is given without an action, the interactive channel menu will open.
+
+Note: The channel name must match what appears in your subscriptions exactly.
+      Use the Miscellaneous → Explore Channels feature if you haven't subscribed yet."
+
+  printf "%s\n" "$help_msg"
+  exit "${1:-0}"
+}
+
 _app_usage_completions() {
   local help_msg
   help_msg="\
@@ -4127,7 +4160,8 @@ _app_cmd_line_parser() {
         -sh | --shorts) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SHORTS" ;;
         -st | --streams) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_STREAMS" ;;
         -po | --podcasts) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PODCASTS" ;;
-        *) _app_usage_channel 1 ;;
+        -h | --help) _app_usage_channels ;;
+        *) _app_usage_channels 1 ;;
         esac
         shift $shift_count
       done
