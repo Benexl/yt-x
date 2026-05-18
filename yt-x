@@ -2978,7 +2978,7 @@ __menu_miscellaneous_explore_channels() {
   local search_term
   local url
 
-  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_CHANNELS" ] && [ -n "$CMD_INPUT" ]; then
+  if [ -n "$CMD_INPUT" ]; then
     search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
     unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
   else
@@ -2996,7 +2996,7 @@ __menu_miscellaneous_explore_playlists() {
   local search_term
   local url
 
-  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_PLAYLISTS" ] && [ -n "$CMD_INPUT" ]; then
+  if [ -n "$CMD_INPUT" ]; then
     search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
     unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
   else
@@ -3201,8 +3201,9 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰆴${THEME_RESET}  ${TXT_MENU_MISC_CLEAR_SEARCH_HI
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   while true; do
-    if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_MISC" ] && [ -n "$CMD_MISC_ACTION" ]; then
+    if [ -n "$CMD_MISC_ACTION" ]; then
       action="$CMD_MISC_ACTION"
+      unset -v CMD_MISC_ACTION
     else
       action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MISC_PROMPT" | sed 's/.*  //g')"
     fi
@@ -3353,9 +3354,9 @@ __menu_main_search() {
 
   use_history=0
 
-  if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_SEARCH" ] && [ -n "$CMD_INPUT" ]; then
+  if [ -n "$CMD_INPUT" ]; then
     raw_search_term=$(printf "%s" "$CMD_INPUT" | sed 's/^[ 	]*//;s/[ 	]*$//')
-    unset -v CMD_MAIN_ACTION CMD_INPUT
+    unset -v CMD_INPUT
   else
     if [ "$CONFIG_ENABLE_SEARCH_HISTORY" = "true" ] && [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
       hist_list=$(tail -n 10 "$CLI_SEARCH_HISTORY_FILE" | awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}')
@@ -3466,10 +3467,6 @@ __menu_main_channels_explorer() {
   if [ -s "$CLI_SUBSCRIPTIONS_FILE" ]; then
     channels="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
     while true; do
-      if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_CHANNELS" ]; then
-        unset -v CMD_MAIN_ACTION
-      fi
-
       if [ -n "$CMD_CHANNEL" ]; then
         channel="$CMD_CHANNEL"
         if [ -z "$CMD_CHANNEL_ACTION" ]; then
@@ -3667,9 +3664,11 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
   while true; do
     if [ -n "$CMD_MAIN_ACTION" ]; then
       action="$CMD_MAIN_ACTION"
+      unset -v CMD_MAIN_ACTION
     else
       action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/.*  //g')"
     fi
+
     case "$action" in
     "$TXT_MENU_MAIN_FEED") __menu_main_feed ;;
     "$TXT_MENU_MAIN_SEARCH") __menu_main_search ;;
@@ -3981,6 +3980,23 @@ _app_cmd_line_parser() {
     -U | --update)
       _app_update_check || echo "No updates found" && exit 1
       ;;
+    --feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_FEED" ;;
+    --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBSCRIPTIONS_FEED" ;;
+    --watch-later) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_LATER" ;;
+    --playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_PLAYLISTS" ;;
+    --custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS" ;;
+    --saved) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED" ;;
+    --recent) CMD_MAIN_ACTION="$TXT_MENU_MAIN_RECENT" ;;
+    --liked-videos) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED_VIDEOS" ;;
+    --watch-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_HISTORY" ;;
+    --clips) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CLIPS" ;;
+    --new-custom-cmd) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_NEW_CUSTOM_CMD" ;;
+    --custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS" ;;
+    --edit-search-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_SEARCH_HISTORY" ;;
+    --edit-custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_PLAYLISTS" ;;
+    --edit-mpv-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_MPV_CONFIG" ;;
+    --edit-yt-dlp-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_YTDLP_CONFIG" ;;
+    --edit-custom-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CUSTOM_CMDS" ;;
     -s | --search)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
 
