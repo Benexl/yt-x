@@ -2895,7 +2895,13 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE") __menu_channel_actions_subscribe ;;
-    "$TXT_MENU_BACK" | "") _state_pop && break ;;
+    "$TXT_MENU_BACK" | "")
+      if [ "$CMD_EXIT" = "true" ]; then
+        _util_byebye
+      else
+        _state_pop && break
+      fi
+      ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *) _ui_notify "$TXT_MENU_INVALID_ACTION" ;;
     esac
@@ -2990,6 +2996,9 @@ __menu_miscellaneous_explore_channels() {
 
   fetch_channels "$url"
   menu_channels_explorer
+  if [ "$CMD_EXIT" = "true" ]; then
+    _util_byebye
+  fi
 }
 
 __menu_miscellaneous_explore_playlists() {
@@ -3008,6 +3017,9 @@ __menu_miscellaneous_explore_playlists() {
 
   fetch_playlists "$url"
   menu_playlists_explorer
+  if [ "$CMD_EXIT" = "true" ]; then
+    _util_byebye
+  fi
 }
 
 __menu_miscellaneous_explore_shorts() {
@@ -3026,6 +3038,9 @@ __menu_miscellaneous_explore_shorts() {
 
   fetch_playlist "$url"
   menu_playlist_explorer
+  if [ "$CMD_EXIT" = "true" ]; then
+    _util_byebye
+  fi
 }
 
 __menu_miscellaneous_explore_movies() {
@@ -3044,6 +3059,9 @@ __menu_miscellaneous_explore_movies() {
 
   fetch_playlist "$url"
   menu_playlist_explorer
+  if [ "$CMD_EXIT" = "true" ]; then
+    _util_byebye
+  fi
 }
 
 __menu_miscellaneous_new_custom_command() {
@@ -3097,7 +3115,13 @@ __menu_miscellaneous_custom_commands() {
           ui_launcher "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT"
       )
       case "$custom_cmd_name" in
-      "$TXT_MENU_BACK" | "") break ;;
+      "$TXT_MENU_BACK" | "")
+        if [ "$CMD_EXIT" = "true" ]; then
+          _util_byebye
+        else
+          break
+        fi
+        ;;
       *)
         custom_cmd=$(
           jq -r --arg name "$custom_cmd_name" '
@@ -3850,6 +3874,7 @@ Options:
   -v, --version                  Print version information and exit
   -e, --edit-config              Open the config file in your editor
   -U, --update                   Check for and apply an update for $CLI_NAME
+  -ce, --cmd-exit                Exit after shortcut menu commandline options
   -s, --search <term>            Search for videos directly
   -sp, --search-playlist <term>  Search for playlists directly
   -sc, --search-channel <term>   Search for channels directly
@@ -3909,21 +3934,22 @@ Sub‑commands:
 
 ────────────────────────────────────────────────────────────────────
 Examples:
-  $CLI_NAME                                 Start the interactive browser
-  $CLI_NAME --feed                          Open the feed directly
-  $CLI_NAME --subscriptions-feed            Open subscriptions feed
-  $CLI_NAME -s 'onepiece elbaf trailer'     Search immediately
-  $CLI_NAME -sp 'rust tutorial'             Search playlists immediately
-  $CLI_NAME -sc 'learn coding'              Search channels immediately
-  $CLI_NAME --launcher rofi --preview       Use rofi with previews
-  $CLI_NAME -x themes/catppuccin.theme      Load a theme extension
-  $CLI_NAME -x langs/es.lang                Load a language extension
-  $CLI_NAME -x sites/dailymotion.site       Load a site extension
-  $CLI_NAME -x cmd/downloads                Execute a cmd extension
-  $CLI_NAME completions --fish              Print fish completions
+  $CLI_NAME                                 # Start the interactive browser
+  $CLI_NAME --feed                          # Open the feed directly
+  $CLI_NAME --subscriptions-feed            # Open subscriptions feed
+  $CLI_NAME -s 'onepiece elbaf trailer'     # Search immediately
+  $CLI_NAME -sp 'rust tutorial'             # Search playlists immediately
+  $CLI_NAME -sc 'learn coding'              # Search channels immediately
+  $CLI_NAME --launcher rofi --preview       # Use rofi with previews
+  $CLI_NAME -x themes/catppuccin.theme      # Load a theme extension
+  $CLI_NAME -x langs/es.lang                # Load a language extension
+  $CLI_NAME -x sites/dailymotion.site       # Load a site extension
+  $CLI_NAME -x cmd/downloads                # Execute a cmd extension
+  $CLI_NAME completions --fish              # Print fish completions
   $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop
-  $CLI_NAME channels -n 'Linus Tech Tips' -v   Browse channel videos
-  $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools'
+  $CLI_NAME channels -n 'Linus Tech Tips' -v   # Browse channel videos
+  $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools' # search within a channel
+  $CLI_NAME --cmd-exit channels -n 'freecodecamp' -p # Browse freecodecamp playlists and immediately exit on back
 
 For more details visit the FAQ:
   https://github.com/Benexl/yt-x#-frequently-asked-questions-faq"
@@ -3950,10 +3976,11 @@ Options:
   -po, --podcasts             Show the channel's podcasts
 
 Examples:
-  $CLI_NAME channels -n 'Linus Tech Tips' -v     Open channel and list videos
-  $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools'   Search within a channel
-  $CLI_NAME channels -n 'StarTalk' -p          Show channel playlists
-  $CLI_NAME channels -n 'The PrimeTime' -st         Show channel streams
+  $CLI_NAME channels -n 'Linus Tech Tips' -v     # Open channel and list videos
+  $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools'   # Search within a channel
+  $CLI_NAME channels -n 'StarTalk' -p          # Show channel playlists
+  $CLI_NAME channels -n 'The PrimeTime' -st         # Show channel streams
+  $CLI_NAME --cmd-exit channels -n 'freecodecamp' -p # Browse freecodecamp playlists and immediately exit on back
 
 If --name is omitted, you'll be asked to pick a channel from your subscriptions.
 If --name is given without an action, the interactive channel menu will open.
@@ -4004,6 +4031,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s h -l help -d "Show help and 
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show version and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ce -l cmd-exit -d "Exit after shortcut menu commandline options"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
@@ -4095,6 +4123,7 @@ _app_cmd_line_parser() {
     -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
     -i | --preview) CONFIG_ENABLE_PREVIEW=true ;;
     -I | --no-preview) CONFIG_ENABLE_PREVIEW=false ;;
+    -ce | --cmd-exit) CMD_EXIT=true ;;
     -x | --extension)
       [ -n "$2" ] || _app_usage 1
       if [ "${2#/}" != "$2" ]; then
