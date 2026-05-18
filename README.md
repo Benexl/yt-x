@@ -528,15 +528,15 @@ Below is a categorized breakdown of the available configuration options you can 
 
 #### ⚙️ Advanced UI Tuning (FZF & Rofi)
 
-- **FZF:**
-  - `CONFIG_FZF_HEADER`: Sets a custom header (like the default ASCII logo) for `fzf`.
-  - `CONFIG_FZF_OPTS`: Fine-tune `fzf` layout, colors, pointers, and bind keys. (Defaults to a highly customized "Tokyo Night" theme).
-- **Rofi:** Provide absolute paths to custom `.rasi` theme files to seamlessly integrate `yt-x` into your desktop graphical environment.
-  - `CONFIG_ROFI_THEME_MAIN`
-  - `CONFIG_ROFI_THEME_PREVIEW`
-  - `CONFIG_ROFI_THEME_PROMPT`
-  - `CONFIG_ROFI_THEME_CONFIRM`
-  - `CONFIG_ROFI_THEME_PAGER`
+| Variable                    | Default | Description                                                                                       |
+| :-------------------------- | :------ | :------------------------------------------------------------------------------------------------ |
+| `CONFIG_FZF_HEADER`         | *(logo)*| A custom header string displayed at the top of the `fzf` menu (defaults to the `yt-x` ASCII logo). |
+| `CONFIG_FZF_OPTS`           | *(see config)* | Fine‑tune `fzf` layout, colors, pointers, and keybindings. Defaults to a fully‑themed "Tokyo Night" style. |
+| `CONFIG_ROFI_THEME_MAIN`    | `""`    | Path to a custom Rofi `.rasi` theme for the main menu.                                           |
+| `CONFIG_ROFI_THEME_PREVIEW` | `""`    | Path to a custom Rofi `.rasi` theme for the preview menu.                                        |
+| `CONFIG_ROFI_THEME_PROMPT`  | `""`    | Path to a custom Rofi `.rasi` theme for prompt dialogs.                                          |
+| `CONFIG_ROFI_THEME_CONFIRM` | `""`    | Path to a custom Rofi `.rasi` theme for confirmation dialogs.                                    |
+| `CONFIG_ROFI_THEME_PAGER`   | `""`    | Path to a custom Rofi `.rasi` theme for the pager.                                               |
 
 #### 🧩 System & Extensions
 
