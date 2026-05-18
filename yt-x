@@ -3949,7 +3949,9 @@ Examples:
   $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop
   $CLI_NAME channels -n 'Linus Tech Tips' -v   # Browse channel videos
   $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools' # search within a channel
-  $CLI_NAME --cmd-exit channels -n 'freecodecamp' -p # Browse freecodecamp playlists and immediately exit on back
+  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' -p # Browse freecodecamp playlists and immediately exit on back
+  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' # useful for setting aliases eg a shortcut to always go to freecodecamp channel 'freecodecamp'
+  $CLI_NAME --launcher rofi --cmd-exit channels -n 'freeCodeCamp.org' # or as an app eg  'freecodecamp-app'
 
 For more details visit the FAQ:
   https://github.com/Benexl/yt-x#-frequently-asked-questions-faq"
@@ -3980,7 +3982,9 @@ Examples:
   $CLI_NAME channels -n 'iambenexl' -s 'Top linux tools'   # Search within a channel
   $CLI_NAME channels -n 'StarTalk' -p          # Show channel playlists
   $CLI_NAME channels -n 'The PrimeTime' -st         # Show channel streams
-  $CLI_NAME --cmd-exit channels -n 'freecodecamp' -p # Browse freecodecamp playlists and immediately exit on back
+  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' -p # Browse freecodecamp playlists and immediately exit on back
+  $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' # useful for setting aliases eg a shortcut to always go to freecodecamp channel 'freecodecamp'
+  $CLI_NAME --launcher rofi --cmd-exit channels -n 'freeCodeCamp.org' # or as an app eg  'freecodecamp-app'
 
 If --name is omitted, you'll be asked to pick a channel from your subscriptions.
 If --name is given without an action, the interactive channel menu will open.

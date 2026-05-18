@@ -301,6 +301,7 @@ yt-x
 - `-e, --edit-config` : Open the `yt-x` configuration file in your `$EDITOR`.
 - `-U, --update` : Check for and apply the latest script update from GitHub.
 - `-E, --generate-desktop-entry` : Print a `.desktop` application entry to `stdout` (useful for Linux application menus).
+- `-ce, --cmd-exit` : Exit after shortcut menu commandline options.
 - `-v, --version` : Print version information and exit.
 - `-h, --help` : Show the help message and exit.
 
@@ -346,7 +347,7 @@ Quickly jump into a channel from your subscriptions and browse its content.
 
 **Options:**
 
-- `-n, --name <channel>` : Specify the channel name (exact match, case‑sensitive; _tab complete supported_).  
+- `-n, --name <channel>` : Specify the channel name (exact match, case‑sensitive; _tab complete supported_).
 - `-v, --videos` : List the channel’s uploaded videos.
 - `-f, --featured` : Show the channel’s featured playlists.
 - `-s, --search <query>` : Search within the channel’s uploads.
@@ -363,6 +364,9 @@ yt-x channels -n "Linus Tech Tips" -v          # Browse latest videos
 yt-x channels -n "iambenexl" -s "Top linux tools"   # Search inside a channel
 yt-x channels -n "StarTalk" -p             # Show channel playlists
 yt-x channels -n "The PrimeTime" -st            # Show channel streams
+yt-x --cmd-exit channels -n 'freeCodeCamp.org' -p # Browse freecodecamp playlists and immediately exit on back
+yt-x --cmd-exit channels -n 'freeCodeCamp.org' # useful for setting aliases eg a shortcut to always go to freecodecamp channel `freecodecamp`
+yt-x --launcher rofi --cmd-exit channels -n 'freeCodeCamp.org' # or as an app eg  `freecodecamp-app`
 ```
 
 ---
@@ -442,7 +446,8 @@ update-desktop-database ~/.local/share/applications/
 ```
 
 **6. Shell Completions**  
-Generate and apply autocomplete scripts for your shell (e.g., Fish).  
+Generate and apply autocomplete scripts for your shell (e.g., Fish).
+
 ```bash
 yt-x completions --fish > ~/.config/fish/completions/yt-x.fish
 ```
@@ -528,15 +533,15 @@ Below is a categorized breakdown of the available configuration options you can 
 
 #### ⚙️ Advanced UI Tuning (FZF & Rofi)
 
-| Variable                    | Default | Description                                                                                       |
-| :-------------------------- | :------ | :------------------------------------------------------------------------------------------------ |
-| `CONFIG_FZF_HEADER`         | *(logo)*| A custom header string displayed at the top of the `fzf` menu (defaults to the `yt-x` ASCII logo). |
-| `CONFIG_FZF_OPTS`           | *(see config)* | Fine‑tune `fzf` layout, colors, pointers, and keybindings. Defaults to a fully‑themed "Tokyo Night" style. |
-| `CONFIG_ROFI_THEME_MAIN`    | `""`    | Path to a custom Rofi `.rasi` theme for the main menu.                                           |
-| `CONFIG_ROFI_THEME_PREVIEW` | `""`    | Path to a custom Rofi `.rasi` theme for the preview menu.                                        |
-| `CONFIG_ROFI_THEME_PROMPT`  | `""`    | Path to a custom Rofi `.rasi` theme for prompt dialogs.                                          |
-| `CONFIG_ROFI_THEME_CONFIRM` | `""`    | Path to a custom Rofi `.rasi` theme for confirmation dialogs.                                    |
-| `CONFIG_ROFI_THEME_PAGER`   | `""`    | Path to a custom Rofi `.rasi` theme for the pager.                                               |
+| Variable                    | Default        | Description                                                                                                |
+| :-------------------------- | :------------- | :--------------------------------------------------------------------------------------------------------- |
+| `CONFIG_FZF_HEADER`         | _(logo)_       | A custom header string displayed at the top of the `fzf` menu (defaults to the `yt-x` ASCII logo).         |
+| `CONFIG_FZF_OPTS`           | _(see config)_ | Fine‑tune `fzf` layout, colors, pointers, and keybindings. Defaults to a fully‑themed "Tokyo Night" style. |
+| `CONFIG_ROFI_THEME_MAIN`    | `""`           | Path to a custom Rofi `.rasi` theme for the main menu.                                                     |
+| `CONFIG_ROFI_THEME_PREVIEW` | `""`           | Path to a custom Rofi `.rasi` theme for the preview menu.                                                  |
+| `CONFIG_ROFI_THEME_PROMPT`  | `""`           | Path to a custom Rofi `.rasi` theme for prompt dialogs.                                                    |
+| `CONFIG_ROFI_THEME_CONFIRM` | `""`           | Path to a custom Rofi `.rasi` theme for confirmation dialogs.                                              |
+| `CONFIG_ROFI_THEME_PAGER`   | `""`           | Path to a custom Rofi `.rasi` theme for the pager.                                                         |
 
 #### 🧩 System & Extensions
 
@@ -783,9 +788,10 @@ Yes! `yt-x` uses `rofi`'s native `\0icon\x1f` protocol to display images. Ensure
 This is actually a feature of your media player rather than `yt-x`. Integrating this directly into `yt-x` would require complex workarounds (such as intercepting `mpv`'s output using Lua scripts or enforcing `playerctl` + MPRIS dependencies), which goes against `yt-x`'s lightweight design philosophy.
 
 **The Solution:**
-The cleanest way to achieve this is by enabling **MPRIS** support directly in your media player. 
-*   **For `mpv`:** Install the [`mpv-mpris`](https://github.com/hoyon/mpv-mpris) plugin. This allows `mpv` to broadcast the current track's metadata to your OS, exactly like a web browser does for YouTube.
-*   **For other players:** Search for similar MPRIS or D-Bus integration plugins/settings.
+The cleanest way to achieve this is by enabling **MPRIS** support directly in your media player.
+
+- **For `mpv`:** Install the [`mpv-mpris`](https://github.com/hoyon/mpv-mpris) plugin. This allows `mpv` to broadcast the current track's metadata to your OS, exactly like a web browser does for YouTube.
+- **For other players:** Search for similar MPRIS or D-Bus integration plugins/settings.
 
 Once configured, any compatible desktop widget or notification daemon will automatically pick it up and display what's playing. For example, using the [Noctalia](https://docs.noctalia.dev/v4/) daemon on the Niri compositor handles this beautifully:
 
