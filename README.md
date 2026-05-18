@@ -84,6 +84,7 @@
 - **Search History & Recall**: Automatically saves search history. Allows quick recall of previous searches using bang syntax (e.g., `!1` for the most recent search, `!2` for the second, etc.).
 - **YouTube Feeds**: Access personal feeds including the Home Feed, Trending, Watch Later, Liked Videos, Watch History, and Clips.
 - **Channel Browsing**: Deep dive into channels with dedicated menus for Videos, Featured content, Playlists, Shorts, Live Streams, Podcasts, and Channel-specific search.
+- **Channel Subcommand**: Jump directly into a channel from the command line (e.g., `yt-x channels -n "Linus Tech Tips" -v`) – perfect for scripting and keyboard-driven workflows.
 
 ### 🖥️ User Interface & Experience
 
@@ -125,13 +126,14 @@
 - **Stateful Sub-Shell Execution**: Drop into a system shell (`fish` or `sh`) pre-loaded with the environment variables of your current session (current video title, URL, channel info, etc.) for advanced custom scripting on the fly.
 - **Desktop Integration**: Built-in command (`-E`) to generate a `.desktop` entry file, allowing `yt-x` to be launched natively from application menus (Linux).
 - **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a configurable retention period (default 7 days).
+- **Direct Shortcut Flags**: Skip the interactive menu entirely with dedicated flags like `--feed`, `--subscriptions-feed`, `--watch-later`, `--saved`, `--recent`, `--liked-videos`, `--watch-history`, `--clips`, and more – ideal for keybindings and scripting.
 
 ### 🛠️ Cross-Platform & Infrastructure
 
 - **OS Support**: Works across Linux, macOS, Windows (via WSL/MSYS/Cygwin), and Android (uses `am start` intents to open media natively in Android apps like VLC or MPV).
 - **Configuration Management**: Generates a robust `config` file automatically on first run. Allows editing configuration files directly from the UI menu.
 - **Auto-Updater**: Built-in update checker that securely pulls the latest version from GitHub and prompts the user to apply updates inline.
-- **Shell Completions**: Generates native shell autocomplete definitions (currently supporting `fish`).
+- **Shell Completions**: Generates native shell autocomplete definitions (fish, with dynamic channel name completion from `subscriptions.json` and extension completion from `~/.config/yt-x/extensions/`).
 
 ## 📥 Installation
 
