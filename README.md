@@ -75,7 +75,7 @@
 
 ### 🔍 Search & Discovery
 
-- **Comprehensive Search Capabilities**: Directly search for videos, playlists, or channels.
+- **Comprehensive Search Capabilities**: Directly search for videos, playlists, channels, shorts or movies.
 - **Advanced Search Filters**: Apply colon-prefixed quick filters directly to search queries:
   - _Time_: `:hour`, `:today`, `:week`, `:month`, `:year`
   - _Type_: `:video`, `:movie`, `:live`, `:short`, `:long`
@@ -277,6 +277,8 @@ yt-x
 - `-s, --search <term>` : Immediately execute a video search and bypass the main menu.
 - `-sp, --search-playlist <term>` : Immediately execute a playlist search.
 - `-sc, --search-channel <term>` : Immediately execute a channel search.
+- `-ss, --search-short <term>` : Immediately execute a short search.
+- `-sm, --search-movie <term>` : Immediately execute a movie search.
 
 #### 🖥️ UI & Interface
 
@@ -342,7 +344,6 @@ Almost all CLI options can be permanently set in `~/.config/yt-x/config` or over
 - `YT_X_ENABLE_PREVIEW` (`true` or `false`)
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
 - `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`)
-- `YT_X_VIDEO_QUALITY` (`1080`, `720`, etc.)
 - `YT_X_BROWSER` (e.g., `firefox`, `brave` - extracts cookies for restricted content)
 
 ---
@@ -360,14 +361,14 @@ yt-x --preview -s "cyberpunk 2077 ost"
 Launch `yt-x` as a graphical application using Rofi (great for mapping to a keyboard shortcut in your Window Manager):
 
 ```bash
-yt-x --launcher rofi --preview --disown-player
+yt-x --launcher rofi --preview --no-disown-player
 ```
 
 **3. Audio-Only Background Music**
 Search for a playlist, and use `mpv` to handle it in the background:
 
 ```bash
-yt-x -p mpv --disown-player -sp "lofi hip hop radio"
+yt-x -l fzf -p mpv --disown-player -sp "lofi hip hop radio"
 # Once in the menu, select "Listen" or "Listen To All"
 ```
 
@@ -439,7 +440,6 @@ Below is a categorized breakdown of the available configuration options you can 
 | :--------------------- | :------ | :------------------------------------------------------------------------- |
 | `CONFIG_PLAYER`        | `mpv`   | Preferred media player. Options: `mpv`, `vlc`, `tplay`.                    |
 | `CONFIG_DISOWN_PLAYER` | `false` | Set to `true` to run the player in the background without blocking the UI. |
-| `CONFIG_VIDEO_QUALITY` | `1080`  | Preferred video resolution. Options: `2160`, `1440`, `1080`, `720`, `480`. |
 | `CONFIG_MPV_ARGS`      | `""`    | Custom arguments passed directly to `mpv`.                                 |
 | `CONFIG_VLC_ARGS`      | `""`    | Custom arguments passed directly to `vlc`.                                 |
 | `CONFIG_TPLAY_ARGS`    | `""`    | Custom arguments passed directly to `tplay`.                               |

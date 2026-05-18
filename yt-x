@@ -335,10 +335,18 @@ Recall history         –  !1, !2, … (newest = 1)"
 
   # miscellaneous
   TXT_MENU_MISC_PROMPT="Select an action"
+
   TXT_MENU_MISC_EXPLORE_CHANNELS="Explore Channels"
-  TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Enter channel name"
+  TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT="Enter channel search term"
+
   TXT_MENU_MISC_EXPLORE_PLAYLISTS="Explore Playlists"
-  TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Enter playlist name"
+  TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT="Enter playlist search term"
+
+  TXT_MENU_MISC_EXPLORE_SHORTS="Explore Shorts"
+  TXT_MENU_MISC_EXPLORE_SHORTS_PROMPT="Enter short search term"
+
+  TXT_MENU_MISC_EXPLORE_MOVIES="Explore Movies"
+  TXT_MENU_MISC_EXPLORE_MOVIES_PROMPT="Enter movie search term"
 
   TXT_MENU_MISC_SEARCH_HISTORY="Search History"
   TXT_MENU_MISC_SEARCH_HISTORY_PROMPT="Search for"
@@ -549,10 +557,6 @@ CONFIG_PLAYER="$CONFIG_PLAYER"
 CONFIG_MPV_ARGS="$CONFIG_MPV_ARGS"
 CONFIG_VLC_ARGS="$CONFIG_VLC_ARGS"
 CONFIG_TPLAY_ARGS="$CONFIG_TPLAY_ARGS"
-
-# Preferred video resolution
-# Options: 2160, 1440, 1080, 720, 480 (Default: 1080)
-CONFIG_VIDEO_QUALITY="$CONFIG_VIDEO_QUALITY"
 
 # Whether to disown the player, process to prevent blocking the UI
 # options: true, false (Default: false)
@@ -2971,6 +2975,42 @@ __menu_miscellaneous_explore_playlists() {
   menu_playlists_explorer
 }
 
+__menu_miscellaneous_explore_shorts() {
+  local search_term
+  local url
+
+  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_SHORTS" ] && [ -n "$CMD_INPUT" ]; then
+    search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+  else
+    search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_SHORTS_PROMPT" | jq -Rr '@uri')
+    [ -z "$search_term" ] && return
+  fi
+
+  url="results?search_query=$search_term&sp=EgIQCQ%253D%253D"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
+__menu_miscellaneous_explore_movies() {
+  local search_term
+  local url
+
+  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_MOVIES" ] && [ -n "$CMD_INPUT" ]; then
+    search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+  else
+    search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_MOVIES_PROMPT" | jq -Rr '@uri')
+    [ -z "$search_term" ] && return
+  fi
+
+  url="results?search_query=$search_term&sp=EgIQBA%253D%253D"
+
+  fetch_playlist "$url"
+  menu_playlist_explorer
+}
+
 __menu_miscellaneous_new_custom_command() {
   local custom_cmd_name
   local custom_cmd_url
@@ -3111,6 +3151,8 @@ _menu_miscellaneous() {
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_CHANNELS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_PLAYLISTS}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰕧${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_SHORTS}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰿎${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_MOVIES}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󱘢${THEME_RESET}  ${TXT_MENU_MISC_SEARCH_HISTORY}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰆺${THEME_RESET}  ${TXT_MENU_MISC_NEW_CUSTOM_CMD}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰡦${THEME_RESET}  ${TXT_MENU_MISC_CUSTOM_CMDS}
@@ -3133,6 +3175,8 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     case "$action" in
     "$TXT_MENU_MISC_EXPLORE_CHANNELS") __menu_miscellaneous_explore_channels ;;
     "$TXT_MENU_MISC_EXPLORE_PLAYLISTS") __menu_miscellaneous_explore_playlists ;;
+    "$TXT_MENU_MISC_EXPLORE_SHORTS") __menu_miscellaneous_explore_shorts ;;
+    "$TXT_MENU_MISC_EXPLORE_MOVIES") __menu_miscellaneous_explore_movies ;;
     "$TXT_MENU_MISC_SEARCH_HISTORY") __menu_miscellaneous_search_history ;;
     "$TXT_MENU_MISC_NEW_CUSTOM_CMD") __menu_miscellaneous_new_custom_command ;;
     "$TXT_MENU_MISC_CUSTOM_CMDS") __menu_miscellaneous_custom_commands ;;
@@ -3723,6 +3767,8 @@ Options:
   -s, --search <term>            Search for videos directly
   -sp, --search-playlist <term>  Search for playlists directly
   -sc, --search-channel <term>   Search for channels directly
+  -ss, --search-short <term>     Search for shorts directly
+  -sm, --search-movie <term>     Search for movies directly
   -l, --launcher <launcher>      Menu launcher: fzf or rofi
   -p, --player <player>          Media player: mpv, vlc or tplay
   -i, --preview                  Enable the preview window (images/text)
@@ -3751,11 +3797,12 @@ Examples:
   $CLI_NAME -sc 'learn coding'              Search for 'learn coding' immediately
   $CLI_NAME --launcher rofi --preview       Use rofi with previews
   $CLI_NAME -x themes/catppuccin.theme      Load the catppuccin theme extension
-  $CLI_NAME -x langs/es.lang                Load the catppuccin theme extension
-  $CLI_NAME -x cmd/downloads                Load the catppuccin theme extension
-  $CLI_NAME -x sites/dailymotion.site       Load the catppuccin theme extension
+  $CLI_NAME -x langs/es.lang                Load the spanish lang extension
+  $CLI_NAME -x sites/dailymotion.site       Load the dailymotion site extension
+  $CLI_NAME -x cmd/downloads                Execute the downloads cmd extension
   $CLI_NAME completions --fish              Print fish completions
-  $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop  Create a desktop entry"
+  $CLI_NAME -E > ~/.local/share/applications/yt-x.desktop  Create a desktop entry
+For any more queries visit the readme and read the [faqs](https://github.com/Benexl/yt-x#-frequently-asked-questions-faq)"
 
   printf "%s\n" "$help_msg"
   exit "${1:-0}"
@@ -3801,6 +3848,8 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the s
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sm -l search-movie -d "Search for movies" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s l -l launcher -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s p -l player -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
@@ -3851,7 +3900,7 @@ _app_cmd_line_parser() {
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
 
       if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "Enter search term")"
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
@@ -3863,7 +3912,7 @@ _app_cmd_line_parser() {
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_PLAYLISTS"
 
       if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "Enter playlist search term")"
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
@@ -3875,7 +3924,31 @@ _app_cmd_line_parser() {
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_CHANNELS"
 
       if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "Enter channel search term")"
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
+    -ss | --search-short)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_SHORTS"
+
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_SHORTS_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
+    -sm | --search-movie)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_MOVIES"
+
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_MOVIES_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
