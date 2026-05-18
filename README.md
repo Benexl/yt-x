@@ -251,12 +251,13 @@ home.packages = [ inputs.yt-x.packages."${system}".default ];
 
 ## Usage
 
-`yt-x` is designed to be highly flexible. You can launch it in fully interactive mode, pass direct search arguments, or integrate it into desktop environments using custom UI launchers.
+`yt-x` is designed to be highly flexible. You can launch it in fully interactive mode, pass direct search arguments, shortcut‑jump to menus, or integrate it into desktop environments using custom UI launchers.
 
 ### Synopsis
 
 ```bash
 yt-x [OPTIONS]
+yt-x channels [CHANNEL OPTIONS]
 yt-x completions [--fish | --bash | --zsh | --help]
 ```
 
@@ -270,9 +271,9 @@ yt-x
 
 ---
 
-### Command-Line Options
+### Command‑Line Options
 
-#### 🔍 Search & Navigation
+#### 🔍 Search & Discovery
 
 - `-s, --search <term>` : Immediately execute a video search and bypass the main menu.
 - `-sp, --search-playlist <term>` : Immediately execute a playlist search.
@@ -285,7 +286,7 @@ yt-x
 - `-l, --launcher <fzf|rofi>` : Override the default menu launcher.
 - `-i, --preview` : Enable the media preview window (images and metadata).
 - `-I, --no-preview` : Disable the media preview window.
-- `-x, --extension <ext>` : Load a specific extension file (accepts absolute paths or paths relative to `~/.config/yt-x/extensions/`).
+- `-x, --extension <ext>` : Load a specific extension file (accepts absolute paths or paths relative to `~/.config/yt-x/extensions/`; _supports fish tab complete_).
 
 #### 🎬 Player & Playback
 
@@ -311,13 +312,64 @@ If using `rofi` as your launcher, you can pass custom `.rasi` paths dynamically:
 - `--rofi-theme-confirm <path>`
 - `--rofi-theme-pager <path>`
 
+#### 📌 Direct Shortcuts (skip the main menu)
+
+- `--feed` : Open your personalised feed immediately.
+- `--subscriptions-feed` : Open the subscriptions feed.
+- `--watch-later` : Open your Watch Later playlist.
+- `--playlists` : Browse saved YouTube playlists.
+- `--custom-playlists` : Browse custom playlists you've saved.
+- `--saved` : Open saved videos.
+- `--recent` : Show recently watched videos.
+- `--liked-videos` : Open your Liked Videos playlist.
+- `--watch-history` : Show your watch history.
+- `--clips` : Browse your clips.
+- `--new-custom-cmd` : Jump straight to creating a custom command.
+- `--custom-cmds` : Execute an existing custom command.
+- `--edit-search-history` : Edit the search history file.
+- `--edit-custom-playlists` : Edit the custom playlists JSON file.
+- `--edit-mpv-config` : Edit mpv’s configuration.
+- `--edit-yt-dlp-config` : Edit yt‑dlp’s configuration.
+- `--edit-custom-cmds` : Edit the custom commands JSON file.
+
+---
+
+### Channels Subcommand
+
+```bash
+yt-x channels [OPTIONS]
+```
+
+Quickly jump into a channel from your subscriptions and browse its content.
+
+**Options:**
+
+- `-n, --name <channel>` : Specify the channel name (exact match, case‑sensitive; _tab complete supported_).  
+- `-v, --videos` : List the channel’s uploaded videos.
+- `-f, --featured` : Show the channel’s featured playlists.
+- `-s, --search <query>` : Search within the channel’s uploads.
+- `-p, --playlists` : List the channel’s playlists.
+- `-sh, --shorts` : Show the channel’s shorts.
+- `-st, --streams` : Show live streams & past broadcasts.
+- `-po, --podcasts` : Show the channel’s podcasts.
+
+**Examples:**
+
+```bash
+yt-x channels                                  # Pick from subscriptions interactively
+yt-x channels -n "Linus Tech Tips" -v          # Browse latest videos
+yt-x channels -n "iambenexl" -s "Top linux tools"   # Search inside a channel
+yt-x channels -n "StarTalk" -p             # Show channel playlists
+yt-x channels -n "The PrimeTime" -st            # Show channel streams
+```
+
 ---
 
 ### Inline Search Syntax & Filters
 
 When entering a search query (either via the `-s` flag or within the interactive prompt), `yt-x` supports powerful inline filters.
 
-**Quick Filters (Colon Syntax)**
+**Quick Filters (Colon Syntax)**  
 Append a colon prefix to your search term to apply YouTube API filters:
 
 - **Time:** `:hour`, `:today`, `:week`, `:month`, `:year`
@@ -327,52 +379,59 @@ Append a colon prefix to your search term to apply YouTube API filters:
 
 _Example:_ `:4k nature documentary` (Searches for nature documentaries specifically in 4K resolution).
 
-**History Recall (Bang Syntax)**
+**History Recall (Bang Syntax)**  
 Recall previous searches seamlessly without typing them out:
 
-- `!1` : Re-run your most recent search.
-- `!2` : Re-run your second most recent search, etc.
+- `!1` : Re‑run your most recent search.
+- `!2` : Re‑run your second most recent search, etc.
 
 ---
 
 ### Environment Variables
 
-Almost all CLI options can be permanently set in `~/.config/yt-x/config` or overridden on-the-fly using environment variables.
+Almost all CLI options can be permanently set in `~/.config/yt-x/config` or overridden on‑the‑fly using environment variables.
 
 - `YT_X_LAUNCHER` (e.g., `fzf` or `rofi`)
 - `YT_X_PLAYER` (e.g., `mpv`)
 - `YT_X_ENABLE_PREVIEW` (`true` or `false`)
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
 - `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`)
-- `YT_X_BROWSER` (e.g., `firefox`, `brave` - extracts cookies for restricted content)
+- `YT_X_BROWSER` (e.g., `firefox`, `brave` – extracts cookies for restricted content)
 
 ---
 
 ### Examples & Workflows
 
-**1. Fast Search with Previews**
+**1. Fast Search with Previews**  
 Search for a specific topic instantly while enabling image previews:
 
 ```bash
 yt-x --preview -s "cyberpunk 2077 ost"
 ```
 
-**2. Desktop/GUI Mode**
+**2. Desktop/GUI Mode**  
 Launch `yt-x` as a graphical application using Rofi (great for mapping to a keyboard shortcut in your Window Manager):
 
 ```bash
 yt-x --launcher rofi --preview --no-disown-player
 ```
 
-**3. Audio-Only Background Music**
-Search for a playlist, and use `mpv` to handle it in the background:
+**3. Audio‑Only Background Music**  
+Search for a playlist and let `mpv` handle it in the background:
 
 ```bash
 yt-x -l fzf -p mpv --disown-player -sp "lofi hip hop radio"
 # Once in the menu, select "Listen" or "Listen To All"
 ```
 
-**4. Generate a Desktop Entry (Linux)**
+**4. Jump Directly to a Channel**  
+Open a subscribed channel’s videos without going through the main menu:
+
+```bash
+yt-x channels -n "Linus Tech Tips" -v
+```
+
+**5. Generate a Desktop Entry (Linux)**  
 Create a native application shortcut in your desktop environment:
 
 ```bash
@@ -380,9 +439,8 @@ yt-x -E > ~/.local/share/applications/yt-x.desktop
 update-desktop-database ~/.local/share/applications/
 ```
 
-**5. Shell Completions**
-Generate and apply autocomplete scripts for your shell (e.g., Fish):
-
+**6. Shell Completions**  
+Generate and apply autocomplete scripts for your shell (e.g., Fish).  
 ```bash
 yt-x completions --fish > ~/.config/fish/completions/yt-x.fish
 ```
