@@ -4044,7 +4044,6 @@ _app_cmd_line_parser() {
     --edit-custom-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CUSTOM_CMDS" ;;
     -s | --search)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
-
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_SEARCH_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
@@ -4056,7 +4055,6 @@ _app_cmd_line_parser() {
     -sp | --search-playlist)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_PLAYLISTS"
-
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_PLAYLISTS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
@@ -4068,7 +4066,6 @@ _app_cmd_line_parser() {
     -sc | --search-channel)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_CHANNELS"
-
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_CHANNELS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
@@ -4080,7 +4077,6 @@ _app_cmd_line_parser() {
     -ss | --search-short)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_SHORTS"
-
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_SHORTS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
@@ -4092,7 +4088,6 @@ _app_cmd_line_parser() {
     -sm | --search-movie)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
       CMD_MISC_ACTION="$TXT_MENU_MISC_EXPLORE_MOVIES"
-
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_EXPLORE_MOVIES_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
@@ -4104,7 +4099,6 @@ _app_cmd_line_parser() {
     c | channels)
       shift
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_CHANNELS"
-
       while [ $# -gt 0 ]; do
         shift_count=1
         case "$1" in
@@ -4117,12 +4111,6 @@ _app_cmd_line_parser() {
             shift_count=2
           fi
           ;;
-        -v | --videos)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_VIDEOS"
-          ;;
-        -f | --featured)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_FEATURED"
-          ;;
         -s | --search)
           CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SEARCH"
           if [ -z "$2" ]; then
@@ -4133,21 +4121,13 @@ _app_cmd_line_parser() {
             shift_count=2
           fi
           ;;
-        -p | --playlists)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS"
-          ;;
-        -sh | --shorts)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SHORTS"
-          ;;
-        -st | --streams)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_STREAMS"
-          ;;
-        -po | --podcasts)
-          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PODCASTS"
-          ;;
-        *)
-          _app_usage_channel 1
-          ;;
+        -v | --videos) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_VIDEOS" ;;
+        -f | --featured) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_FEATURED" ;;
+        -p | --playlists) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS" ;;
+        -sh | --shorts) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SHORTS" ;;
+        -st | --streams) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_STREAMS" ;;
+        -po | --podcasts) CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PODCASTS" ;;
+        *) _app_usage_channel 1 ;;
         esac
         shift $shift_count
       done
@@ -4156,33 +4136,16 @@ _app_cmd_line_parser() {
     completions)
       [ -n "$2" ] || _app_usage 1
       case "$2" in
-      -f | --fish)
-        _app_completions_fish
-        ;;
-      -b | --bash)
-        echo "Contribute to $CLI_NAME by writing bash completions"
-        exit 1
-        ;;
-      -z | --zsh)
-        echo "Contribute to $CLI_NAME by writing zsh completions"
-        exit 1
-        ;;
-      -h | --help)
-        _app_usage_completions
-        ;;
-      *)
-        _app_usage_completions 1
-        ;;
+      -f | --fish) _app_completions_fish ;;
+      -b | --bash) echo "Contribute to $CLI_NAME by writing bash completions" && exit 1 ;;
+      -z | --zsh) echo "Contribute to $CLI_NAME by writing zsh completions" && exit 1 ;;
+      -h | --help) _app_usage_completions ;;
+      *) _app_usage_completions 1 ;;
       esac
-
-      # shellcheck disable=SC2317
       shift_count=2
       ;;
-    *)
-      _app_usage 1
-      ;;
+    *) _app_usage 1 ;;
     esac
-
     shift $shift_count
   done
 }
