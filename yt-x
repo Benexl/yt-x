@@ -3973,10 +3973,21 @@ _app_cmd_line_parser() {
     case "$1" in
     -h | --help) _app_usage ;;
     -v | --version) echo "$CLI_NAME v$CLI_VERSION MIT Copyright © 2024 $CLI_AUTHOR projects" && exit 0 ;;
-    -e | --edit-config) _app_edit_config ;;
     -U | --update) _app_update_check || echo "No updates found" && exit 1 ;;
+    -e | --edit-config) _app_edit_config ;;
+    -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
     -i | --preview) CONFIG_ENABLE_PREVIEW=true ;;
     -I | --no-preview) CONFIG_ENABLE_PREVIEW=false ;;
+    -x | --extension)
+      [ -n "$2" ] || _app_usage 1
+      if [ "${2#/}" != "$2" ]; then
+        . "$2"
+      else
+        . "$CLI_EXTENSIONS_DIR/$2"
+      fi
+
+      shift_count=2
+      ;;
     -l | --launcher)
       [ -n "$2" ] || _app_usage 1
       CONFIG_LAUNCHER="$2"
@@ -4142,7 +4153,6 @@ _app_cmd_line_parser() {
       done
       return
       ;;
-    -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
     completions)
       [ -n "$2" ] || _app_usage 1
       case "$2" in
@@ -4166,16 +4176,6 @@ _app_cmd_line_parser() {
       esac
 
       # shellcheck disable=SC2317
-      shift_count=2
-      ;;
-    -x | --extension)
-      [ -n "$2" ] || _app_usage 1
-      if [ "${2#/}" != "$2" ]; then
-        . "$2"
-      else
-        . "$CLI_EXTENSIONS_DIR/$2"
-      fi
-
       shift_count=2
       ;;
     *)
