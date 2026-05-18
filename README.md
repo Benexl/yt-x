@@ -716,6 +716,25 @@ Yes! `yt-x` uses `rofi`'s native `\0icon\x1f` protocol to display images. Ensure
 
 </details>
 
+<details>
+<summary><b>🎵 How can I get my system to display media metadata (title, artist) when using the "Listen" action?</b></summary>
+<br>
+
+This is actually a feature of your media player rather than `yt-x`. Integrating this directly into `yt-x` would require complex workarounds (such as intercepting `mpv`'s output using Lua scripts or enforcing `playerctl` + MPRIS dependencies), which goes against `yt-x`'s lightweight design philosophy.
+
+**The Solution:**
+The cleanest way to achieve this is by enabling **MPRIS** support directly in your media player. 
+*   **For `mpv`:** Install the [`mpv-mpris`](https://github.com/hoyon/mpv-mpris) plugin. This allows `mpv` to broadcast the current track's metadata to your OS, exactly like a web browser does for YouTube.
+*   **For other players:** Search for similar MPRIS or D-Bus integration plugins/settings.
+
+Once configured, any compatible desktop widget or notification daemon will automatically pick it up and display what's playing. For example, using the [Noctalia](https://docs.noctalia.dev/v4/) daemon on the Niri compositor handles this beautifully:
+
+<img width="1141" height="538" alt="Noctalia MPRIS Example 1" src="https://github.com/user-attachments/assets/287ac6f2-2c43-48b7-b365-0ed78a6002c7" />
+<img width="394" height="535" alt="Noctalia MPRIS Example 2" src="https://github.com/user-attachments/assets/a0ad992b-cb6b-430e-a923-b38fe2625928" />
+<img width="973" height="469" alt="Noctalia MPRIS Example 3" src="https://github.com/user-attachments/assets/ca3dc36e-d661-4d9d-a5da-002a73d155cf" />
+
+</details>
+
 ## 🤝 Support & Contribution
 
 Pull requests are highly welcome! Whether it's adding new extension logic, fixing bugs, or expanding search parameters, feel free to fork and contribute.
