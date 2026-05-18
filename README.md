@@ -95,6 +95,8 @@
 - **Theming & Styling**: True-color (24-bit) support with a default "Tokyo Night" inspired color scheme. Fully customizable UI formatting.
 - **Multi-language Support**: Loadable language files (`.lang`) to easily localize the UI prompts and messages.
 - **Pagination**: Smoothly browse through massive lists with Next/Previous pagination controls (fetches a configurable number of items per page, default is 30).
+- **Selection Skipping**: New `--playlist-skip` (`-ps`) flag forces the launcher to automatically pick the first item in any list, bypassing interactive selection – ideal for non‑interactive scripts.
+- **Media Action Shortcuts**: Directly perform actions (play, listen, download, save, etc.) without opening the media action menu – see “Media Action Shortcuts” below.
 
 ### 🎬 Playback & Media Handling
 
@@ -103,6 +105,15 @@
 - **Playlist Actions**: Play individual videos, queue/play entire playlists, or queue "Listen to All" for audio-only marathon sessions.
 - **Auto-Mix Generation**: Dynamically generates `.m3u8` playlist mixes based on a single video (YouTube "Mix" feature replication).
 - **Background Playback**: Option to disown the media player process (`CONFIG_DISOWN_PLAYER`), allowing the UI to remain unblocked while media plays.
+- **Media Action Shortcuts (Skip the Media Menu)**:
+  - `--play` / `--play-all` : Watch selected video or whole playlist.
+  - `--listen` / `--listen-all` : Audio‑only playback.
+  - `--download` / `--download-all` : Download video(s).
+  - `--download-audio` / `--download-audio-all` : Download audio only.
+  - `--save` : Save current video to saved list.
+  - `--save-playlist` : Save current playlist to custom playlists.
+  - `--shell` : Drop into a stateful subshell.
+  - Many of these (e.g., `--play-all`, `--save-playlist`) implicitly enable `--playlist-skip` for seamless non‑interactive operation.
 
 ### 💾 Downloading & Archival
 
@@ -127,13 +138,15 @@
 - **Desktop Integration**: Built-in command (`-E`) to generate a `.desktop` entry file, allowing `yt-x` to be launched natively from application menus (Linux).
 - **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a configurable retention period (default 7 days).
 - **Direct Shortcut Flags**: Skip the interactive menu entirely with dedicated flags like `--feed`, `--subscriptions-feed`, `--watch-later`, `--saved`, `--recent`, `--liked`, `--watch-history`, `--clips`, and more – ideal for keybindings and scripting.
+- **Non‑Interactive Exit Helpers**: `--cmd-exit` terminates the script after executing a shortcut, while `--media-exit` does the same after any media action – perfect for one‑off commands and aliases.
+- **Direct Access to Saved Items**: Open a specific saved video (`-sv`, `--saved-video`) or custom playlist (`-cp`, `--custom-playlist`) without browsing menus, with tab completion in supported shells.
 
 ### 🛠️ Cross-Platform & Infrastructure
 
 - **OS Support**: Works across Linux, macOS, Windows (via WSL/MSYS/Cygwin), and Android (uses `am start` intents to open media natively in Android apps like VLC or MPV).
 - **Configuration Management**: Generates a robust `config` file automatically on first run. Allows editing configuration files directly from the UI menu.
 - **Auto-Updater**: Built-in update checker that securely pulls the latest version from GitHub and prompts the user to apply updates inline.
-- **Shell Completions**: Generates native shell autocomplete definitions (fish, with dynamic channel name completion from `subscriptions.json` and extension completion from `~/.config/yt-x/extensions/`).
+- **Shell Completions**: Generates native shell autocomplete definitions (fish, with dynamic channel name completion from `subscriptions.json`, custom playlist and saved video name completion, and extension completion from `~/.config/yt-x/extensions/`).
 
 ## 📥 Installation
 
