@@ -2814,46 +2814,81 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   while true; do
-    action="$(
-      printf "%s" "$actions" |
-        ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" |
-        sed 's/.  //g'
-    )"
+    if [ -n "$CMD_CHANNEL" ] && [ -n "$CMD_CHANNEL_ACTION" ]; then
+      action="$CMD_CHANNEL_ACTION"
+      unset -v CMD_CHANNEL
+    else
+      action="$(
+        printf "%s" "$actions" |
+          ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" |
+          sed 's/.  //g'
+      )"
+    fi
+
     case "$action" in
     "$TXT_MENU_CHANNEL_ACTIONS_VIDEOS")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/videos"
       fetch_playlist "$url"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_STREAMS")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/streams"
       fetch_playlist "$url"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_PODCASTS")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/podcasts"
       fetch_playlist "$url"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SHORTS")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/shorts"
       fetch_playlist "$url"
       menu_playlist_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_FEATURED")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/featured"
       fetch_playlists "$url"
       menu_playlists_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS")
+      if [ -n "$CMD_CHANNEL_ACTION" ]; then
+        unset -v CMD_CHANNEL_ACTION
+      fi
+
       url="$STATE_CURRENT_CHANNEL_URL/playlists"
       fetch_playlists "$url"
       menu_playlists_explorer
       ;;
     "$TXT_MENU_CHANNEL_ACTIONS_SEARCH")
-      local search_term
-      search_term="$(ui_prompt "$TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT" | jq -Rr '@uri')"
-      [ -z "$search_term" ] && continue
+      if [ -n "$CMD_CHANNEL_ACTION" ] && [ -n "$CMD_INPUT" ]; then
+        search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
+        unset -v CMD_CHANNEL_ACTION CMD_INPUT
+      else
+        local search_term
+        search_term="$(ui_prompt "$TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT" | jq -Rr '@uri')"
+        [ -z "$search_term" ] && continue
+      fi
 
       url="$STATE_CURRENT_CHANNEL_URL/search?query=$search_term"
       fetch_playlist "$url"
@@ -3431,11 +3466,22 @@ __menu_main_channels_explorer() {
   if [ -s "$CLI_SUBSCRIPTIONS_FILE" ]; then
     channels="$(cat "$CLI_SUBSCRIPTIONS_FILE")"
     while true; do
-      channel=$(
-        printf "%s\n%s" "$(echo "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-          preview "$channels" |
-          ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
-      )
+      if [ "$CMD_MAIN_ACTION" = "$TXT_MENU_MAIN_CHANNELS" ]; then
+        unset -v CMD_MAIN_ACTION
+      fi
+
+      if [ -n "$CMD_CHANNEL" ]; then
+        channel="$CMD_CHANNEL"
+        if [ -z "$CMD_CHANNEL_ACTION" ]; then
+          unset -v CMD_CHANNEL
+        fi
+      else
+        channel=$(
+          printf "%s\n%s" "$(echo "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+            preview "$channels" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+        )
+      fi
 
       case "$channel" in
       "$TXT_MENU_BACK" | "") break ;;
@@ -4040,6 +4086,58 @@ _app_cmd_line_parser() {
       [ -n "$2" ] || _app_usage 1
       CONFIG_PLAYER="$2"
       shift_count=2
+      ;;
+    c | channels)
+      shift
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_CHANNELS"
+
+      while [ $# -gt 0 ]; do
+        shift_count=1
+        case "$1" in
+        -n | --name)
+          if [ -z "$2" ]; then
+            CMD_CHANNEL="$(ui_prompt "$TXT_MENU_MAIN_CHANNELS_PROMPT")"
+            [ -n "$CMD_CHANNEL" ] || _app_usage_channels 1
+          else
+            CMD_CHANNEL="$2"
+            shift_count=2
+          fi
+          ;;
+        -v | --videos)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_VIDEOS"
+          ;;
+        -f | --featured)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_FEATURED"
+          ;;
+        -s | --search)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SEARCH"
+          if [ -z "$2" ]; then
+            CMD_INPUT="$(ui_prompt "$TXT_MENU_CHANNEL_ACTIONS_SEARCH_PROMPT")"
+            [ -n "$CMD_INPUT" ] || _app_usage_channels 1
+          else
+            CMD_INPUT="$2"
+            shift_count=2
+          fi
+          ;;
+        -p | --playlists)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PLAYLISTS"
+          ;;
+        -sh | --shorts)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_SHORTS"
+          ;;
+        -st | --streams)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_STREAMS"
+          ;;
+        -po | --podcasts)
+          CMD_CHANNEL_ACTION="$TXT_MENU_CHANNEL_ACTIONS_PODCASTS"
+          ;;
+        *)
+          _app_usage_channel 1
+          ;;
+        esac
+        shift $shift_count
+      done
+      return
       ;;
     -E | --generate-desktop-entry) _app_generate_desktop_entry ;;
     completions)
