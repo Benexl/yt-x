@@ -3972,13 +3972,47 @@ _app_cmd_line_parser() {
     shift_count=1
     case "$1" in
     -h | --help) _app_usage ;;
-    -v | --version)
-      echo "$CLI_NAME v$CLI_VERSION MIT Copyright © 2024 $CLI_AUTHOR projects"
-      exit 0
-      ;;
+    -v | --version) echo "$CLI_NAME v$CLI_VERSION MIT Copyright © 2024 $CLI_AUTHOR projects" && exit 0 ;;
     -e | --edit-config) _app_edit_config ;;
-    -U | --update)
-      _app_update_check || echo "No updates found" && exit 1
+    -U | --update) _app_update_check || echo "No updates found" && exit 1 ;;
+    -i | --preview) CONFIG_ENABLE_PREVIEW=true ;;
+    -I | --no-preview) CONFIG_ENABLE_PREVIEW=false ;;
+    -l | --launcher)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_LAUNCHER="$2"
+      shift_count=2
+      ;;
+    -p | --player)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_PLAYER="$2"
+      shift_count=2
+      ;;
+    --disown-player) CONFIG_DISOWN_PLAYER=true ;;
+    --no-disown-player) CONFIG_DISOWN_PLAYER=false ;;
+    --rofi-theme-main)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_MAIN="$2"
+      shift_count=2
+      ;;
+    --rofi-theme-preview)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PREVIEW="$2"
+      shift_count=2
+      ;;
+    --rofi-theme-prompt)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PROMPT="$2"
+      shift_count=2
+      ;;
+    --rofi-theme-confirm)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_CONFIRM="$2"
+      shift_count=2
+      ;;
+    --rofi-theme-pager)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_ROFI_THEME_PAGER="$2"
+      shift_count=2
       ;;
     --feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_FEED" ;;
     --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBSCRIPTIONS_FEED" ;;
@@ -4055,53 +4089,6 @@ _app_cmd_line_parser() {
         CMD_INPUT="$2"
         shift_count=2
       fi
-      ;;
-    -l | --launcher)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_LAUNCHER="$2"
-      shift_count=2
-      ;;
-    -i | --preview)
-      CONFIG_ENABLE_PREVIEW=true
-      ;;
-    -I | --no-preview)
-      CONFIG_ENABLE_PREVIEW=false
-      ;;
-    --disown-player)
-      CONFIG_DISOWN_PLAYER=true
-      ;;
-    --no-disown-player)
-      CONFIG_DISOWN_PLAYER=false
-      ;;
-    --rofi-theme-main)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_ROFI_THEME_MAIN="$2"
-      shift_count=2
-      ;;
-    --rofi-theme-preview)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_ROFI_THEME_PREVIEW="$2"
-      shift_count=2
-      ;;
-    --rofi-theme-prompt)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_ROFI_THEME_PROMPT="$2"
-      shift_count=2
-      ;;
-    --rofi-theme-confirm)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_ROFI_THEME_CONFIRM="$2"
-      shift_count=2
-      ;;
-    --rofi-theme-pager)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_ROFI_THEME_PAGER="$2"
-      shift_count=2
-      ;;
-    -p | --player)
-      [ -n "$2" ] || _app_usage 1
-      CONFIG_PLAYER="$2"
-      shift_count=2
       ;;
     c | channels)
       shift
