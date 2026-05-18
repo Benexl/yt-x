@@ -4178,14 +4178,14 @@ _app_cmd_line_parser() {
       shift_count=2
       ;;
     --feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_FEED" ;;
-    --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBSCRIPTIONS_FEED" ;;
+    --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBS_FEED" ;;
     --watch-later) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_LATER" ;;
     --playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_PLAYLISTS" ;;
     --custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS" ;;
     --saved) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED" ;;
     --recent) CMD_MAIN_ACTION="$TXT_MENU_MAIN_RECENT" ;;
-    --liked) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED_VIDEOS" ;;
-    --watch-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_HISTORY" ;;
+    --liked) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED" ;;
+    --watch-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_HISTORY" ;;
     --clips) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CLIPS" ;;
     --new-custom-cmd) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_NEW_CUSTOM_CMD" ;;
     --custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS" ;;
@@ -4194,7 +4194,7 @@ _app_cmd_line_parser() {
     --edit-custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_PLAYLISTS" ;;
     --edit-mpv-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_MPV_CONFIG" ;;
     --edit-yt-dlp-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_YTDLP_CONFIG" ;;
-    --edit-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CUSTOM_CMDS" ;;
+    --edit-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CMDS" ;;
     -s | --search)
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SEARCH"
       if [ -z "$2" ]; then
