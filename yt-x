@@ -2101,7 +2101,7 @@ __player_vlc() {
   local vlc_cmd
 
   mode="$2"
-  opts="$CONFIG_MPV_ARGS"
+  opts="$CONFIG_VLC_ARGS"
 
   case "$CLI_PLATFORM" in
   android)
@@ -4267,6 +4267,21 @@ _app_cmd_line_parser() {
     -p | --player)
       [ -n "$2" ] || _app_usage 1
       CONFIG_PLAYER="$2"
+      shift_count=2
+      ;;
+    --mpv-args)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_MPV_ARGS="$2"
+      shift_count=2
+      ;;
+    --vlc-args)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_VLC_ARGS="$2"
+      shift_count=2
+      ;;
+    --tplay-args)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_TPLAY_ARGS="$2"
       shift_count=2
       ;;
     --disown-player) CONFIG_DISOWN_PLAYER=true ;;
