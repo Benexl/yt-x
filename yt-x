@@ -4134,20 +4134,12 @@ _app_completions_fish() {
 # Fish completions for $CLI_NAME
 
 # ==========================================================================
-# Global options (available when no subcommand is active)
+# Global options 
 # ==========================================================================
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s h -l help -d "Show help and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s v -l version -d "Show version and exit"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit config file"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o ce -l cmd-exit -d "Exit after shortcut menu commandline options"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o ps -l playlist-skip -d "Skip item selection and auto‑pick first entry"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o me -l media-exit -d "Exit after performing a media action"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o sm -l search-movie -d "Search for movies" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l launcher -s l -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l player -s p -d "Media player" --require-parameter --no-files -a "mpv vlc tplay"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
@@ -4161,9 +4153,15 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-prompt -d "Rofi p
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-confirm -d "Rofi confirm theme path" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-pager -d "Rofi pager theme path" --require-parameter
 
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extension -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
+
 # ==========================================================================
-# Direct media action shortcuts
+# Menu shortcuts
 # ==========================================================================
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ce -l cmd-exit -d "Exit after shortcut menu commandline options"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ps -l playlist-skip -d "Skip item selection and auto‑pick first entry"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o me -l media-exit -d "Exit after performing a media action"
+
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l play -d "Watch selected video"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l play-all -d "Play whole playlist"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l listen -d "Listen to selected video"
@@ -4176,9 +4174,17 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l save -d "Save video to saved
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l save-playlist -d "Save playlist to custom list"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l shell -d "Open subshell with context"
 
-# ==========================================================================
-# Direct menu shortcuts (boolean flags)
-# ==========================================================================
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sm -l search-movie -d "Search for movies" --require-parameter
+
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o H -l history -d "search for something from your search history" --require-parameter --no-files -a '(cat "'$CLI_SEARCH_HISTORY_FILE'" 2>/dev/null)'
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o sv -l saved-video -d "Open a specific saved video" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SAVED_VIDEOS_FILE'" 2>/dev/null)'
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o cp -l custom-playlist -d "Open a saved custom playlist" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_PLAYLISTS_FILE'" 2>/dev/null)'
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o cc -l custom-cmd -d "Execute a specific custom command" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_CMDS_FILE'" 2>/dev/null)'
+
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l feed -d "Open your personalised feed"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l subscriptions-feed -d "Show latest videos from subscriptions"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l watch-later -d "Open Watch Later playlist"
@@ -4199,32 +4205,10 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-yt-dlp-config -d "Edit 
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-cmds -d "Edit custom commands file"
 
 # ==========================================================================
-# Options that take a parameter with dynamic completion
+# Channels subcommand
 # ==========================================================================
-# --custom-playlist / -cp : complete from custom playlists JSON file
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o cp -l custom-playlist -d "Open a saved custom playlist" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_PLAYLISTS_FILE'" 2>/dev/null)'
-# --custom-cmd / -cc : complete from custom commands JSON file
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o cc -l custom-cmd -d "Execute a specific custom command" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_CMDS_FILE'" 2>/dev/null)'
-# --saved-video / -sv : complete from saved videos JSON file
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o sv -l saved-video -d "Open a specific saved video" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SAVED_VIDEOS_FILE'" 2>/dev/null | sed "s/^[0-9]* //")'
-
-# ==========================================================================
-# Extensions – dynamic list of files in the extensions directory tree
-# ==========================================================================
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s x -l extension -d "Load extension" --require-parameter --no-files -a '(find $ext_dir -follow -maxdepth 3 -type f 2>/dev/null | string replace "$ext_dir/" "" | sort)'
-
-# ==========================================================================
-# Subcommands
-# ==========================================================================
-complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
 complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a channels -d "Browse or search within a specific channel"
-
-# ==========================================================================
-# Channels subcommand options
-# ==========================================================================
-# --name: dynamic completion from subscriptions file
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o n -l name -d "Channel name" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SUBSCRIPTIONS_FILE'" 2>/dev/null)'
-
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o v -l videos -d "List channel videos"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o f -l featured -d "Show featured playlists"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o s -l search -d "Search within channel" --require-parameter
@@ -4234,8 +4218,9 @@ complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o st -l streams
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from channels" -o po -l podcasts -d "Show channel podcasts"
 
 # ==========================================================================
-# Completions sub‑options
+# Completions subcommand
 # ==========================================================================
+complete -c $CLI_NAME -f -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s f -l fish -d "Print fish completions"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s b -l bash -d "Print bash completions"
 complete -c $CLI_NAME -n "__fish_seen_subcommand_from completions" -s z -l zsh -d "Print zsh completions"
