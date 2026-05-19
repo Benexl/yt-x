@@ -23,7 +23,7 @@
 
 **Riced/Customized Previews:**
 
-<img width="1895" height="1036" alt="image" src="https://github.com/user-attachments/assets/061edfa9-572c-49f5-a556-49765e6b11a0" />
+<img width="1895" height="1036" alt="image" src="https://github.com/user-attachments/assets/c7eef0b5-9acb-4b2c-8dd0-76d0ae54913e" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/487952e1-4911-4269-9b99-7e99a14048b0" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/645a8e5d-fa5a-40a6-9fe1-7e7c91b28f8e" />
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/0a990fc3-cc29-49b4-a0fc-c99a68ef833d" />
