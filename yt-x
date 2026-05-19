@@ -3935,22 +3935,13 @@ Options:
   -h, --help                     Show this help message and exit
   -v, --version                  Print version information and exit
   -e, --edit-config              Open the config file in your editor
+  -x, --extension <ext>          Load an extension file (absolute path or relative to $CLI_CONFIG_DIR/extensions)
+  -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
   -U, --update                   Check for and apply an update for $CLI_NAME
-  -ce, --cmd-exit                Exit after shortcut menu commandline options
-  -ps, --playlist-skip           Skip the item selection menu and automatically pick the first entry
-  -me, --media-exit              Exit after performing a media action (watch, listen, etc.)
-  -s, --search <term>            Search for videos directly
-  -sp, --search-playlist <term>  Search for playlists directly
-  -sc, --search-channel <term>   Search for channels directly
-  -ss, --search-short <term>     Search for shorts directly
-  -sm, --search-movie <term>     Search for movies directly
-  -cp, --custom-playlist <name>  Open a specific custom playlist by its saved name
-  -cc, --custom-cmd <name>       Execute a specific custom command by its saved name
-  -sv, --saved-video <title>     Open a specific saved video by its title
   -l, --launcher <launcher>      Menu launcher: fzf or rofi
-  -p, --player <player>          Media player: mpv, vlc or tplay
   -i, --preview                  Enable the preview window (images/text)
   -I, --no-preview               Disable the preview window
+  -p, --player <player>          Media player: mpv, vlc or tplay
   --disown-player                Detach the player process from the terminal
   --no-disown-player             Keep player attached (default)
   --rofi-theme-main <path>       Path to the rofi main theme file
@@ -3958,11 +3949,10 @@ Options:
   --rofi-theme-prompt <path>     Path to the rofi prompt theme file
   --rofi-theme-confirm <path>    Path to the rofi confirm theme file
   --rofi-theme-pager <path>      Path to the rofi pager theme file
-  -x, --extension <ext>          Load an extension file (absolute path or relative to $CLI_CONFIG_DIR/extensions)
-  -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
 
 ────────────────────────────────────────────────────────────────────
 Direct media action shortcuts (skip the media action menu):
+  -me, --media-exit              Exit after performing a media action (watch, listen, etc.)
   --play                         Immediately watch the selected video (you still choose from the list)
   --play-all                     Immediately play the whole playlist (implies --playlist-skip)
   --listen                       Immediately listen to the audio of the selected video
@@ -3976,7 +3966,18 @@ Direct media action shortcuts (skip the media action menu):
   --shell                        Open a subshell with current context variables
 
 ────────────────────────────────────────────────────────────────────
-Direct menu shortcuts (skip the main menu):
+Direct menu shortcuts
+  -ce, --cmd-exit                Exit after shortcut menu commandline options
+  -ps, --playlist-skip           Skip the item selection menu and automatically pick the first entry
+  -s, --search <term>            Search for videos directly
+  -sp, --search-playlist <term>  Search for playlists directly
+  -sc, --search-channel <term>   Search for channels directly
+  -ss, --search-short <term>     Search for shorts directly
+  -sm, --search-movie <term>     Search for movies directly
+  -H, --history <term>           Search for an entry in your search history directly
+  -cp, --custom-playlist <name>  Open a specific custom playlist by its saved name
+  -cc, --custom-cmd <name>       Execute a specific custom command by its saved name
+  -sv, --saved-video <title>     Open a specific saved video by its title
   --feed                         Open your personalised feed
   --subscriptions-feed           Show latest videos from subscriptions
   --watch-later                  Open the Watch Later playlist
@@ -4000,9 +4001,9 @@ Direct menu shortcuts (skip the main menu):
 Sub‑commands:
   channels                       Browse or search within a specific channel
     -n, --name <channel>         Choose the channel by name (exact match)
+    -s, --search <query>         Search within the channel's uploads
     -v, --videos                 List the channel's videos
     -f, --featured               Show the channel's featured playlists
-    -s, --search <query>         Search within the channel's uploads
     -p, --playlists              List the channel's playlists
     -sh, --shorts                Show the channel's shorts
     -st, --streams               Show live streams & past broadcasts
@@ -4074,9 +4075,9 @@ Usage: $CLI_NAME channels [OPTIONS]
 
 Options:
   -n, --name <channel>        Specify the channel name (exact match, case‑sensitive)
+  -s, --search <query>        Search inside the channel's uploads
   -v, --videos                List the channel's uploaded videos
   -f, --featured              Show the channel's featured playlists
-  -s, --search <query>        Search inside the channel's uploads
   -p, --playlists             List the channel's playlists
   -sh, --shorts               Show the channel's short videos
   -st, --streams              Show live streams & past broadcasts
