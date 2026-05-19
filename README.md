@@ -16,7 +16,7 @@
 
 <details>
 <summary><b>View Demos & Previews</b></summary>
-<br>
+
 **Full Demo:**
 
 [yt-x-full-github-demo.webm](https://github.com/user-attachments/assets/06e388c4-4399-4358-a6cc-68045db48177)
