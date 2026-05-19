@@ -3051,9 +3051,9 @@ __menu_miscellaneous_explore_shorts() {
   local search_term
   local url
 
-  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_SHORTS" ] && [ -n "$CMD_INPUT" ]; then
+  if [ -n "$CMD_INPUT" ]; then
     search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
-    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+    unset -v CMD_INPUT
   else
     search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_SHORTS_PROMPT" | jq -Rr '@uri')
     [ -z "$search_term" ] && return
@@ -3072,9 +3072,9 @@ __menu_miscellaneous_explore_movies() {
   local search_term
   local url
 
-  if [ "$CMD_MISC_ACTION" = "$TXT_MENU_MISC_EXPLORE_MOVIES" ] && [ -n "$CMD_INPUT" ]; then
+  if [ -n "$CMD_INPUT" ]; then
     search_term="$(echo "$CMD_INPUT" | jq -Rr '@uri')"
-    unset -v CMD_MAIN_ACTION CMD_MISC_ACTION CMD_INPUT
+    unset -v CMD_INPUT
   else
     search_term=$(ui_prompt "$TXT_MENU_MISC_EXPLORE_MOVIES_PROMPT" | jq -Rr '@uri')
     [ -z "$search_term" ] && return
