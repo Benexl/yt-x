@@ -296,6 +296,12 @@ yt-x
 - `-ss, --search-short <term>` : Immediately execute a short search.
 - `-sm, --search-movie <term>` : Immediately execute a movie search.
 
+#### 🔖 Access saved items
+
+`-cp, --custom-playlist <name>` : Open a specific custom playlist by its saved name
+`-cc, --custom-cmd <name>` : Execute a specific custom command by its saved name
+`-sv, --saved-video <title>` : Open a specific saved video by its title
+
 #### 🖥️ UI & Interface
 
 - `-l, --launcher <fzf|rofi>` : Override the default menu launcher.
@@ -323,6 +329,9 @@ yt-x
 #### 🎬 Player & Playback
 
 - `-p, --player <mpv|vlc|tplay>` : Specify the media player to use for playback.
+  `--mpv-args` : Pass custom mpv args at runtime
+  `--vlc-args` : Pass custom vlc args at runtime
+  `--tplay-args` : Pass custom tplay args at runtime
 - `--disown-player` : Detach the player process from the terminal (allows you to keep browsing while watching).
 - `--no-disown-player` : Keep the player attached to the terminal session (default).
 
@@ -378,9 +387,9 @@ Quickly jump into a channel from your subscriptions and browse its content.
 **Options:**
 
 - `-n, --name <channel>` : Specify the channel name (exact match, case‑sensitive; _tab complete supported_).
+- `-s, --search <query>` : Search within the channel’s uploads.
 - `-v, --videos` : List the channel’s uploaded videos.
 - `-f, --featured` : Show the channel’s featured playlists.
-- `-s, --search <query>` : Search within the channel’s uploads.
 - `-p, --playlists` : List the channel’s playlists.
 - `-sh, --shorts` : Show the channel’s shorts.
 - `-st, --streams` : Show live streams & past broadcasts.
