@@ -3942,6 +3942,9 @@ Options:
   -i, --preview                  Enable the preview window (images/text)
   -I, --no-preview               Disable the preview window
   -p, --player <player>          Media player: mpv, vlc or tplay
+  --mpv-args                     Pass custom mpv args at runtime
+  --vlc-args                     Pass custom vlc args at runtime
+  --tplay-args                   Pass custom tplay args at runtime
   --disown-player                Detach the player process from the terminal
   --no-disown-player             Keep player attached (default)
   --rofi-theme-main <path>       Path to the rofi main theme file
