@@ -1,7 +1,7 @@
 /**
- * Rofi Theme: Viu "Tokyo Night" Input
- * Author: Gemini ft Benexl
- * Description: A compact, modern modal dialog for text input that correctly displays the prompt.
+ * Rofi Theme: Tokyo Night Input
+ * Author: @benexl
+ * Description: A compact, modern modal dialog for text input.
  */
 
 /*****----- Configuration -----*****/
@@ -11,16 +11,15 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    /* Tokyo Night Color Palette */
-    bg-col:       #1a1b26ff;
-    bg-alt:       #24283bff;
-    fg-col:       #c0caf5ff;
-    fg-alt:       #a9b1d6ff;
-    accent:       #bb9af7ff;
-    blue:         #7aa2f7ff;
+    base:     #1a1b26;
+    surface:  #24283b;
+    text:     #c0caf5;
+    subtext:  #a9b1d6;
+    blue:     #7aa2f7;
+    cyan:     #7dcfff;
 
     background-color: transparent;
-    text-color:       @fg-col;
+    text-color:       @text;
 }
 
 /*****----- Main Window -----*****/
@@ -30,57 +29,55 @@ window {
     anchor:           center;
     fullscreen:       false;
     width:            50%;
-    
-    border:           2px;
+    border:           1px;
+    border-radius:    16px;
+    padding:          16px;
     border-color:     @blue;
-    border-radius:    8px;
-    padding:          20px;
-    background-color: @bg-col;
+    background-color: @base;
 }
 
 /*****----- Main Box -----*****/
 mainbox {
     children:         [ message, inputbar ];
-    spacing:          20px;
+    spacing:          8px;
     background-color: transparent;
 }
 
-/*****----- Message (The Main Question, uses -mesg) -----*****/
+/*****----- Message -----*****/
 message {
-    padding:          10px;
+    padding:          8px;
     border-radius:    8px;
-    background-color: @bg-alt;
-    text-color:       @fg-col;
+    background-color: @surface;
+    text-color:       @text;
 }
 
 textbox {
     font:             "JetBrains Mono Nerd Font Bold 14";
-    horizontal-align: 0.5; /* Center the prompt text */
+    horizontal-align: 0.5;
     background-color: transparent;
     text-color:       inherit;
 }
 
-/*****----- Inputbar (Contains the title and entry field) -----*****/
+/*****----- Inputbar -----*****/
 inputbar {
-    padding:          8px 12px;
-    border:           1px;
-    border-radius:    6px;
-    border-color:     @accent;
-    background-color: @bg-alt;
-    spacing:          10px;
     children:         [ prompt, entry ];
+    border:           1px;
+    border-radius:    8px;
+    spacing:          8px;
+    border-color:     @blue;
+    background-color: @surface;
 }
 
-/* This is the title from the -p flag */
 prompt {
-    background-color: transparent;
-    text-color:       @accent;
+    padding:          8px;
+    background-color: @blue;
+    text-color:       @base;
 }
 
-/* This is where the user types */
 entry {
+    padding:          8px;
     background-color:  transparent;
-    text-color:        @fg-col;
-    placeholder:       "Type here...";
-    placeholder-color: @fg-alt;
+    placeholder:       "こんにちは...";
+    text-color:        @text;
+    placeholder-color: @subtext;
 }

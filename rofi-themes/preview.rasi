@@ -1,6 +1,6 @@
 /**
- * Rofi Theme: Viu "Tokyo Night" Horizontal Strip
- * Author: Gemini ft Benexl
+ * Rofi Theme: Tokyo Night Horizontal Strip
+ * Author: @benexl
  * Description: A fullscreen, horizontal, icon-centric theme for previews.
  */
 
@@ -12,27 +12,23 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    /* Tokyo Night Color Palette */
-    bg-col:       #1a1b26;
-    bg-alt:       #24283b; /* Slightly lighter for elements */
-    fg-col:       #c0caf5;
-    fg-alt:       #a9b1d6;
-
-    accent:       #2ac3de;
-    blue:         #7aa2f7;
-    cyan:         #7dcfff;
-    magenta:      #bb9af7;
+    base:     #1a1b26;
+    surface:  #24283b;
+    text:     #c0caf5;
+    subtext:  #a9b1d6;
+    blue:     #7aa2f7;
+    cyan:     #7dcfff;
 
     background-color: transparent;
-    text-color:       @fg-col;
+    text-color:       @text;
 }
 
 /*****----- Main Window -----*****/
 window {
     transparency:     "real";
-    background-color: @bg-col;
     fullscreen:       true;
     padding:          32px;
+    background-color: @base;
 }
 
 /*****----- Main Box -----*****/
@@ -44,69 +40,66 @@ mainbox {
 
 /*****----- Inputbar -----*****/
 inputbar {
-    padding:          8px 12px;
-    border:           1px;
-    border-radius:    6px;
-    border-color:     @accent;
-    background-color: @bg-alt;
-    spacing:          10px;
     children:         [ prompt, entry ];
+    border:           1px;
+    border-radius:    8px;
+    spacing:          8px;
+    border-color:     @blue;
+    background-color: @surface;
 }
 
-/* This is the title from the -p flag */
 prompt {
-    background-color: transparent;
-    text-color:       @accent;
+    padding:          8px;
+    background-color: @blue;
+    text-color:       @base;
 }
 
-/* This is where the user types */
 entry {
+    padding:          8px;
     background-color:  transparent;
-    text-color:        @fg-col;
-    placeholder:       "Type here...";
-    placeholder-color: @fg-alt;
+    placeholder:       "こんにちは...";
+    text-color:        @text;
+    placeholder-color: @subtext;
 }
 
 /*****----- List of items -----*****/
 listview {
-    flow:           horizontal; 
-    columns:          5;          
-    spacing:          16px;
-    fixed-columns:     true;
-    background-color: transparent;
+    flow:               horizontal; 
+    columns:            5;
+    spacing:            16px;
+    fixed-columns:      true;
+    background-color:   transparent;
 }
 
 /*****----- Elements -----*****/
 element {
     orientation:      vertical;
+    cursor:           pointer;
     padding:          8px;
     spacing:          16px;
     border-radius:    8px;
-    background-color: @bg-alt;
-    cursor:           pointer;
+    background-color: @surface;
 }
 
 element-icon {
-    size:  calc((100%  / 5 )); 
-    horizontal-align: 0.5;
-    background-color: transparent;
+    size:               calc((100% / 5)); 
+    horizontal-align:   0.5;
+    background-color:   transparent;
 }
 
 element-text {
-    padding: 8px;
-    horizontal-align: 0.5;
-    background-color: transparent;
-    text-color:       inherit;
+    padding:            8px;
+    horizontal-align:   0.5;
+    background-color:   transparent;
+    text-color:         inherit;
 }
 
-/* Default state of elements */
 element normal.normal {
-    background-color: @bg-alt;
-    text-color:       @fg-col;
+    background-color: @surface;
+    text-color:       @text;
 }
 
-/* Selected entry in the list */
 element selected.normal {
     background-color: @blue;
-    text-color:       @bg-col; /* Invert text color for contrast */
+    text-color:       @base;
 }

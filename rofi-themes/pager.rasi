@@ -1,6 +1,6 @@
 /**
- * Rofi Theme: Viu "Tokyo Night" Main
- * Author: Gemini ft Benexl
+ * Rofi Theme: Tokyo Night Main
+ * Author: @benexl
  * Description: A sharp, modern, and ultra-compact theme with a Tokyo Night palette.
  */
 
@@ -8,80 +8,79 @@
 configuration {
     font:           "JetBrains Mono Nerd Font 14";
     show-icons:     false;
-    location:       0;      /* 0 = center */
+    location:       0;
     width:          50;
-    yoffset:        -50;    
-    lines:          3;      
+    yoffset:        -50;
+    lines:          3;
 }
 
 /*****----- Global Properties -----*****/
 * {
-    /* Tokyo Night Color Palette */
-    bg-col:       #1a1b26ff; /* Main Background */
-    bg-alt:       #24283bff; /* Lighter Background for elements */
-    fg-col:       #c0caf5ff; /* Main Foreground */
-    fg-alt:       #a9b1d6ff; /* Dimmer Foreground for placeholders */
-    accent:       #bb9af7ff; /* Magenta/Purple for accents */
-    selected:     #7aa2f7ff; /* Blue for selection highlight */
+    base:     #1a1b26;
+    surface:  #24283b;
+    text:     #c0caf5;
+    subtext:  #a9b1d6;
+    blue:     #7aa2f7;
 
     background-color: transparent;
-    text-color:       @fg-col;
+    text-color:       @text;
 }
 
 /*****----- Main Window -----*****/
 window {
     transparency:     "real";
-    background-color: @bg-col;
-    border:           2px;
-    border-color:     @selected; /* Using blue for the main border */
+    border:           1px;
+    width:            50%;
     border-radius:    8px;
-    padding:          12px;
+    padding:          16px;
+    background-color: @base;
+    border-color:     @blue;
 }
 
 /*****----- Main Box -----*****/
 mainbox {
     children:         [ inputbar, listview ];
-    spacing:          10px;
+    spacing:          16px;
     background-color: transparent;
 }
 
 /*****----- Inputbar -----*****/
 inputbar {
-    background-color: @bg-alt;
-    border:           1px;
-    border-color:     @accent; /* Using magenta for the input border */
-    border-radius:    6px;
-    padding:          6px 12px;
-    spacing:          12px;
     children:         [ prompt, entry ];
+    border:           1px;
+    border-radius:    8px;
+    spacing:          8px;
+    border-color:     @blue;
+    background-color: @surface;
 }
 
 prompt {
-    background-color: transparent;
-    text-color:       @accent;
+    padding:          8px;
+    background-color: @blue;
+    text-color:       @base;
 }
 
 entry {
+    padding:          8px;
+    placeholder:       "こんにちは...";
     background-color:  transparent;
-    text-color:        @fg-col;
-    placeholder:       "Search...";
-    placeholder-color: @fg-alt;
+    text-color:        @text;
+    placeholder-color: @subtext;
 }
 
 /*****----- List of items -----*****/
 listview {
+    layout:           vertical;
     scrollbar:        false;
     spacing:          4px;
-    padding:          4px 0px;
-    layout:           vertical;
     background-color: transparent;
 }
 
 /*****----- Elements -----*****/
 element {
-    padding:          6px 12px;
-    border-radius:    6px;
-    spacing:          15px;
+    padding:          8px;
+    border-radius:    8px;
+    spacing:          8px;
     background-color: transparent;
 }
 
@@ -91,14 +90,12 @@ element-text {
     text-color:       inherit;
 }
 
-/* Default state of elements */
 element normal.normal {
     background-color: transparent;
-    text-color:       @fg-col;
+    text-color:       @text;
 }
 
-/* Selected entry in the list */
 element selected.normal {
-    background-color: @selected; /* Blue highlight */
-    text-color:       @bg-col;   /* Dark text for high contrast */
+    background-color: @blue;
+    text-color:       @base;
 }

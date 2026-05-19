@@ -1,7 +1,7 @@
 /**
- * Rofi Theme: Viu "Tokyo Night" Confirmation
- * Author: Gemini ft Benexl
- * Description: A compact and clear modal dialog for Yes/No confirmations that displays a prompt.
+ * Rofi Theme: Tokyo Night Confirmation
+ * Author: @benexl
+ * Description: A compact and clear modal dialog for Yes/No confirmations.
  */
 
 /*****----- Configuration -----*****/
@@ -11,17 +11,13 @@ configuration {
 
 /*****----- Global Properties -----*****/
 * {
-    /* Tokyo Night Color Palette */
-    bg-col:       #1a1b26;
-    bg-alt:       #24283b;
-    fg-col:       #c0caf5;
-    
-    blue:         #7aa2f7;
-    green:        #9ece6a; /* For 'Yes' */
-    red:          #f7768e; /* For 'No' */
+    base:     #1a1b26;
+    surface:  #24283b;
+    text:     #c0caf5;
+    blue:     #7aa2f7;
 
     background-color: transparent;
-    text-color:       @fg-col;
+    text-color:       @text;
 }
 
 /*****----- Main Window -----*****/
@@ -30,44 +26,43 @@ window {
     location:         center;
     anchor:           center;
     fullscreen:       false;
-    width:            350px;
-    
+    width:            50%;
     border:           2px;
+    border-radius:    8px;
+    padding:          24px;
     border-color:     @blue;
-    border-radius:    12px;
-    padding:          20px;
-    background-color: @bg-col;
+    background-color: @base;
 }
 
 /*****----- Main Box -----*****/
 mainbox {
     children:         [ inputbar, message, listview ];
-    spacing:          15px;
+    spacing:          16px;
     background-color: transparent;
 }
 
-/*****----- Inputbar (Displays the -p 'prompt') -----*****/
+/*****----- Inputbar -----*****/
 inputbar {
+    children:         [ prompt ];
     background-color: transparent;
     text-color:       @blue;
-    children:         [ prompt ];
 }
 
 prompt {
     font:             "JetBrains Mono Nerd Font Bold 14";
-    horizontal-align: 0.5; /* Center the title */
+    horizontal-align: 0.5;
     background-color: transparent;
     text-color:       inherit;
+    wrap:             true;
 }
 
-
-/*****----- Message (Displays the -mesg 'Are you Sure?') -----*****/
+/*****----- Message -----*****/
 message {
-    padding:          10px;
-    margin:           5px 0px;
+    padding:          8px;
+    margin:           8px 0px;
     border-radius:    8px;
-    background-color: @bg-alt;
-    text-color:       @fg-col;
+    background-color: @surface;
+    text-color:       @text;
 }
 
 textbox {
@@ -77,22 +72,22 @@ textbox {
     text-color:       inherit;
 }
 
-/*****----- Listview (The Buttons) -----*****/
+/*****----- Listview -----*****/
 listview {
     columns:          2;
     lines:            1;
-    spacing:          15px;
+    spacing:          16px;
     layout:           vertical;
     background-color: transparent;
 }
 
-/*****----- Elements (Yes/No Buttons) -----*****/
+/*****----- Elements -----*****/
 element {
-    padding:          12px;
+    padding:          16px;
     border-radius:    8px;
-    background-color: @bg-alt;
-    text-color:       @fg-col;
     cursor:           pointer;
+    background-color: @surface;
+    text-color:       @text;
 }
 
 element-text {
@@ -103,11 +98,11 @@ element-text {
 }
 
 element normal.normal {
-    background-color: @bg-alt;
-    text-color:       @fg-col;
+    background-color: @surface;
+    text-color:       @text;
 }
 
 element selected.normal {
     background-color: @blue;
-    text-color:       @bg-col;
+    text-color:       @base;
 }

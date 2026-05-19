@@ -288,7 +288,7 @@ __load_default_lang() {
   # core: rofi
   TXT_ROFI_NOT_CONFIGURED="Rofi is not configured. Please set to a valid rofi config file path in your config.sh"
   TXT_ROFI_PAGER_MESSAGE="Press [Esc] to exit pager"
-  TXT_ROFI_PAGER_PROMPT="Filter lines by typing..."
+  TXT_ROFI_PAGER_PROMPT="Filter lines by typing"
 
   # core: others
   TXT_MENU_INVALID_ACTION="Invalid Action"
@@ -937,10 +937,10 @@ __ui_rofi_prompt() {
   # It doesnt look pretty so disabling it
   if [ -n "$2" ] && false; then
     rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
-      -dmenu -p "$1: " -mesg "$2"
+      -dmenu -p "$1" -mesg "$2"
   else
     rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
-      -dmenu -p "$1: "
+      -dmenu -p "$1"
   fi
 }
 
@@ -1016,7 +1016,7 @@ _ui_rofi_confirm() {
   fi
 
   selection="$(printf "%s\n%s" "$yes" "$no" |
-    rofi -no-config -theme "$CONFIG_ROFI_THEME_CONFIRM" -dmenu -i -p "$1: " -selected-row "$default_index")"
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_CONFIRM" -dmenu -i -p "$1" -selected-row "$default_index")"
   [ "$selection" = "$yes" ] && return 0 || return 1
 }
 
