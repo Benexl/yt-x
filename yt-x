@@ -4175,7 +4175,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l save -d "Save video to saved
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l save-playlist -d "Save playlist to custom list"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l shell -d "Open subshell with context"
 
-complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter
+complete -c $CLI_NAME -n "__fish_use_subcommand" -s s -l search -d "Search for videos" --require-parameter --no-files -a '(cat "'$CLI_SEARCH_HISTORY_FILE'" 2>/dev/null)'
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sp -l search-playlist -d "Search for playlists" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Search for channels" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
