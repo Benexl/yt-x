@@ -3184,14 +3184,25 @@ __menu_miscellaneous_search_history() {
 
   if [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
     while true; do
-      search_term="$(
-        printf "%s\n%s" "$(
-          awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' "$CLI_SEARCH_HISTORY_FILE"
-        )" "$TXT_MENU_BACK" |
-          ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
-      )"
+      if [ -n "$CMD_INPUT" ]; then
+        search_term="$CMD_INPUT"
+        unset -v CMD_INPUT
+      else
+        search_term="$(
+          printf "%s\n%s" "$(
+            awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' "$CLI_SEARCH_HISTORY_FILE"
+          )" "$TXT_MENU_BACK" |
+            ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
+        )"
+      fi
       case "$search_term" in
-      "$TXT_MENU_BACK" | "") break ;;
+      "$TXT_MENU_BACK" | "")
+        if [ "$CMD_EXIT" = "true" ]; then
+          _util_byebye
+        else
+          break
+        fi
+        ;;
       *)
         url="results?search_query=$search_term&sp=EgIQAQ%253D%253D"
 
@@ -4353,6 +4364,17 @@ _app_cmd_line_parser() {
       CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS"
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
+    -H | --history)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_SEARCH_HISTORY"
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
