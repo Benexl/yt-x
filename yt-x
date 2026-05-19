@@ -3184,17 +3184,12 @@ __menu_miscellaneous_search_history() {
 
   if [ -s "$CLI_SEARCH_HISTORY_FILE" ]; then
     while true; do
-      if [ -n "$CMD_INPUT" ]; then
-        search_term="$CMD_INPUT"
-        unset -v CMD_INPUT
-      else
-        search_term="$(
-          printf "%s\n%s" "$(
-            awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' "$CLI_SEARCH_HISTORY_FILE"
-          )" "$TXT_MENU_BACK" |
-            ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
-        )"
-      fi
+      search_term="$(
+        printf "%s\n%s" "$(
+          awk '{a[i++]=$0} END {for (j=i-1; j>=0; j--) print a[j]}' "$CLI_SEARCH_HISTORY_FILE"
+        )" "$TXT_MENU_BACK" |
+          ui_launcher "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT" | jq -Rr '@uri'
+      )"
       case "$search_term" in
       "$TXT_MENU_BACK" | "")
         if [ "$CMD_EXIT" = "true" ]; then
@@ -3977,7 +3972,6 @@ Direct menu shortcuts
   -sc, --search-channel <term>   Search for channels directly
   -ss, --search-short <term>     Search for shorts directly
   -sm, --search-movie <term>     Search for movies directly
-  -H, --history <term>           Search for an entry in your search history directly
   -cp, --custom-playlist <name>  Open a specific custom playlist by its saved name
   -cc, --custom-cmd <name>       Execute a specific custom command by its saved name
   -sv, --saved-video <title>     Open a specific saved video by its title
@@ -4187,7 +4181,6 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -o sc -l search-channel -d "Sea
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o ss -l search-short -d "Search for shorts" --require-parameter
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sm -l search-movie -d "Search for movies" --require-parameter
 
-complete -c $CLI_NAME -n "__fish_use_subcommand" -o H -l history -d "search for something from your search history" --require-parameter --no-files -a '(cat "'$CLI_SEARCH_HISTORY_FILE'" 2>/dev/null)'
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sv -l saved-video -d "Open a specific saved video" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SAVED_VIDEOS_FILE'" 2>/dev/null)'
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o cp -l custom-playlist -d "Open a saved custom playlist" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_PLAYLISTS_FILE'" 2>/dev/null)'
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o cc -l custom-cmd -d "Execute a specific custom command" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_CMDS_FILE'" 2>/dev/null)'
@@ -4371,17 +4364,6 @@ _app_cmd_line_parser() {
       CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS"
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT")"
-        [ -n "$CMD_INPUT" ] || _app_usage 1
-      else
-        CMD_INPUT="$2"
-        shift_count=2
-      fi
-      ;;
-    -H | --history)
-      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
-      CMD_MISC_ACTION="$TXT_MENU_MISC_SEARCH_HISTORY"
-      if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_SEARCH_HISTORY_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
