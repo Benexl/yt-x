@@ -299,9 +299,9 @@ yt-x
 
 #### 🔖 Access saved items
 
-`-cp, --custom-playlist <name>` : Open a specific custom playlist by its saved name
-`-cc, --custom-cmd <name>` : Execute a specific custom command by its saved name
-`-sv, --saved-video <title>` : Open a specific saved video by its title
+- `-cp, --custom-playlist <name>` : Open a specific custom playlist by its saved name
+- `-cc, --custom-cmd <name>` : Execute a specific custom command by its saved name
+- `-sv, --saved-video <title>` : Open a specific saved video by its title
 
 #### 🖥️ UI & Interface
 
@@ -330,9 +330,9 @@ yt-x
 #### 🎬 Player & Playback
 
 - `-p, --player <mpv|vlc|tplay>` : Specify the media player to use for playback.
-  `--mpv-args` : Pass custom mpv args at runtime
-  `--vlc-args` : Pass custom vlc args at runtime
-  `--tplay-args` : Pass custom tplay args at runtime
+- `--mpv-args` : Pass custom mpv args at runtime
+- `--vlc-args` : Pass custom vlc args at runtime
+- `--tplay-args` : Pass custom tplay args at runtime
 - `--disown-player` : Detach the player process from the terminal (allows you to keep browsing while watching).
 - `--no-disown-player` : Keep the player attached to the terminal session (default).
 
