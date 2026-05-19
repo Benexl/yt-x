@@ -18,6 +18,7 @@ configuration {
     fg-col:       #c0caf5;
     fg-alt:       #a9b1d6;
 
+    accent:       #2ac3de;
     blue:         #7aa2f7;
     cyan:         #7dcfff;
     magenta:      #bb9af7;
@@ -31,66 +32,68 @@ window {
     transparency:     "real";
     background-color: @bg-col;
     fullscreen:       true;
-    padding:          2%;
+    padding:          32px;
 }
 
 /*****----- Main Box -----*****/
 mainbox {
     children:         [ inputbar, listview ];
-    spacing:          3%;
+    spacing:          32px;
     background-color: transparent;
 }
 
 /*****----- Inputbar -----*****/
 inputbar {
-    spacing:          15px;
-    padding:          12px 16px;
-    border-radius:    10px;
+    padding:          8px 12px;
+    border:           1px;
+    border-radius:    6px;
+    border-color:     @accent;
     background-color: @bg-alt;
-    text-color:       @fg-col;
-    margin:           0% 20%; /* Center the input bar */
+    spacing:          10px;
     children:         [ prompt, entry ];
 }
 
+/* This is the title from the -p flag */
 prompt {
-    text-color:       @magenta;
     background-color: transparent;
+    text-color:       @accent;
 }
 
+/* This is where the user types */
 entry {
-    background-color: transparent;
-    placeholder:      "Select an option...";
+    background-color:  transparent;
+    text-color:        @fg-col;
+    placeholder:       "Type here...";
     placeholder-color: @fg-alt;
 }
 
 /*****----- List of items -----*****/
 listview {
-    layout:           horizontal; 
+    flow:           horizontal; 
     columns:          5;          
-    spacing:          20px;
-    fixed-height:     true;
+    spacing:          16px;
+    fixed-columns:     true;
     background-color: transparent;
 }
 
 /*****----- Elements -----*****/
 element {
     orientation:      vertical;
-    padding:          30px 20px;  
-    border-radius:    12px;
-    spacing:          20px;       
+    padding:          8px;
+    spacing:          16px;
+    border-radius:    8px;
     background-color: @bg-alt;
     cursor:           pointer;
-    width:            200px;  /* Width of each element */
-    height:           50px;  /* Height of each element */
 }
 
 element-icon {
-    size:             33%; 
+    size:  calc((100%  / 5 )); 
     horizontal-align: 0.5;
     background-color: transparent;
 }
 
 element-text {
+    padding: 8px;
     horizontal-align: 0.5;
     background-color: transparent;
     text-color:       inherit;
