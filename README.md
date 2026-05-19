@@ -139,7 +139,7 @@
 - **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a configurable retention period (default 7 days).
 - **Direct Shortcut Flags**: Skip the interactive menu entirely with dedicated flags like `--feed`, `--subscriptions-feed`, `--watch-later`, `--saved`, `--recent`, `--liked`, `--watch-history`, `--clips`, and more – ideal for keybindings and scripting.
 - **Non‑Interactive Exit Helpers**: `--cmd-exit` terminates the script after executing a shortcut, while `--media-exit` does the same after any media action – perfect for one‑off commands and aliases.
-- **Direct Access to Saved Items**: Open a specific saved video (`-sv`, `--saved-video`) or custom playlist (`-cp`, `--custom-playlist`) without browsing menus, with tab completion in supported shells.
+- **Direct Access to Saved Items**: Open a specific saved video (`-sv`, `--saved-video`), custom playlist (`-cp`, `--custom-playlist`), or custom command (`-cc`, `--custom-cmd`) without browsing menus, with tab completion in supported shells.
 
 ### 🛠️ Cross-Platform & Infrastructure
 
@@ -890,7 +890,7 @@ yt-x --save-playlist --media-exit
 <summary><b>📁 How do I directly open a specific saved video or custom playlist without browsing the menu?</b></summary>
 <br>
 
-Use the `-sv` / `--saved-video` and `-cp` / `--custom-playlist` flags to jump straight to an item.  
+Use the `-sv` / `--saved-video`, `-cp` / `--custom-playlist`, and `-cc` / `--custom-cmd` flags to jump straight to an item.  
 In supported shells (Fish), you get tab completion for the names.
 
 ```bash
@@ -899,6 +899,9 @@ yt-x -sv "My favourite coding tutorial"
 
 # Open a specific custom playlist
 yt-x -cp "Jazz for studying"
+
+# Execute a specific custom command by name
+yt-x -cc "My Custom Search"
 ```
 
 If you omit the argument, `yt-x` will prompt you to select from the list interactively.
@@ -933,7 +936,7 @@ Type `exit` to return to `yt-x`.
 
 `--play-all`, `--listen-all`, `--download-all`, `--download-audio-all`, and `--save-playlist` are designed for **whole‑playlist actions**. They assume you want to act on the entire list, not a single item, so they automatically set `--playlist-skip` internally. This saves you from having to type both flags and makes command‑line usage more intuitive.
 
-If you *do* want to select a specific item from a playlist before playing the whole list, just use `--play` (without `-all`) and choose interactively.
+If you _do_ want to select a specific item from a playlist before playing the whole list, just use `--play` (without `-all`) and choose interactively.
 
 </details>
 
@@ -942,8 +945,10 @@ If you *do* want to select a specific item from a playlist before playing the wh
 <br>
 
 Fish shell completions are fully supported and include dynamic completion for:
+
 - `-cp` / `--custom-playlist` : reads playlist names from `~/.config/yt-x/custom-playlists.json`
 - `-sv` / `--saved-video` : reads video titles from `~/.config/yt-x/saved-videos.json`
+- `-cc` / `--custom-cmd` : reads command names from `~/.config/yt-x/custom-cmds.json`
 - `channels -n` : reads channel names from `~/.config/yt-x/subscriptions.json`
 - `-x` / `--extension` : lists files in `~/.config/yt-x/extensions/`
 
@@ -980,6 +985,7 @@ Use the dedicated search flags to jump straight to results:
 If you omit the search term, `yt-x` will prompt you to enter one interactively.
 
 **Example:**
+
 ```bash
 yt-x -s "linux kernel tutorial"
 yt-x -sp "jazz playlist"
@@ -1081,6 +1087,7 @@ Multiple `-x` flags can be used. To autoload extensions on every startup, list t
 Every config variable can be overridden by an environment variable prefixed with `YT_X_`. This is useful for scripting or one‑off changes without touching the config file.
 
 **Examples:**
+
 ```bash
 # Use rofi as launcher for this session
 YT_X_LAUNCHER=rofi yt-x
@@ -1103,11 +1110,13 @@ See the config file for all available variables (e.g., `YT_X_PLAYER`, `YT_X_BROW
 `yt-x` automatically cleans up old cache files (preview images, auto‑generated playlists, logs) based on `CONFIG_CACHE_RETENTION_DAYS` (default 7 days). The cache directories are located under `~/.cache/yt-x/`.
 
 To manually clean everything:
+
 ```bash
 rm -rf ~/.cache/yt-x/
 ```
 
 To keep the cache but remove only stale items older than a certain number of days (e.g., 3):
+
 ```bash
 find ~/.cache/yt-x/ -type f -mtime +3 -delete
 ```
@@ -1123,6 +1132,7 @@ Clearing the cache will not affect your saved videos, custom playlists, or subsc
 The `channels` subcommand accepts `-n` (channel name) plus an action flag. You can combine it with `--cmd-exit` to exit after browsing the channel.
 
 **Examples:**
+
 ```bash
 # Open a channel's videos and exit when you go back
 yt-x channels -n "Linus Tech Tips" -v --cmd-exit
@@ -1144,26 +1154,27 @@ If `-n` is omitted, you'll be prompted to pick from your subscriptions. If no ac
 
 These flags take you straight to specific sections:
 
-| Flag | Destination |
-|------|-------------|
-| `--feed` | Your personalised feed |
-| `--subscriptions-feed` | Subscriptions feed |
-| `--watch-later` | Watch Later playlist |
-| `--playlists` | Saved YouTube playlists |
-| `--custom-playlists` | Your local custom playlists |
-| `--saved` | Your saved videos |
-| `--recent` | Recently watched |
-| `--liked` | Liked videos |
-| `--watch-history` | Watch history |
-| `--clips` | Your clips |
-| `--new-custom-cmd` | Create a new custom command |
-| `--custom-cmds` | Run an existing custom command |
-| `--search-history` | Browse search history |
-| `--edit-search-history` | Edit search history file |
-| `--edit-custom-playlists` | Edit custom playlists JSON |
-| `--edit-mpv-config` | Edit mpv config |
-| `--edit-yt-dlp-config` | Edit yt‑dlp config |
-| `--edit-custom-cmds` | Edit custom commands JSON |
+| Flag                       | Destination                               |
+| -------------------------- | ----------------------------------------- |
+| `--feed`                   | Your personalised feed                    |
+| `--subscriptions-feed`     | Subscriptions feed                        |
+| `--watch-later`            | Watch Later playlist                      |
+| `--playlists`              | Saved YouTube playlists                   |
+| `--custom-playlists`       | Your local custom playlists               |
+| `--saved`                  | Your saved videos                         |
+| `--recent`                 | Recently watched                          |
+| `--liked`                  | Liked videos                              |
+| `--watch-history`          | Watch history                             |
+| `--clips`                  | Your clips                                |
+| `--new-custom-cmd`         | Create a new custom command               |
+| `--custom-cmds`            | Run an existing custom command            |
+| `-cc, --custom-cmd <name>` | Execute a specific custom command by name |
+| `--search-history`         | Browse search history                     |
+| `--edit-search-history`    | Edit search history file                  |
+| `--edit-custom-playlists`  | Edit custom playlists JSON                |
+| `--edit-mpv-config`        | Edit mpv config                           |
+| `--edit-yt-dlp-config`     | Edit yt‑dlp config                        |
+| `--edit-custom-cmds`       | Edit custom commands JSON                 |
 
 Combine these with `--cmd-exit` for non‑interactive workflows.
 

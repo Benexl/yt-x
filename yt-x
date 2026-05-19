@@ -3135,10 +3135,15 @@ __menu_miscellaneous_custom_commands() {
 
   if [ -s "$CLI_CUSTOM_CMDS_FILE" ]; then
     while true; do
-      custom_cmd_name=$(
-        printf "%s\n$TXT_MENU_BACK" "$(jq -r '.[].name' "$CLI_CUSTOM_CMDS_FILE")" |
-          ui_launcher "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT"
-      )
+      if [ -n "$CMD_INPUT" ]; then
+        custom_cmd_name="$CMD_INPUT"
+        unset -v CMD_INPUT
+      else
+        custom_cmd_name=$(
+          printf "%s\n$TXT_MENU_BACK" "$(jq -r '.[].name' "$CLI_CUSTOM_CMDS_FILE")" |
+            ui_launcher "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT"
+        )
+      fi
       case "$custom_cmd_name" in
       "$TXT_MENU_BACK" | "")
         if [ "$CMD_EXIT" = "true" ]; then
@@ -3929,6 +3934,7 @@ Options:
   -ss, --search-short <term>     Search for shorts directly
   -sm, --search-movie <term>     Search for movies directly
   -cp, --custom-playlist <name>  Open a specific custom playlist by its saved name
+  -cc, --custom-cmd <name>       Execute a specific custom command by its saved name
   -sv, --saved-video <title>     Open a specific saved video by its title
   -l, --launcher <launcher>      Menu launcher: fzf or rofi
   -p, --player <player>          Media player: mpv, vlc or tplay
@@ -4024,6 +4030,7 @@ Examples:
   $CLI_NAME --media-exit --download         # Download and then exit the script
   $CLI_NAME -cp 'Jazz Favourites'           # Open a saved custom playlist by name
   $CLI_NAME -sv 'My favourite video'        # Open a specific saved video by title
+  $CLI_NAME -cc 'My Custom Search'          # Execute a specific custom command by name
 
   # Extensions and desktop entry
   $CLI_NAME -x themes/catppuccin.theme      # Load a theme extension
@@ -4185,6 +4192,8 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l edit-custom-cmds -d "Edit cu
 # ==========================================================================
 # --custom-playlist / -cp : complete from custom playlists JSON file
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o cp -l custom-playlist -d "Open a saved custom playlist" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_PLAYLISTS_FILE'" 2>/dev/null)'
+# --custom-cmd / -cc : complete from custom commands JSON file
+complete -c $CLI_NAME -n "__fish_use_subcommand" -o cc -l custom-cmd -d "Execute a specific custom command" --require-parameter --no-files -a '(jq -r '.[]?.name' "'$CLI_CUSTOM_CMDS_FILE'" 2>/dev/null)'
 # --saved-video / -sv : complete from saved videos JSON file
 complete -c $CLI_NAME -n "__fish_use_subcommand" -o sv -l saved-video -d "Open a specific saved video" --require-parameter --no-files -a '(jq -r '.entries[].title' "'$CLI_SAVED_VIDEOS_FILE'" 2>/dev/null | sed "s/^[0-9]* //")'
 
@@ -4333,6 +4342,17 @@ _app_cmd_line_parser() {
       CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED"
       if [ -z "$2" ]; then
         CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_SAVED_PROMPT")"
+        [ -n "$CMD_INPUT" ] || _app_usage 1
+      else
+        CMD_INPUT="$2"
+        shift_count=2
+      fi
+      ;;
+    -cc | --custom-cmd)
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC"
+      CMD_MISC_ACTION="$TXT_MENU_MISC_CUSTOM_CMDS"
+      if [ -z "$2" ]; then
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MISC_CUSTOM_CMDS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
