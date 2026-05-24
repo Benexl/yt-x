@@ -97,7 +97,7 @@
 - **Extensions**: extend yt-x with custom scripts, sites, themes, and commands placed in `$HOME/.config/yt-x/extensions/`.
 - **Stateful Sub-Shell Execution**: Drop into a shell pre-loaded with the environment variables of your current session (current video title, URL, channel info, etc.) for custom scripting
 - **Desktop Integration**: generate a `.desktop` file, to be launched natively from application menus (Linux).
-- **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a set period (Default: 7 days)
+- **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a set period (Default: 3 days)
 - **OS Support**: Works across Linux, macOS, Windows (via WSL/MSYS/Cygwin), and Android (uses `am start` intents to open media natively in Android apps like VLC or MPV).
 - **Auto-Updater**: update checker that securely pulls the latest version from GitHub and shows you the changes diff so you can decide whether to apply the update or not.
 - **Shell Completions**: currently supports for fish shell with tab complete for some options (e.g., channel names, custom cmd names, etc.), would appreciate contributions for bash and zsh completions.
@@ -598,7 +598,7 @@ They exist purely for convinience and is more useful when passing from cmdline o
 | :----------------------------- | :------ | :------------------------------------------------------------------------------------- |
 | `CONFIG_ENABLE_SEARCH_HISTORY` | `true`  | Save local search history to track and quickly recall past queries.                    |
 | `CONFIG_NO_OF_RECENT`          | `10`    | The number of recent "Watch History" items to retain locally.                          |
-| `CONFIG_CACHE_RETENTION_DAYS`  | `7`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
+| `CONFIG_CACHE_RETENTION_DAYS`  | `3`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
 
 #### Fzf and Rofi
 

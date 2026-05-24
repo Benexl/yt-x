@@ -165,7 +165,7 @@ __load_default_config() {
   : "${CONFIG_TPLAY_ARGS:=}"
   : "${CONFIG_PER_PAGE:=30}"
   : "${CONFIG_BROWSER:=}"
-  : "${CONFIG_CACHE_RETENTION_DAYS:=7}"
+  : "${CONFIG_CACHE_RETENTION_DAYS:=3}"
   : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
   : "${CONFIG_NOTIFICATION_DURATION:=5}"
   : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
@@ -824,7 +824,7 @@ CONFIG_ROFI_THEME_CONFIRM="$CONFIG_ROFI_THEME_CONFIRM"
 CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 
 # Number of days to keep cached preview images, playlists, and logs
-# Default: 7
+# Default: 3
 CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 # ==============================================================================
 # 楽しんでね
@@ -4054,7 +4054,7 @@ _app_core_dep_ch() {
 
 _app_cache_clean_up() {
   local retention_days
-  retention_days="${CONFIG_CACHE_RETENTION_DAYS:-7}"
+  retention_days="${CONFIG_CACHE_RETENTION_DAYS:-3}"
 
   if [ -d "$CLI_PREVIEW_DIR" ]; then
     find "$CLI_PREVIEW_DIR" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
