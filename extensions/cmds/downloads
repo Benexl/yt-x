@@ -138,8 +138,7 @@ _menu_search() {
 
   while true; do
     media_items=$(
-      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f | sort)" "$TXT_MENU_BACK" |
-        tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f | sort | tee "$CLI_STATE_CURRENT_PLAYLIST_FILE")" "$TXT_MENU_BACK" |
         sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
         _preview_local "" |
         ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
@@ -173,8 +172,7 @@ _menu_playlists() {
     *)
       while true; do
         media_items=$(
-          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f | sort)" "$TXT_MENU_BACK" |
-            tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
+          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f | sort | tee "$CLI_STATE_CURRENT_PLAYLIST_FILE")" "$TXT_MENU_BACK" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$playlist/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$playlist" |
             ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
@@ -211,8 +209,7 @@ _menu_channels() {
     *)
       while true; do
         media_items=$(
-          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f | sort)" "$TXT_MENU_BACK" |
-            tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
+          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f | sort | tee "$CLI_STATE_CURRENT_PLAYLIST_FILE")" "$TXT_MENU_BACK" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$channel/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$channel" |
             ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
