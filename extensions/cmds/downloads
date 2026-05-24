@@ -156,7 +156,41 @@ _menu_search() {
 }
 
 _menu_playlists() {
-  :
+  local media_items
+  local playlist
+
+  while true; do
+    # TODO: allow multiple playlist selection
+    playlist=$(
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -maxdepth 2 -mindepth 2 -type d)" "$TXT_MENU_BACK" |
+        sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
+        _preview_local |
+        ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+    )
+
+    case "$playlist" in
+    "$TXT_MENU_BACK" | "") break ;;
+    *)
+      while true; do
+        media_items=$(
+          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f)" "$TXT_MENU_BACK" |
+            sed "s|$CONFIG_DOWNLOAD_DIR/$playlist/||g" |
+            _preview_local "$CONFIG_DOWNLOAD_DIR/$playlist" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
+        )
+
+        case "$media_items" in
+        "$TXT_MENU_BACK" | "") break ;;
+        *)
+          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$playlist/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
+          CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
+          _menu_playlist_actions
+          ;;
+        esac
+      done
+      ;;
+    esac
+  done
 }
 
 _menu_channels() {
