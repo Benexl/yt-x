@@ -1,0 +1,212 @@
+#!/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
+
+readonly CLI_LOCAL_PREVIEW_DIR="$CLI_PREVIEW_DIR/local"
+readonly CLI_LOCAL_PREVIEW_SCRIPTS_DIR="$CLI_LOCAL_PREVIEW_DIR/scripts"
+readonly CLI_LOCAL_PREVIEW_IMGS_DIR="$CLI_LOCAL_PREVIEW_DIR/imgs"
+
+readonly CLI_STATE_CURRENT_PLAYLIST_FILE="$CLI_CURRENT_STATE_DIR/playlist.m3u8"
+CLI_STATE_CURRRENT_MEDIA_FILE=""
+
+mkdir -p "$CLI_LOCAL_PREVIEW_SCRIPTS_DIR" "$CLI_LOCAL_PREVIEW_IMGS_DIR"
+
+_preview_local() {
+  local hash
+  local script_path
+  local preview_txt
+  local img_path
+  local thumbnailer_input_file
+  local base_dir
+  local candidate_path
+  local random_seek
+
+  base_dir="$1"
+
+  while IFS= read -r line; do
+    case "$line" in
+    "$TXT_MENU_BACK" | "$TXT_MENU_EXIT") printf '%s' "$line" ;;
+    *)
+      if [ "$CONFIG_ENABLE_PREVIEW" = "false" ]; then
+        printf '%s' "$line"
+      else
+        __preview_fzf_create_shared_script
+
+        hash="$(_util_generate_hash "$line")"
+        script_path="$CLI_LOCAL_PREVIEW_SCRIPTS_DIR/$hash.sh"
+
+        # preview image
+        # TODO: move to function and separate rofi impl from fzf
+        img_path="$CLI_LOCAL_PREVIEW_IMGS_DIR/$hash.jpg"
+
+        candidate_path="$CONFIG_DOWNLOAD_DIR/$line"
+        [ -n "$base_dir" ] && candidate_path="$base_dir/$line"
+
+        if [ -f "$candidate_path" ]; then
+          thumbnailer_input_file="$candidate_path"
+        else
+          [ -n "$base_dir" ] && candidate_path="$base_dir"
+          thumbnailer_input_file="$(find "$candidate_path" -type f 2>/dev/null | awk 'BEGIN{srand()} rand() * NR < 1 {line = $0} END {print line}')"
+        fi
+
+        if ! [ -s "$img_path" ]; then
+          random_seek=$(od -An -N2 -i /dev/urandom | awk '{print ($1 % 100) + 1}')
+          ffmpegthumbnailer -i "$thumbnailer_input_file" -o "$img_path" -t "$random_seek" -s 0 -m >/dev/null 2>&1
+        fi
+
+        case "$CONFIG_LAUNCHER" in
+        fzf)
+          if ! [ -s "$script_path" ]; then
+            if [ -d "${base_dir:-$CONFIG_DOWNLOAD_DIR}/$line" ]; then
+              preview_txt="$(find "${base_dir:-$CONFIG_DOWNLOAD_DIR}/$line" -type f)"
+            else
+              if command -v 'ffprobe' >/dev/null 2>&1; then
+                preview_txt="$(ffprobe "${base_dir:-$CONFIG_DOWNLOAD_DIR}/$line" -hide_banner 2>&1)"
+              fi
+            fi
+            cat <<EOF >"$script_path"
+if [ -s "$CLI_FZF_PREVIEW_SCRIPT" ];then
+  . "$CLI_FZF_PREVIEW_SCRIPT"
+else
+  exit
+fi
+[ -s "$img_path" ] && fzf_preview "$img_path" 2>/dev/null
+
+draw_divider
+
+printf "%s" "$preview_txt"|fold -s -w "\$FZF_PREVIEW_COLUMNS"
+EOF
+          fi
+          printf "%s|%s\n" "$script_path" "$line"
+          ;;
+        rofi)
+          printf "%s\0icon\x1f%s\n" "$line" "$img_path"
+          ;;
+        *)
+          printf '%s' "$line\n"
+          ;;
+        esac
+      fi
+      ;;
+    esac
+  done
+}
+
+_menu_playlist_actions() {
+  local action
+  local actions
+  actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰎆${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_LISTEN}
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
+${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  while true; do
+    if [ -n "$CMD_MEDIA_ACTION" ]; then
+      action="$CMD_MEDIA_ACTION"
+      unset -v CMD_MEDIA_ACTION
+    else
+      action=$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g')
+    fi
+
+    case "$action" in
+    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH")
+      play "$CLI_STATE_CURRRENT_MEDIA_FILE"
+      ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL")
+      play "$CLI_STATE_CURRENT_PLAYLIST_FILE"
+      ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN")
+      play "$CLI_STATE_CURRRENT_MEDIA_FILE" "listen"
+      ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL")
+      play "$CLI_STATE_CURRENT_PLAYLIST_FILE" "listen"
+      ;;
+    "$TXT_MENU_BACK" | "") break ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
+    *) ui_notify_critical "${TXT_MENU_INVALID_ACTION}: $action" ;;
+    esac
+    if [ "$CMD_MEDIA_EXIT" = true ]; then
+      _util_byebye
+    fi
+  done
+}
+
+_menu_search() {
+  local media_items
+
+  while true; do
+    media_items=$(
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f)" "$TXT_MENU_BACK" |
+        sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
+        _preview_local "" |
+        ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
+    )
+
+    case "$media_items" in
+    "$TXT_MENU_BACK" | "") break ;;
+    *)
+      printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
+      CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
+      _menu_playlist_actions
+      ;;
+    esac
+  done
+}
+
+_menu_playlists() {
+  :
+}
+
+_menu_channels() {
+  while true; do
+    channel=$(
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOADS_DIR" -maxdepth 2 2>/dev/null)" "$TXT_MENU_BACK" |
+        _preview_local |
+        ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+    )
+
+    case "$channel" in
+    "$TXT_MENU_BACK" | "") break ;;
+    esac
+  done
+}
+
+_menu_main() {
+  local actions
+  local action
+
+  actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SEARCH}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MAIN_PLAYLISTS}
+${THEME_FZF_ICON_COLOR_PRIMARY}󰑈${THEME_RESET}  ${TXT_MENU_MAIN_CHANNELS}
+${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  while true; do
+    if [ -n "$CMD_MAIN_ACTION" ]; then
+      action="$CMD_MAIN_ACTION"
+      unset -v CMD_MAIN_ACTION
+    else
+      action="$(printf "%s" "$actions" | ui_launcher "$TXT_MENU_MAIN_PROMPT_ACTION" | sed 's/^.  //g')"
+    fi
+
+    case "$action" in
+    "$TXT_MENU_MAIN_SEARCH") _menu_search ;;
+    "$TXT_MENU_MAIN_PLAYLISTS") _menu_playlists ;;
+    "$TXT_MENU_MAIN_CHANNELS") _menu_channels ;;
+    "$TXT_MENU_EXIT" | "") _util_byebye ;;
+    *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+
+  done
+
+}
+
+menu_main() {
+  if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
+    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
+    _util_byebye
+  fi
+  _menu_main
+}
