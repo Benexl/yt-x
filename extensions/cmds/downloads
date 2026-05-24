@@ -138,7 +138,7 @@ _menu_search() {
 
   while true; do
     media_items=$(
-      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f)" "$TXT_MENU_BACK" |
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f | sort)" "$TXT_MENU_BACK" |
         tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
         sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
         _preview_local "" |
@@ -162,7 +162,7 @@ _menu_playlists() {
   while true; do
     # TODO: allow multiple playlist selection
     playlist=$(
-      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -maxdepth 2 -mindepth 2 -type d)" "$TXT_MENU_BACK" |
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -maxdepth 2 -mindepth 2 -type d | sort)" "$TXT_MENU_BACK" |
         sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
         _preview_local |
         ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
@@ -173,7 +173,7 @@ _menu_playlists() {
     *)
       while true; do
         media_items=$(
-          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f)" "$TXT_MENU_BACK" |
+          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f | sort)" "$TXT_MENU_BACK" |
             tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$playlist/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$playlist" |
@@ -200,7 +200,7 @@ _menu_channels() {
   while true; do
     # TODO: allow multiple channel selection
     channel=$(
-      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -maxdepth 3 -mindepth 3 -type d)" "$TXT_MENU_BACK" |
+      printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -maxdepth 3 -mindepth 3 -type d | sort)" "$TXT_MENU_BACK" |
         sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
         _preview_local |
         ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
@@ -211,7 +211,7 @@ _menu_channels() {
     *)
       while true; do
         media_items=$(
-          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f)" "$TXT_MENU_BACK" |
+          printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f | sort)" "$TXT_MENU_BACK" |
             tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$channel/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$channel" |
