@@ -6,7 +6,7 @@ readonly CLI_LOCAL_PREVIEW_SCRIPTS_DIR="$CLI_LOCAL_PREVIEW_DIR/scripts"
 readonly CLI_LOCAL_PREVIEW_IMGS_DIR="$CLI_LOCAL_PREVIEW_DIR/imgs"
 
 readonly CLI_STATE_CURRENT_PLAYLIST_FILE="$CLI_CURRENT_STATE_DIR/playlist.m3u8"
-CLI_STATE_CURRRENT_MEDIA_FILE=""
+readonly CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_CURRENT_STATE_DIR/media-playlist.m3u8"
 
 mkdir -p "$CLI_LOCAL_PREVIEW_SCRIPTS_DIR" "$CLI_LOCAL_PREVIEW_IMGS_DIR"
 
@@ -139,6 +139,7 @@ _menu_search() {
   while true; do
     media_items=$(
       printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR" -type f)" "$TXT_MENU_BACK" |
+        tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
         sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
         _preview_local "" |
         ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
@@ -147,8 +148,7 @@ _menu_search() {
     case "$media_items" in
     "$TXT_MENU_BACK" | "") break ;;
     *)
-      printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
-      CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
+      printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
       _menu_playlist_actions
       ;;
     esac
@@ -174,6 +174,7 @@ _menu_playlists() {
       while true; do
         media_items=$(
           printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$playlist" -type f)" "$TXT_MENU_BACK" |
+            tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$playlist/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$playlist" |
             ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
@@ -182,8 +183,7 @@ _menu_playlists() {
         case "$media_items" in
         "$TXT_MENU_BACK" | "") break ;;
         *)
-          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$playlist/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
-          CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
+          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$playlist/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
           _menu_playlist_actions
           ;;
         esac
@@ -212,6 +212,7 @@ _menu_channels() {
       while true; do
         media_items=$(
           printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f)" "$TXT_MENU_BACK" |
+            tee "$CLI_STATE_CURRENT_PLAYLIST_FILE" |
             sed "s|$CONFIG_DOWNLOAD_DIR/$channel/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$channel" |
             ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
@@ -220,8 +221,7 @@ _menu_channels() {
         case "$media_items" in
         "$TXT_MENU_BACK" | "") break ;;
         *)
-          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$channel/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
-          CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
+          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$channel/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
           _menu_playlist_actions
           ;;
         esac
