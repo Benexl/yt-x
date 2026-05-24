@@ -212,7 +212,7 @@ _menu_channels() {
       while true; do
         media_items=$(
           printf "%s\n%s" "$(find "$CONFIG_DOWNLOAD_DIR/$channel" -type f)" "$TXT_MENU_BACK" |
-            sed "s|$CONFIG_DOWNLOAD_DIR/||g" |
+            sed "s|$CONFIG_DOWNLOAD_DIR/$channel/||g" |
             _preview_local "$CONFIG_DOWNLOAD_DIR/$channel" |
             ui_launcher_with_preview "$TXT_MENU_MAIN_SEARCH_PROMPT" "multi"
         )
@@ -220,7 +220,7 @@ _menu_channels() {
         case "$media_items" in
         "$TXT_MENU_BACK" | "") break ;;
         *)
-          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
+          printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$channel/\" \$1}" >"$CLI_STATE_CURRENT_PLAYLIST_FILE"
           CLI_STATE_CURRRENT_MEDIA_FILE="$CLI_STATE_CURRENT_PLAYLIST_FILE"
           _menu_playlist_actions
           ;;
