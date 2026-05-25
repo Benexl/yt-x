@@ -80,7 +80,7 @@
 - **YouTube Feeds**: Access personal feeds including the Home Feed, Trending, Watch Later, Liked Videos, Watch History, and Clips.
 - **Channel Browsing**: access a channel's Videos, Featured content, Playlists, Shorts, Live Streams, Podcasts, and search pages.
 - **Theming & Styling**: theming support through `.theme` extensions with tokyo night as the default theme.
-- **Multi-language Support**: Loadable language files (`.lang`) to easily localize the UI prompts and messages(currently `es` and `br`. Would appreciate contributions for more languages.
+- **Multi-language Support**: Loadable language files (`.lang`) to easily localize the UI prompts and messages(currently `es` and `br`. Contributions for additional languages are welcome.
 - **Pagination**: browse through massive lists with Next/Previous pagination controls (default is 30).
 - **scriptable Shortcuts**: Bypass menus and jump straight to specific feeds, searches, or actions using direct command-line flags . See usage
 - **Multiple Player Support**: with `mpv`, `vlc`, and `tplay`.
@@ -102,7 +102,7 @@
 - **Cache Management**: Automatically cleans up stale preview images, auto-generated playlists, and logs older than a set period (Default: 3 days)
 - **OS Support**: Works across Linux, macOS, Windows (via WSL/MSYS/Cygwin), and Android (uses `am start` intents to open media natively in Android apps like VLC or MPV).
 - **Auto-Updater**: update checker that securely pulls the latest version from GitHub and shows you the changes diff so you can decide whether to apply the update or not.
-- **Shell Completions**: currently supports for fish shell with tab complete for some options (e.g., channel names, custom cmd names, etc.), would appreciate contributions for bash and zsh completions.
+- **Shell Completions**: currently supports for fish shell with tab complete for some options (e.g., channel names, custom cmd names, etc.), Contributions for bash and zsh completions are welcome.
 
 ## Installation
 
@@ -644,6 +644,7 @@ Replaces the main menu with a local media browser.
 Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNLOAD_DIR`.
 
 **Features:**
+
 - Browse by individual files, playlists (subfolders), or channels (nested folders).
 - Previews with `ffmpegthumbnailer` (if installed).
 - Play, play all, listen, listen all – supports the same media actions as online content.
@@ -684,6 +685,7 @@ Spanish translation for all UI texts, prompts, and messages.
 
 Adds a **Dailymotion** entry to the main menu.  
 Allows you to:
+
 - Search Dailymotion videos.
 - Explore a user’s uploads.
 - Browse a specific playlist.
@@ -714,6 +716,7 @@ Includes custom `fzf` options (border, colors, preview window) and ANSI escape c
 ### Loading Extensions
 
 **Temporary (single session)**
+
 ```bash
 yt-x -x sites/dailymotion.site
 yt-x -x langs/es.lang
@@ -723,6 +726,7 @@ yt-x -x cmd/downloads              # replaces main menu with a local media brows
 
 **Permanent**  
 Add to `~/.config/yt-x/config`:
+
 ```bash
 CONFIG_AUTOLOADED_EXTENSIONS="themes/catppuccin-mocha.theme,langs/es.lang"
 ```
