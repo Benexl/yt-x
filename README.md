@@ -755,7 +755,7 @@ Check the `extensions/` folder in the [repository](https://github.com/Benexl/yt-
 ## Frequently Asked Questions (FAQ)
 
 <details>
-<summary><b>Is yt-x a standalone media downloader or player? (Reporting Bugs)</b></summary>
+<summary><b>Reporting Bugs</b></summary>
 <br>
 
 No.
@@ -828,6 +828,7 @@ Something like this
 --no-warnings
 --quiet
 --reject-title "\[Deleted video\]|\[Private video\]"
+--progress
 ```
 
 </details>
@@ -841,6 +842,111 @@ Add something like this to yt-dlp config
 ```conf
 --reject-title "\[Deleted video\]|\[Private video\]"
 ```
+
+</details>
+```markdown
+<details>
+<summary><b>How can I reorder, add, or remove menu entries? (Customizing menus)</b></summary>
+<br>
+
+`yt-x` menus are built from simple lists of actions. You can customize them **without touching the main script** by using **extensions** (see the [Extensions](#extensions) section).
+
+All menu functions accept optional parameters that let you filter, reorder, or add extra actions. The key functions are:
+
+- `_menu_main` – Main menu (Your Feed, Search, Channels, etc.)
+- `_menu_miscellaneous` – Misc menu (Explore Channels, Custom Commands, etc.)
+- `_menu_channel_actions` – Actions inside a channel (Videos, Playlists, Subscribe, etc.)
+- `_menu_playlist_actions` – Media action menu (Watch, Listen, Download, etc.)
+
+Each of these functions supports the same four optional arguments:
+
+```sh
+_menu_main [sort] [filter_regex] [extra_actions] [handler_function]
+```
+
+| Argument | Purpose |
+|----------|---------|
+| `sort` | Comma‑separated list of line numbers to reorder menu items. |
+| `filter_regex` | `grep` pattern to **remove** matching lines. |
+| `extra_actions` | Newline‑separated string of extra menu entries. |
+| `handler_function` | Function name to call when an extra action is selected. |
+
+---
+
+### Examples (put these in an extension file, e.g., `~/.config/yt-x/extensions/ui/zen.ui`)
+
+#### 1. Remove an entry (e.g., hide "Clips" from main menu)
+
+```sh
+# override menu_main with a filter
+menu_main() {
+  _menu_main "" "Clips"
+}
+```
+
+#### 2. Reorder menu entries (show Search first, then Feed)
+
+The `sort` argument expects line numbers (1‑based, from the default menu order).  
+To see the current order, run `yt-x` and count the entries, or inspect the `actions` variable inside the function.  
+Assuming default main menu order: 1=Your Feed, 2=Search, 3=Subscriptions Feed, …
+
+```sh
+menu_main() {
+  _menu_main "2,1"   # Search first, then Feed
+}
+```
+
+#### 3. Add a custom entry that launches your favourite playlist
+
+```sh
+my_custom_handler() {
+  case "$1" in
+    "My Favourites") yt-x -cp "My Favourites" ;;
+    *) return 1 ;;
+  esac
+}
+
+menu_main() {
+  extra="   My Favourites"
+  _menu_main "" "" "$extra" my_custom_handler
+}
+```
+
+#### 4. Combine filtering, reordering, and adding
+
+```sh
+menu_main() {
+  _state_init
+  # Remove "Clips", reorder (Search #2 first), add a "Daily Mix" entry
+  _menu_main "2,1" "Clips" " 󰀄  Daily Mix" my_custom_handler
+}
+```
+
+#### 5. Customize the media action menu (playlist actions)
+
+Remove "Mix" and "Save Playlist", add a custom "Convert to MP3" action:
+
+```sh
+convert_to_mp3() {
+  # your conversion logic using STATE_CURRENT_VIDEO_URL
+  notify-send "Converting..."
+}
+
+menu_playlist_actions() {
+  _menu_playlist_actions "" "Mix\\|Save Playlist" " 󰒄  Convert to MP3" convert_to_mp3
+}
+```
+
+---
+
+### Important Notes
+
+- The `filter_regex` uses **extended regular expressions**. Separate multiple patterns with `|`. You can reference `$TXT_MENU_VARS` to make this easier.
+- Extra entries must include an icon and the text exactly as you want it to appear.
+- Your custom handler receives the **selected action text** as `$1`. Return `0` if handled, `1` if not (so the default handler can process it).
+- To make changes permanent, add the overrides to an extension and autoload it via `CONFIG_AUTOLOADED_EXTENSIONS`.
+
+Check the [Extensions](#extensions) section for more details on loading and writing extensions.
 
 </details>
 
