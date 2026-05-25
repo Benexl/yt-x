@@ -2748,9 +2748,19 @@ __menu_playlist_actions_toggle_enumerate_downloads() {
   fi
 }
 
+# shellcheck disable=SC2120
 _menu_playlist_actions() {
   local actions
   local media_action
+  local sort
+  local menu_options_filter
+  local extra_menu_options
+  local extra_menu_options_handler
+
+  sort="$1"
+  menu_options_filter="$2"
+  extra_menu_option="$3"
+  extra_menu_options_handler="$4"
 
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_WATCH}
@@ -2773,6 +2783,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_TO
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SHELL}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$menu_options_filter" ]; then
+    actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
 
   while true; do
     if [ -n "$CMD_MEDIA_ACTION" ]; then
@@ -2996,9 +3010,19 @@ __menu_channel_actions_subscribe() {
     ]}|.entries+=[$channel]' >"$CLI_SUBSCRIPTIONS_FILE"
 }
 
+# shellcheck disable=SC2120
 _menu_channel_actions() {
-  local actions
   local url
+  local actions
+  local sort
+  local menu_options_filter
+  local extra_menu_options
+  local extra_menu_options_handler
+
+  sort="$1"
+  menu_options_filter="$2"
+  extra_menu_option="$3"
+  extra_menu_options_handler="$4"
 
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_VIDEOS}
@@ -3011,6 +3035,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_POD
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$menu_options_filter" ]; then
+    actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
 
   while true; do
     if [ -n "$CMD_CHANNEL" ] && [ -n "$CMD_CHANNEL_ACTION" ]; then
@@ -3415,8 +3443,19 @@ __menu_miscellaneous_edit_yt_dlp_config() {
   _util_file_edit "$XDG_CONFIG_HOME/yt-dlp/config"
 }
 
+# shellcheck disable=SC2120
 _menu_miscellaneous() {
   local actions
+  local sort
+  local menu_options_filter
+  local extra_menu_options
+  local extra_menu_options_handler
+
+  sort="$1"
+  menu_options_filter="$2"
+  extra_menu_option="$3"
+  extra_menu_options_handler="$4"
+
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_CHANNELS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰐑${THEME_RESET}  ${TXT_MENU_MISC_EXPLORE_PLAYLISTS}
@@ -3434,6 +3473,11 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰓦${THEME_RESET}  ${TXT_MENU_MISC_SYNC_SUBS}
 ${THEME_FZF_ICON_COLOR_ERROR}󰆴${THEME_RESET}  ${TXT_MENU_MISC_CLEAR_SEARCH_HISTORY}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$menu_options_filter" ]; then
+    actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
+
   while true; do
     if [ -n "$CMD_MISC_ACTION" ]; then
       action="$CMD_MISC_ACTION"
@@ -3888,8 +3932,19 @@ __menu_main_edit_config() {
   _load_config
 }
 
+# shellcheck disable=SC2120
 _menu_main() {
   local actions
+  local sort
+  local menu_options_filter
+  local extra_menu_options
+  local extra_menu_options_handler
+
+  sort="$1"
+  menu_options_filter="$2"
+  extra_menu_option="$3"
+  extra_menu_options_handler="$4"
+
   actions="\
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_FEED}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_SEARCH}
@@ -3906,6 +3961,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CLIPS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$menu_options_filter" ]; then
+    actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
 
   while true; do
     if [ -n "$CMD_MAIN_ACTION" ]; then
