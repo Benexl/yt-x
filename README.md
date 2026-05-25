@@ -79,6 +79,7 @@
 - **Search History & Recall**: Automatically saves search history. Allows quick recall of previous searches using bang syntax (e.g., `!1` for the most recent search, `!2` for the second, etc.).
 - **YouTube Feeds**: Access personal feeds including the Home Feed, Trending, Watch Later, Liked Videos, Watch History, and Clips.
 - **Channel Browsing**: access a channel's Videos, Featured content, Playlists, Shorts, Live Streams, Podcasts, and search pages.
+- **Customizable Menus**: Reorder, add, or filter out menu entries using `.ui` extensions
 - **Theming & Styling**: theming support through `.theme` extensions with tokyo night as the default theme.
 - **Multi-language Support**: Loadable language files (`.lang`) to easily localize the UI prompts and messages(currently `es` and `br`. Contributions for additional languages are welcome.
 - **Pagination**: browse through massive lists with Next/Previous pagination controls (default is 30).
@@ -971,9 +972,9 @@ TXT_ICON_MENU_MAIN_SEARCH=""
 TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH=""
 
 # Or replace them with simple ASCII prefixes
-TXT_ICON_MENU_MAIN_FEED="[F] "
-TXT_ICON_MENU_MAIN_SEARCH="[S] "
-TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH="[W] "
+TXT_ICON_MENU_MAIN_FEED="[F]"
+TXT_ICON_MENU_MAIN_SEARCH="[S]"
+TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH="[W]"
 # ... add more as needed
 ```
 
