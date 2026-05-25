@@ -621,6 +621,130 @@ Check the repo for pre-configured rofi themes
 | `CONFIG_AUTOLOADED_EXTENSIONS` | `""`    | Comma-separated list of extension scripts to load automatically on startup. |
 | `CONFIG_CHECK_FOR_UPDATES`     | `true`  | Periodically check the GitHub repository for updates and prompt to install. |
 
+## Extensions
+
+`yt-x` supports **extensions** to add or override functionality without modifying the core script.  
+Extensions are shell scripts placed in `~/.config/yt-x/extensions/` and can be loaded on demand or automatically.
+
+### Official Extensions
+
+The following extensions are maintained included in the repository.
+
+#### Command Extensions (`cmds/`)
+
+<details>
+<summary><code>downloads</code> by Benexl</summary>
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/040b6f98-c228-4de8-962d-52c216f23d4b" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/3d76b9a4-9870-44fd-bf44-7abb0fdaca24" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/edd3efa0-164d-49fa-85eb-752b9cf9dbfb" />
+
+Replaces the main menu with a local media browser.  
+Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNLOAD_DIR`.
+
+**Features:**
+- Browse by individual files, playlists (subfolders), or channels (nested folders).
+- Previews with `ffmpegthumbnailer` (if installed).
+- Play, play all, listen, listen all – supports the same media actions as online content.
+
+**Load with:**  
+`yt-x -x cmd/downloads`
+</details>
+
+---
+
+#### Language Extensions (`langs/`)
+
+<details>
+<summary><code>br.lang</code> by aglairdev </summary>
+
+Brazilian Portuguese translation for all UI texts, prompts, and messages.  
+Overrides the default English strings.
+
+**Load with:**  
+`yt-x -x langs/br.lang`
+</details>
+
+<details>
+<summary><code>es.lang</code> by Benexl</summary>
+
+Spanish translation for all UI texts, prompts, and messages.  
+
+**Load with:**  
+`yt-x -x langs/es.lang`
+</details>
+
+---
+
+#### Site Extensions (`sites/`)
+
+<details>
+<summary><code>dailymotion.site</code> by Benexl</summary>
+
+Adds a **Dailymotion** entry to the main menu.  
+Allows you to:
+- Search Dailymotion videos.
+- Explore a user’s uploads.
+- Browse a specific playlist.
+
+Uses the same playlist explorer and media actions as YouTube.
+
+**Load with:**  
+`yt-x -x sites/dailymotion.site`
+</details>
+
+---
+
+#### Theme Extensions (`themes/`)
+
+<details>
+<summary><code>catppuccin-mocha.theme</code> by Benexl</summary>
+
+Applies the **Catppuccin Mocha** color scheme to `fzf` and the terminal output.  
+Includes custom `fzf` options (border, colors, preview window) and ANSI escape codes for primary/secondary/accent/error colors.
+
+**Requirements:** True‑color terminal support (`COLORTERM=truecolor`).  
+**Load with:**  
+`yt-x -x themes/catppuccin-mocha.theme`
+</details>
+
+---
+
+### Loading Extensions
+
+**Temporary (single session)**
+```bash
+yt-x -x sites/dailymotion.site
+yt-x -x langs/es.lang
+yt-x -x themes/catppuccin-mocha.theme
+yt-x -x cmd/downloads              # replaces main menu with a local media browser
+```
+
+**Permanent**  
+Add to `~/.config/yt-x/config`:
+```bash
+CONFIG_AUTOLOADED_EXTENSIONS="themes/catppuccin-mocha.theme,langs/es.lang"
+```
+
+### Creating Your Own Extension
+
+1. Create the appropriate subdirectory (if missing) inside `~/.config/yt-x/extensions/`.
+2. Write a **POSIX‑compliant** shell script.
+3. The script is sourced by `yt-x`, so you can:
+   - Override any function (e.g., `menu_main`, `_menu_playlist_actions`).
+   - Add new menu items by appending to the `actions` variable.
+   - Define new helper functions.
+   - Use all internal variables and functions (prefixed with `_` or public like `ui_prompt`).
+
+### Important Notes
+
+- Extensions are **sourced**, not executed – they run inside the main script’s context.
+- Avoid `exit` or `exec` unless you really want to terminate `yt-x`.
+- Use `return` instead of `exit` to stop processing the extension.
+- You can combine multiple extensions; load order is the order they appear in `CONFIG_AUTOLOADED_EXTENSIONS` (or the order of `-x` flags).
+- For commands (`cmds/`), your script must define a function `menu_main` that replaces the default main menu (see [`cmds/downloads`](extensions/cmds/downloads)).
+
+Check the `extensions/` folder in the [repository](https://github.com/Benexl/yt-x/tree/master/extensions) for examples.
+
 ## Frequently Asked Questions (FAQ)
 
 <details>
