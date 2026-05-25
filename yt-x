@@ -947,6 +947,29 @@ _util_generate_hash() {
   fi
 }
 
+_util_menu_sort() {
+  local options_to_sort
+  local options_to_sort_copy
+  local sort
+  local i
+  i=0
+  options_to_sort="$1"
+  sort="$2"
+
+  for option in $(printf '%s' "$options_to_sort" | tr ' ' '-'); do
+    i=$((i + 1))
+    if [ -z "$options_to_sort_copy" ]; then
+      options_to_sort_copy="$i:$option"
+    else
+      options_to_sort_copy="$options_to_sort_copy\n$i:$option"
+    fi
+  done
+
+  for order in $(printf '%s' "$sort" | tr ',' '\n'); do
+    printf "$options_to_sort_copy" | grep "^$order:" | sed "s/$order://g" | tr '-' ' '
+  done
+}
+
 _util_byebye() {
   printf '%s %s\n' "$TXT_BYEBYE" "$USER"
   exit
@@ -2792,6 +2815,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
   fi
 
+  if [ -n "$sort" ]; then
+    actions="$(_util_menu_sort "$actions" "$sort")"
+  fi
+
   while true; do
     if [ -n "$CMD_MEDIA_ACTION" ]; then
       media_action="$CMD_MEDIA_ACTION"
@@ -3052,6 +3079,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
+
+  if [ -n "$sort" ]; then
+    actions="$(_util_menu_sort "$actions" "$sort")"
   fi
 
   while true; do
@@ -3500,6 +3531,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
+
+  if [ -n "$sort" ]; then
+    actions="$(_util_menu_sort "$actions" "$sort")"
   fi
 
   while true; do
@@ -3998,6 +4033,10 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
+  fi
+
+  if [ -n "$sort" ]; then
+    actions="$(_util_menu_sort "$actions" "$sort")"
   fi
 
   while true; do
