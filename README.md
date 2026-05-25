@@ -844,7 +844,7 @@ Add something like this to yt-dlp config
 ```
 
 </details>
-```markdown
+
 <details>
 <summary><b>How can I reorder, add, or remove menu entries? (Customizing menus)</b></summary>
 <br>
