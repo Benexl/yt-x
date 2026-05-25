@@ -637,6 +637,7 @@ The following extensions are maintained and included in the repository.
 <details>
 <summary><code>downloads</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/040b6f98-c228-4de8-962d-52c216f23d4b" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/8fe44b99-48bc-43d9-8e56-8c0f5f7fb887" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/3d76b9a4-9870-44fd-bf44-7abb0fdaca24" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/edd3efa0-164d-49fa-85eb-752b9cf9dbfb" />
 
