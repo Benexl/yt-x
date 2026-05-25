@@ -652,6 +652,7 @@ Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNL
 
 **Load with:**  
 `yt-x -x cmd/downloads`
+
 </details>
 
 ---
@@ -666,15 +667,17 @@ Overrides the default English strings.
 
 **Load with:**  
 `yt-x -x langs/br.lang`
+
 </details>
 
 <details>
 <summary><code>es.lang</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
-Spanish translation for all UI texts, prompts, and messages.  
+Spanish translation for all UI texts, prompts, and messages.
 
 **Load with:**  
 `yt-x -x langs/es.lang`
+
 </details>
 
 ---
@@ -695,6 +698,7 @@ Uses the same playlist explorer and media actions as YouTube.
 
 **Load with:**  
 `yt-x -x sites/dailymotion.site`
+
 </details>
 
 ---
@@ -710,6 +714,7 @@ Includes custom `fzf` options (border, colors, preview window) and ANSI escape c
 **Requirements:** True‑color terminal support (`COLORTERM=truecolor`).  
 **Load with:**  
 `yt-x -x themes/catppuccin-mocha.theme`
+
 </details>
 
 ---
@@ -863,12 +868,12 @@ Each of these functions supports the same four optional arguments:
 _menu_main [sort] [filter_regex] [extra_actions] [handler_function]
 ```
 
-| Argument | Purpose |
-|----------|---------|
-| `sort` | Comma‑separated list of line numbers to reorder menu items. |
-| `filter_regex` | `grep` pattern to **remove** matching lines. |
-| `extra_actions` | Newline‑separated string of extra menu entries. |
-| `handler_function` | Function name to call when an extra action is selected. |
+| Argument           | Purpose                                                     |
+| ------------------ | ----------------------------------------------------------- |
+| `sort`             | Comma‑separated list of line numbers to reorder menu items. |
+| `filter_regex`     | `grep` pattern to **remove** matching lines.                |
+| `extra_actions`    | Newline‑separated string of extra menu entries.             |
+| `handler_function` | Function name to call when an extra action is selected.     |
 
 ---
 
@@ -946,6 +951,42 @@ menu_playlist_actions() {
 - To make changes permanent, add the overrides to an extension and autoload it via `CONFIG_AUTOLOADED_EXTENSIONS`.
 
 Check the [Extensions](#extensions) section for more details on loading and writing extensions.
+
+</details>
+
+<details>
+<summary><b>I don't like (or can't use) Nerd Font icons. How do I disable or replace them?</b></summary>
+<br>
+
+### Method 1: Disable all icons (plain text fallback)
+
+The icons are stored in language variables like `TXT_ICON_MENU_MAIN_FEED`, `TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH`, etc.  
+Create an extension that overrides these variables with empty strings or simple ASCII symbols.
+
+**Example: `~/.config/yt-x/extensions/ui/no-icons.ui`**
+
+```sh
+TXT_ICON_MENU_MAIN_FEED=""
+TXT_ICON_MENU_MAIN_SEARCH=""
+TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH=""
+
+# Or replace them with simple ASCII prefixes
+TXT_ICON_MENU_MAIN_FEED="[F] "
+TXT_ICON_MENU_MAIN_SEARCH="[S] "
+TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH="[W] "
+# ... add more as needed
+```
+
+Load it with `-x ui/no-icons.ui` or add to `CONFIG_AUTOLOADED_EXTENSIONS`.
+
+### Method 2: Use a font that bundles icons (recommended)
+
+If your terminal displays empty squares or missing characters, you're missing a Nerd Font.  
+Install a [Nerd Font](https://www.nerdfonts.com/) (e.g., `JetBrainsMono Nerd Font`, `Cascadia Code NF`) and set your terminal to use it – all icons will appear correctly.
+
+### Why are icons used?
+
+I think they are cool lol
 
 </details>
 
