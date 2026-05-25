@@ -758,7 +758,6 @@ Check the `extensions/` folder in the [repository](https://github.com/Benexl/yt-
 <summary><b>Reporting Bugs</b></summary>
 <br>
 
-No.
 `yt-x` is just a **wrapper** over amazing cmdline tools. _(yt-dlp,fzf,rofi,mpv etc)_
 Before opening an issue on GitHub, please determine if the bug is actually related to `yt-x` or one this tools
 
