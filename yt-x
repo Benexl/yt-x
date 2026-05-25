@@ -2827,7 +2827,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     else
       media_action="$(
         printf "%s" "$actions" |
-          ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.  //g'
+          ui_launcher "$TXT_MENU_PLAYLIST_PROMPT_ACTION" | sed 's/.*  //g'
       )"
     fi
     case "$media_action" in
@@ -3094,7 +3094,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
       action="$(
         printf "%s" "$actions" |
           ui_launcher "$TXT_MENU_CHANNEL_ACTIONS_PROMPT" |
-          sed 's/.  //g'
+          sed 's/.*  //g'
       )"
     fi
 
