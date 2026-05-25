@@ -948,6 +948,7 @@ _util_generate_hash() {
 }
 
 _util_menu_sort() {
+  # TODO: shift to using awk
   local options_to_sort
   local options_to_sort_copy
   local sort
