@@ -47,11 +47,11 @@
 
 ## Table of Contents
 
-- [Features](#-features)
-- [Installation](#-installation)
-  - [Prerequisites](#-prerequisites)
-  - [Universal Installation](#-universal-installation)
-  - [Platform-Specific Instructions](#-platform-specific-instructions)
+- [Features](#features)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Universal Installation](#universal-installation)
+  - [Platform-Specific Instructions](#platform-specific-instructions)
 - [Usage](#usage)
   - [Quick Start](#quick-start)
   - [Command-Line Options](#command-line-options)
@@ -61,9 +61,11 @@
 - [Configuration](#configuration)
   - [Configuration File Location](#configuration-file-location)
   - [Configuration Variables](#configuration-variables)
-- [Frequently Asked Questions (FAQ)](#-frequently-asked-questions-faq)
-- [Contribution](#-contribution)
-- [Support](#-support)
+- [Extensions](#extensions)
+  - [Official Extensions](#official-extensions)
+- [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
+- [Contribution](#contribution)
+- [Support](#support)
 
 ## Features
 
@@ -628,12 +630,12 @@ Extensions are shell scripts placed in `~/.config/yt-x/extensions/` and can be l
 
 ### Official Extensions
 
-The following extensions are maintained included in the repository.
+The following extensions are maintained and included in the repository.
 
 #### Command Extensions (`cmds/`)
 
 <details>
-<summary><code>downloads</code> by Benexl</summary>
+<summary><code>downloads</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/040b6f98-c228-4de8-962d-52c216f23d4b" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/3d76b9a4-9870-44fd-bf44-7abb0fdaca24" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/edd3efa0-164d-49fa-85eb-752b9cf9dbfb" />
@@ -655,7 +657,7 @@ Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNL
 #### Language Extensions (`langs/`)
 
 <details>
-<summary><code>br.lang</code> by aglairdev </summary>
+<summary><code>br.lang</code> by <a href="https://github.com/aglairdev">aglairdev</a> </summary>
 
 Brazilian Portuguese translation for all UI texts, prompts, and messages.  
 Overrides the default English strings.
@@ -665,7 +667,7 @@ Overrides the default English strings.
 </details>
 
 <details>
-<summary><code>es.lang</code> by Benexl</summary>
+<summary><code>es.lang</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
 Spanish translation for all UI texts, prompts, and messages.  
 
@@ -678,7 +680,7 @@ Spanish translation for all UI texts, prompts, and messages.
 #### Site Extensions (`sites/`)
 
 <details>
-<summary><code>dailymotion.site</code> by Benexl</summary>
+<summary><code>dailymotion.site</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
 Adds a **Dailymotion** entry to the main menu.  
 Allows you to:
@@ -697,7 +699,7 @@ Uses the same playlist explorer and media actions as YouTube.
 #### Theme Extensions (`themes/`)
 
 <details>
-<summary><code>catppuccin-mocha.theme</code> by Benexl</summary>
+<summary><code>catppuccin-mocha.theme</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
 Applies the **Catppuccin Mocha** color scheme to `fzf` and the terminal output.  
 Includes custom `fzf` options (border, colors, preview window) and ANSI escape codes for primary/secondary/accent/error colors.
