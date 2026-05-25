@@ -2759,7 +2759,7 @@ _menu_playlist_actions() {
 
   sort="$1"
   menu_options_filter="$2"
-  extra_menu_option="$3"
+  extra_menu_options="$3"
   extra_menu_options_handler="$4"
 
   actions="\
@@ -2783,6 +2783,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_TO
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_PLAYLIST_ACTIONS_SHELL}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+  fi
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
@@ -2819,7 +2823,13 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_PLAYLIST_ACTIONS_SHELL") __menu_playlist_actions_shell ;;
     "$TXT_MENU_BACK" | "") _state_pop && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
-    *) _ui_notify "${TXT_MENU_INVALID_ACTION}: $media_action" ;;
+    *)
+      if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+        if ! $extra_menu_options_handler "$media_action"; then
+          _ui_notify_error "${TXT_MENU_INVALID_ACTION}: $media_action"
+        fi
+      fi
+      ;;
     esac
     if [ "$CMD_MEDIA_EXIT" = true ]; then
       _util_byebye
@@ -3021,7 +3031,7 @@ _menu_channel_actions() {
 
   sort="$1"
   menu_options_filter="$2"
-  extra_menu_option="$3"
+  extra_menu_options="$3"
   extra_menu_options_handler="$4"
 
   actions="\
@@ -3035,6 +3045,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_POD
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰵀${THEME_RESET}  ${TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE}
 ${THEME_FZF_ICON_COLOR_PRIMARY}󰌍${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+  fi
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
@@ -3130,7 +3144,13 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
       fi
       ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
-    *) _ui_notify "$TXT_MENU_INVALID_ACTION" ;;
+    *)
+      if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+        if ! $extra_menu_options_handler "$action"; then
+          _ui_notify_error "${TXT_MENU_INVALID_ACTION}: $action"
+        fi
+      fi
+      ;;
     esac
   done
 
@@ -3453,7 +3473,7 @@ _menu_miscellaneous() {
 
   sort="$1"
   menu_options_filter="$2"
-  extra_menu_option="$3"
+  extra_menu_options="$3"
   extra_menu_options_handler="$4"
 
   actions="\
@@ -3473,6 +3493,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}󰓦${THEME_RESET}  ${TXT_MENU_MISC_SYNC_SUBS}
 ${THEME_FZF_ICON_COLOR_ERROR}󰆴${THEME_RESET}  ${TXT_MENU_MISC_CLEAR_SEARCH_HISTORY}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+  fi
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
@@ -3503,7 +3527,13 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_MISC_CLEAR_SEARCH_HISTORY") __menu_miscellaneous_clear_search_history ;;
     "$TXT_MENU_BACK" | "") break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
-    *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
+    *)
+      if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+        if ! $extra_menu_options_handler "$action"; then
+          _ui_notify_error "${TXT_MENU_INVALID_ACTION}: $action"
+        fi
+      fi
+      ;;
     esac
   done
 
@@ -3942,7 +3972,7 @@ _menu_main() {
 
   sort="$1"
   menu_options_filter="$2"
-  extra_menu_option="$3"
+  extra_menu_options="$3"
   extra_menu_options_handler="$4"
 
   actions="\
@@ -3961,6 +3991,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_CLIPS}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_MISC}
 ${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_MAIN_EDIT_CONFIG}
 ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
+
+  if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+  fi
 
   if [ -n "$menu_options_filter" ]; then
     actions="$(printf '%s' "$actions" | grep --invert-match "$menu_options_filter")"
@@ -3990,7 +4024,13 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
     "$TXT_MENU_MAIN_MISC") menu_miscellaneous ;;
     "$TXT_MENU_MAIN_EDIT_CONFIG") __menu_main_edit_config ;;
     "$TXT_MENU_EXIT" | "") _util_byebye ;;
-    *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
+    *)
+      if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
+        if ! $extra_menu_options_handler "$action"; then
+          _ui_notify_error "${TXT_MENU_INVALID_ACTION}: $action"
+        fi
+      fi
+      ;;
     esac
   done
 }
