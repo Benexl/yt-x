@@ -174,7 +174,11 @@ __load_default_config() {
   : "${CONFIG_NO_OF_RECENT:=10}"
   : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
   : "${CONFIG_ROFI_THEME:=}"
-  : "${CONFIG_GUM_OPTS:="--prompt.foreground #2ac3de --indicator.foreground #2ac3de --selected-indicator.foreground #2ac3de --unselected-prefix.foreground #545c7e --header.foreground #2ac3de --text.foreground #c0caf5 --cursor-text.foreground #c0caf5 --match.foreground #2ac3de --placeholder.foreground #545c7e  --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."}"
+  : "${CONFIG_GUM_FILTER_OPTS:="--prompt.foreground #2ac3de --indicator.foreground #2ac3de --selected-indicator.foreground #2ac3de --unselected-prefix.foreground #585858 --header.foreground #2ac3de --text.foreground #c0caf5 --cursor-text.foreground #c0caf5 --match.foreground #2ac3de --placeholder.foreground #585858  --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."}"
+  : "${CONFIG_GUM_INPUT_OPTS:="--prompt.foreground #2ac3de --cursor.foreground #c0caf5 --placeholder こんにちは... --cursor.mode blink"}"
+  : "${CONFIG_GUM_PAGER_OPTS:="--foreground #c0caf5 --line-number.foreground #585858 --match.foreground #2ac3de --match-highlight.foreground #1a1b26 --match-highlight.background #2ac3de --help.foreground #585858 --show-line-numbers --soft-wrap"}"
+  : "${CONFIG_GUM_SPIN_OPTS:="--spinner dot --spinner.foreground #2ac3de --title.foreground #585858  --align left"}"
+  : "${CONFIG_GUM_CONFIRM_OPTS:="--prompt.foreground #2ac3de --selected.foreground #1a1b26 --selected.background #2ac3de --unselected.foreground #585858"}"
   : "${CONFIG_FZF_HEADER:=$CLI_HEADER}"
   : "${CONFIG_FZF_OPTS:="
   --ansi
@@ -249,7 +253,11 @@ __load_env_config() {
   CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
 
-  CONFIG_GUM_OPTS="${YT_X_GUM_OPTS:-$CONFIG_GUM_OPTS}"
+  CONFIG_GUM_FILTER_OPTS="${YT_X_GUM_OPTS:-$CONFIG_GUM_FILTER_OPTS}"
+  CONFIG_GUM_INPUT_OPTS="${YT_X_GUM_INPUT_OPTS:-$CONFIG_GUM_INPUT_OPTS}"
+  CONFIG_GUM_PAGER_OPTS="${YT_X_GUM_PAGER_OPTS:-$CONFIG_GUM_PAGER_OPTS}"
+  CONFIG_GUM_SPIN_OPTS="${YT_X_GUM_SPIN_OPTS:-$CONFIG_GUM_SPIN_OPTS}"
+  CONFIG_GUM_CONFIRM_OPTS="${YT_X_GUM_CONFIRM_OPTS:-$CONFIG_GUM_CONFIRM_OPTS}"
 
   CONFIG_FZF_HEADER="${YT_X_FZF_HEADER:-$CONFIG_FZF_HEADER}"
   CONFIG_FZF_OPTS="${YT_X_FZF_OPTS:-$CONFIG_FZF_OPTS}"
@@ -895,7 +903,11 @@ CONFIG_NO_OF_RECENT="$CONFIG_NO_OF_RECENT"
 CONFIG_ENABLE_SEARCH_HISTORY="$CONFIG_ENABLE_SEARCH_HISTORY"
 
 # Custom options passed directly to gum
-CONFIG_GUM_OPTS="$CONFIG_GUM_OPTS"
+CONFIG_GUM_OPTS="$CONFIG_GUM_FILTER_OPTS"
+CONFIG_GUM_INPUT_OPTS="$CONFIG_GUM_INPUT_OPTS"
+CONFIG_GUM_PAGER_OPTS="$CONFIG_GUM_PAGER_OPTS"
+CONFIG_GUM_SPIN_OPTS="$CONFIG_GUM_SPIN_OPTS"
+CONFIG_GUM_CONFIRM_OPTS="$CONFIG_GUM_CONFIRM_OPTS"
 
 # Custom options passed directly to fzf
 CONFIG_FZF_HEADER="\\
@@ -1151,7 +1163,7 @@ __ui_gum_launcher() {
   IFS=" "
 
   # shellcheck disable=SC2086
-  gum filter $CONFIG_GUM_OPTS --prompt="${1}: " $custom_opts
+  gum filter $CONFIG_GUM_FILTER_OPTS --prompt="${1}: " $custom_opts
 
   IFS="$old_ifs"
 }
@@ -1282,7 +1294,8 @@ __ui_default_prompt() {
   header="$2"
 
   if _dep_ch gum; then
-    gum input --header "$header" --prompt "$1: "
+    # shellcheck disable=SC2086
+    gum input $CONFIG_GUM_INPUT_OPTS --header "$header" --prompt "$1: "
   else
     printf "%s\n" "$header" >/dev/stderr
     printf "%s: " "$1" >/dev/stderr
@@ -1344,7 +1357,8 @@ _ui_default_confirm() {
   fi
 
   if _dep_ch gum; then
-    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
+    # shellcheck disable=SC2086
+    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no" $CONFIG_GUM_CONFIRM_OPTS
   else
     printf "%s ($yes/$no; $TXT_CONFIRM_DEFAULT: $default): " "$1" >/dev/stderr
     read -r CONFIRMED
@@ -1407,7 +1421,8 @@ __ui_default_pager() {
   if _dep_ch bat; then
     bat --paging=always --theme=TwoDark --color=always
   elif _dep_ch gum; then
-    gum pager
+    # shellcheck disable=SC2086
+    gum pager $CONFIG_GUM_PAGER_OPTS
   elif _dep_ch less; then
     less -R
   else
@@ -1441,7 +1456,7 @@ __ui_default_loader() {
 
   if _dep_ch gum; then
     # shellcheck disable=SC2086
-    gum spin --show-output -- $cmd
+    gum spin $CONFIG_GUM_SPIN_OPTS --show-output -- $cmd
   else
     printf '%s\n' "$TXT_LOADING" >/dev/stderr
     $cmd
