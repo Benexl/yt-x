@@ -29,33 +29,43 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
   THEME_BOLD="$(printf '\033[1m')"
   THEME_RESET="$(printf '\033[0m')"
 
-  CONFIG_FZF_OPTS="
-    --ansi
-    --border=rounded
-    --layout=reverse
-    --prompt='❯ '
-    --pointer='󰄵 '
-    --marker='󰄵 '
-    --color=bg:#1e1e2e,bg+:#181825
-    --color=fg:#cdd6f4,fg-:#a6adc8
-    --color=hl:#cba6f7,hl+:#cba6f7
-    --color=header:#74c7ec
-    --color=pointer:#f5c2e7
-    --color=marker:#f5c2e7
-    --color=prompt:#cba6f7
-    --color=border:#7f849c
-    --color=gutter:#1e1e2e
-    --color=scrollbar:#6c7086
-    --color=separator:#6c7086
-    --color=spinner:#cba6f7
-    --color=info:#bac2de
-    --height=100%
-    --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
-    --no-margin
-    +m
-    -i
-    --exact
-    --tabstop=1
-    --preview-window=border-rounded,left,35%,wrap
-    --wrap"
+CONFIG_FZF_OPTS="
+--ansi
+--border
+--scheme=history
+--style=full
+--color=bg+:#313244
+--color=bg:#1e1e2e
+--color=border:#89b4fe
+--color=fg:#cdd6f4
+--color=gutter:#1e1e2e
+--color=header:#89b4fe
+--color=hl+:#cba6f7
+--color=hl:#cba6f7
+--color=info:#6c7086
+--color=marker:#f5c2e7
+--color=pointer:#f5c2e7
+--color=prompt:#cba6f7
+--color=query:#cdd6f4:regular
+--color=scrollbar:#6c7086
+--color=separator:#f9e2af
+--color=spinner:#f5c2e7
+--border=rounded
+--border-label=''
+--prompt=' >'
+--marker=' >'
+--pointer='◆'
+--layout=reverse
+--cycle
+--ghost='こんにちは...'
+--height=100%
+--bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+--no-margin
++m
+-i
+--exact
+--tabstop=1
+--preview-window=border-rounded,left,35%,wrap
+--wrap"
+export FZF_DEFAULT_OPTS="$CONFIG_FZF_OPTS"
 fi
