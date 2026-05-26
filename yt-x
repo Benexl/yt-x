@@ -490,7 +490,7 @@ Options:
   -x, --extension <ext>          Load an extension file (absolute path or relative to $CLI_CONFIG_DIR/extensions)
   -E, --generate-desktop-entry   Print a .desktop file to stdout and exit
   -U, --update                   Check for and apply an update for $CLI_NAME
-  -l, --launcher <launcher>      Menu launcher: fzf or rofi
+  -l, --launcher <launcher>      Menu launcher: fzf or rofi or gum
   --config-write                 Write the current runtime config to the config file
   --preview                      Enable the preview window (images/text)
   --no-preview                   Disable the preview window
@@ -822,7 +822,7 @@ CONFIG_AUTOLOADED_EXTENSIONS="$CONFIG_AUTOLOADED_EXTENSIONS"
 CONFIG_ENABLE_COLORS="$CONFIG_ENABLE_COLORS"
 
 # The menu launcher tool used for the ui
-# Options: fzf, rofi (Default: fzf)
+# Options: fzf, rofi, gum (Default: fzf)
 CONFIG_LAUNCHER="$CONFIG_LAUNCHER"
 
 # Enable image/video previews within the selector
@@ -1132,6 +1132,24 @@ ui_notify_critical() {
 # ==============================================================================
 # CORE UI: launcher
 # ==============================================================================
+__ui_gum_launcher() {
+  local custom_opts
+  local multi_select
+  multi_select="$2"
+
+  [ "$multi_select" = "multi" ] && custom_opts="--no-limit"
+  [ -n "$CONFIG_FZF_HEADER" ] && custom_opts="$custom_opts --header $CONFIG_FZF_HEADER"
+
+  local old_ifs
+  old_ifs="$IFS"
+  IFS=" "
+
+  # shellcheck disable=SC2086
+  gum filter --prompt="${1}: " $custom_opts
+
+  IFS="$old_ifs"
+}
+
 __ui_fzf_launcher() {
   local custom_opts
   local multi_select
@@ -1173,6 +1191,7 @@ _ui_launcher() {
   case "$CONFIG_LAUNCHER" in
   rofi) __ui_rofi_launcher "$@" ;;
   fzf) __ui_fzf_launcher "$@" ;;
+  gum) __ui_gum_launcher "$@" ;;
   *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
   esac
 }
@@ -1236,6 +1255,7 @@ _ui_launcher_with_preview() {
     case "$CONFIG_LAUNCHER" in
     rofi) __ui_rofi_launcher_with_preview "$@" ;;
     fzf) __ui_fzf_launcher_with_preview "$@" ;;
+    gum) __ui_gum_launcher "$@" ;;
     *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
     esac
   else
@@ -1817,7 +1837,7 @@ _preview() {
   case "$CONFIG_LAUNCHER" in
   fzf) preview_fzf "$@" ;;
   rofi) preview_rofi "$@" ;;
-  *) ui_notify_critical "$TXT_LAUNCHER_PREVIEWS_UNSUPPORTED" ;;
+  *) cat ;;
   esac
 }
 
@@ -4352,7 +4372,7 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -s e -l edit-config -d "Edit co
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s E -l generate-desktop-entry -d "Print desktop entry info"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -s U -l update -d "Update the script"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l config-write -d "Write current config to file"
-complete -c $CLI_NAME -n "__fish_use_subcommand" -l launcher -s l -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l launcher -s l -d "Preferred launcher" --require-parameter --no-files -a "fzf rofi gum"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview -d "Enable preview window"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-preview -d "Disable preview window"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l preview-images -d "Enable image previews"
