@@ -1068,21 +1068,6 @@ By default, `yt-x` blocks the terminal until the media player is closed. To brow
 </details>
 
 <details>
-<summary><b>I'm on macOS and getting `command not found`, parser errors, or `jq` errors.</b></summary>
-<br>
-
-macOS ships with an outdated version of Bash (v3.x)
-This is due to licensing issues and mac being mac you cant even remove it apparently :joy:
-Ensure you have installed the core dependencies via Homebrew (`brew install bash`).
-Homebrew's installation location should be at the top of path so its preferred over the older bash which you cant remove
-
-Currently working on figuring out whats the syntax issue preventing the script from working with 3.x
-but for security reasons, even when the script supports it, prefer the latest version for daily use
-ohh and any help on the 3.x issue would be appreciated
-
-</details>
-
-<details>
 <summary><b>Why is a video playing in the wrong quality (e.g., 4K instead of 1080p) or throwing "Requested Format not available"?</b></summary>
 <br>
 
