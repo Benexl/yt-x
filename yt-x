@@ -1266,16 +1266,24 @@ __ui_default_prompt() {
 }
 
 __ui_rofi_prompt() {
+  local default
+  local filter
+
+  if [ -p /dev/stdin ]; then
+    default="$(cat 2>/dev/null)"
+    filter='-filter'
+  fi
+
   [ -s "$CONFIG_ROFI_THEME_PROMPT" ] ||
     ui_notify_critical "Rofi prompt theme not set: $CONFIG_ROFI_THEME_PROMPT"
 
   # NOTE: It doesnt look pretty so disabling it
   if [ -n "$2" ] && false; then
-    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
-      -dmenu -p "$1" -mesg "$2"
+    # shellcheck disable=SC2086
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" "$filter" "$default" -dmenu -p "$1" -mesg "$2"
   else
-    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" \
-      -dmenu -p "$1"
+    # shellcheck disable=SC2086
+    rofi -no-config -theme "$CONFIG_ROFI_THEME_PROMPT" "$filter" "$default" -dmenu -p "$1"
   fi
 }
 
