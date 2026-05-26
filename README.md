@@ -603,19 +603,26 @@ They exist purely for convinience and is more useful when passing from cmdline o
 | `CONFIG_NO_OF_RECENT`          | `10`    | The number of recent "Watch History" items to retain locally.                          |
 | `CONFIG_CACHE_RETENTION_DAYS`  | `3`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
 
-#### Fzf and Rofi
+#### Fzf, gum and Rofi
 
 Check the repo for pre-configured rofi themes
 
-| Variable                    | Default        | Description                                                                                        |
-| :-------------------------- | :------------- | :------------------------------------------------------------------------------------------------- |
-| `CONFIG_FZF_HEADER`         | _(logo)_       | A custom header string displayed at the top of the `fzf` menu (defaults to the `yt-x` ASCII logo). |
-| `CONFIG_FZF_OPTS`           | _(see config)_ | Fine‑tune `fzf` layout, colors, pointers, and keybindings. Defaults to "Tokyo Night" .             |
-| `CONFIG_ROFI_THEME_MAIN`    | `""`           | Path to a custom Rofi `.rasi` theme for the main menu.                                             |
-| `CONFIG_ROFI_THEME_PREVIEW` | `""`           | Path to a custom Rofi `.rasi` theme for the preview menu.                                          |
-| `CONFIG_ROFI_THEME_PROMPT`  | `""`           | Path to a custom Rofi `.rasi` theme for prompt dialogs.                                            |
-| `CONFIG_ROFI_THEME_CONFIRM` | `""`           | Path to a custom Rofi `.rasi` theme for confirmation dialogs.                                      |
-| `CONFIG_ROFI_THEME_PAGER`   | `""`           | Path to a custom Rofi `.rasi` theme for the pager.                                                 |
+| Variable                  | Default        | Description                                                                                                             |
+| :------------------------ | :------------- | :---------------------------------------------------------------------------------------------------------------------- |
+| `CONFIG_FZF_HEADER`       | _(logo)_       | A custom header string displayed at the top of the `fzf` menu (defaults to the `yt-x` ASCII logo).                      |
+| `CONFIG_FZF_OPTS`         | _(see config)_ | Fine‑tune `fzf` layout, colors, pointers, and keybindings. Defaults to "Tokyo Night" .                                  |
+| `CONFIG_GUM_FILTER_OPTS`  | _(see config)_ | Fine‑tune `gum filter` layout, colors, prompt, indicator, match highlighting, and placeholder. Defaults to Tokyo Night. |
+| `CONFIG_GUM_INPUT_OPTS`   | _(see config)_ | Fine‑tune `gum input` prompt, cursor, placeholder, and header colors. Defaults to Tokyo Night.                          |
+| `CONFIG_GUM_PAGER_OPTS`   | _(see config)_ | Fine‑tune `gum pager` foreground, line numbers, match highlights, and soft‑wrap behavior. Defaults to Tokyo Night.      |
+| `CONFIG_GUM_SPIN_OPTS`    | _(see config)_ | Fine‑tune `gum spin` spinner type, foreground, title color, and alignment. Defaults to Tokyo Night.                     |
+| `CONFIG_GUM_CONFIRM_OPTS` | _(see config)_ | Fine‑tune `gum confirm` prompt, selected/unselected colors, and affirmative/negative labels. Defaults to Tokyo Night.   |
+
+If you prefer **Catppuccin Mocha** as the default instead of Tokyo Night, replace the last phrase accordingly.
+| `CONFIG_ROFI_THEME_MAIN` | `""` | Path to a custom Rofi `.rasi` theme for the main menu. |
+| `CONFIG_ROFI_THEME_PREVIEW` | `""` | Path to a custom Rofi `.rasi` theme for the preview menu. |
+| `CONFIG_ROFI_THEME_PROMPT` | `""` | Path to a custom Rofi `.rasi` theme for prompt dialogs. |
+| `CONFIG_ROFI_THEME_CONFIRM` | `""` | Path to a custom Rofi `.rasi` theme for confirmation dialogs. |
+| `CONFIG_ROFI_THEME_PAGER` | `""` | Path to a custom Rofi `.rasi` theme for the pager. |
 
 #### Others
 
