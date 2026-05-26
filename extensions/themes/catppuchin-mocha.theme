@@ -30,10 +30,6 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
   THEME_RESET="$(printf '\033[0m')"
 
 CONFIG_FZF_OPTS="
---ansi
---border
---scheme=history
---style=full
 --color=bg+:#313244
 --color=bg:#1e1e2e
 --color=border:#89b4fe
@@ -49,23 +45,6 @@ CONFIG_FZF_OPTS="
 --color=query:#cdd6f4:regular
 --color=scrollbar:#6c7086
 --color=separator:#f9e2af
---color=spinner:#f5c2e7
---border=rounded
---border-label=''
---prompt=' >'
---marker=' >'
---pointer='◆'
---layout=reverse
---cycle
---ghost='こんにちは...'
---height=100%
---bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
---no-margin
-+m
--i
---exact
---tabstop=1
---preview-window=border-rounded,left,35%,wrap
---wrap"
-export FZF_DEFAULT_OPTS="$CONFIG_FZF_OPTS"
+--color=spinner:#f5c2e7"
+export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS $CONFIG_FZF_OPTS"
 fi
