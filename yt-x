@@ -2201,14 +2201,12 @@ parse_search_filter() {
 # ==============================================================================
 __download_yt_dlp() {
   local url
-  local custom_opts
 
   url="$1"
   shift
-  custom_opts="$*"
 
   # shellcheck disable=SC2086
-  yt-dlp "$url" $custom_opts
+  yt-dlp "$url" "$@"
 }
 
 _download_media() {
