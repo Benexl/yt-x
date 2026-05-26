@@ -708,6 +708,12 @@ Uses the same playlist explorer and media actions as YouTube.
 
 <details>
 <summary><code>catppuccin-mocha.theme</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/afb71bb3-1dda-427e-b3fc-a78b4cfd6f64" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/fd14e96f-2937-4b7e-aea4-271dc36f9b4a" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/aafb0702-f32d-427b-8fc0-4d63f2df6ab6" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/4b05eab8-9e47-4ed1-9d8e-92a57224ca75" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/b3ed9a2e-331b-4511-ad8f-767d8aecddf4" />
+<img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/fe713e08-8d30-4ceb-a5cd-d6397cd5b5bf" />
 
 Applies the **Catppuccin Mocha** color scheme to `fzf` and the terminal output.  
 Includes custom `fzf` options (border, colors, preview window) and ANSI escape codes for primary/secondary/accent/error colors.
