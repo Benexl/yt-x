@@ -38,7 +38,7 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
   CONFIG_GUM_OPTS="--prompt.foreground #cba6f7 --indicator.foreground #cba6f7 --selected-indicator.foreground #cba6f7 --unselected-prefix.foreground #585858 --header.foreground #cba6f7 --text.foreground #cdd6f4 --cursor-text.foreground #cdd6f4 --match.foreground #cba6f7 --placeholder.foreground #6c7086 --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."
   CONFIG_GUM_FILTER_OPTS="--prompt.foreground #cba6f7 --indicator.foreground #cba6f7 --selected-indicator.foreground #cba6f7 --unselected-prefix.foreground #585858 --header.foreground #cba6f7 --text.foreground #cdd6f4 --cursor-text.foreground #cdd6f4 --match.foreground #cba6f7 --placeholder.foreground #6c7086 --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."
   CONFIG_GUM_INPUT_OPTS="--prompt.foreground #cba6f7 --cursor.foreground #cdd6f4 --placeholder こんにちは... --cursor.mode blink"
-  CONFIG_GUM_PAGER_OPTS="--foreground #cdd6f4 --line-number.foreground #585858 --match.foreground #cba6f7 --match-highlight.foreground #11111b --match-highlight.background #cba6f7 --help.foreground #585858 --show-line-numbers --soft-wrap"
+  CONFIG_GUM_PAGER_OPTS="--foreground #cdd6f4 --line-number.foreground #585858 --match.foreground #cba6f7 --match-highlight.foreground #11111b --match-highlight.background #cba6f7 --help.foreground #585858 --show-line-numbers --soft-wrap --border-foreground #cba6f7"
   CONFIG_GUM_SPIN_OPTS="--spinner dot --spinner.foreground #cba6f7 --title.foreground #585858 --align left"
   CONFIG_GUM_CONFIRM_OPTS="--prompt.foreground #cba6f7 --selected.foreground #11111b --selected.background #cba6f7 --unselected.foreground #585858"
 
