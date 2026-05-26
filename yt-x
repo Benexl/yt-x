@@ -174,6 +174,7 @@ __load_default_config() {
   : "${CONFIG_NO_OF_RECENT:=10}"
   : "${CONFIG_ENABLE_SEARCH_HISTORY:=true}"
   : "${CONFIG_ROFI_THEME:=}"
+  : "${CONFIG_GUM_OPTS:="--prompt.foreground #2ac3de --indicator.foreground #2ac3de --selected-indicator.foreground #2ac3de --unselected-prefix.foreground #545c7e --header.foreground #2ac3de --text.foreground #c0caf5 --cursor-text.foreground #c0caf5 --match.foreground #2ac3de --placeholder.foreground #545c7e  --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."}"
   : "${CONFIG_FZF_HEADER:=$CLI_HEADER}"
   : "${CONFIG_FZF_OPTS:="
   --ansi
@@ -247,6 +248,8 @@ __load_env_config() {
   CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
   CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
+
+  CONFIG_GUM_OPTS="${YT_X_GUM_OPTS:-$CONFIG_GUM_OPTS}"
 
   CONFIG_FZF_HEADER="${YT_X_FZF_HEADER:-$CONFIG_FZF_HEADER}"
   CONFIG_FZF_OPTS="${YT_X_FZF_OPTS:-$CONFIG_FZF_OPTS}"
@@ -891,6 +894,9 @@ CONFIG_NO_OF_RECENT="$CONFIG_NO_OF_RECENT"
 # Options: true, false (Default: true)
 CONFIG_ENABLE_SEARCH_HISTORY="$CONFIG_ENABLE_SEARCH_HISTORY"
 
+# Custom options passed directly to gum
+CONFIG_GUM_OPTS="$CONFIG_GUM_OPTS"
+
 # Custom options passed directly to fzf
 CONFIG_FZF_HEADER="\\
 $CONFIG_FZF_HEADER"
@@ -1145,7 +1151,7 @@ __ui_gum_launcher() {
   IFS=" "
 
   # shellcheck disable=SC2086
-  gum filter --prompt="${1}: " $custom_opts
+  gum filter $CONFIG_GUM_OPTS --prompt="${1}: " $custom_opts
 
   IFS="$old_ifs"
 }
