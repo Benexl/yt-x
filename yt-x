@@ -747,7 +747,7 @@ __load_default_theme() {
 
     THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;42;195;222m')"
 
-    # THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;255;158;100m')"
+    THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;88;91;112m')"
 
     THEME_PLAYER_START="$(printf '\033[38;2;158;206;106m')"
 
