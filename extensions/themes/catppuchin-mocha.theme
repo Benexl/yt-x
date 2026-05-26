@@ -17,8 +17,14 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
   # Catppuchin Mocha: Red (#f38ba8)
   THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;243;139;168m')"
 
+  # Catppuccin Mocha: Text (#cdd6f4)
+  THEME_FZF_PREVIEW_TITLE="$(printf '\033[38;2;205;214;244m')"
+
   # Catppuchin Mocha: Blue (#89b4fa)
   THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;137;180;250m')"
+
+  # Catppuccin Mocha: Surface2 (#585b70)
+  THEME_FZF_PREVIEW_VALUE="$(printf '\033[38;2;88;91;112m')"
 
   # Catppuchin Mocha: Surface2 (#585b70)
   THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;88;91;112m')"

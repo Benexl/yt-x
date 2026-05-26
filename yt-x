@@ -740,18 +740,31 @@ __load_default_theme() {
   THEME_ESC="$(printf '\033')"
 
   if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
+    # Tokyo Night: Cyan (#2ac3de)
     THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;42;195;222m')"
 
+    # Tokyo Night: Dark3 (#545c7e)
     THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;84;92;126m')"
 
+    # Tokyo Night: Orange (#ff9e64)
     THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;255;158;100m')"
 
+    # Tokyo Night: Pink (#ff007c)
     THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;255;0;124m')"
 
+    # Tokyo Night: Foreground (#c0caf5)
+    THEME_FZF_PREVIEW_TITLE="$(printf '\033[38;2;192;202;245m')"
+
+    # Tokyo Night: Cyan (#2ac3de)
     THEME_FZF_PREVIEW_KEY="$(printf '\033[38;2;42;195;222m')"
 
+    # Tokyo Night: Dark3 (#545c7e)
+    THEME_FZF_PREVIEW_VALUE="$(printf '\033[38;2;88;91;112m')"
+
+    # Tokyo Night: Dark3 (#545c7e)
     THEME_FZF_PREVIEW_DIVIDER="$(printf '\033[38;2;88;91;112m')"
 
+    # Tokyo Night: Green (#9ece6a)
     THEME_PLAYER_START="$(printf '\033[38;2;158;206;106m')"
 
     THEME_BOLD="$(printf '\033[1m')"
@@ -1610,7 +1623,7 @@ else
 fi
 
 if [ '$CONFIG_ENABLE_PREVIEW_IMAGES' = 'true' ];then
-  if [ -s "$image_path" ];then 
+  if [ -s "$image_path" ];then
     fzf_preview "$image_path" 2>/dev/null;
   else
     printf '%s\n' "$TXT_FZF_PREVIEW_IMAGE_LOADING";
@@ -1620,32 +1633,39 @@ fi
 
 draw_divider
 
-printf "%s\n" $title|fold -s -w "\$FZF_PREVIEW_COLUMNS"
+title="\$(printf $title | fold -s -w "\$FZF_PREVIEW_COLUMNS")"
+printf "${THEME_FZF_PREVIEW_TITLE}%s${THEME_FZF_PREVIEW_TITLE}\n" "\$title"
 
 draw_divider
 
 if ! [ $channel = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" $channel|fold -s -w \$FZF_PREVIEW_COLUMNS
+channel="\$(printf $channel | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel${THEME_RESET}";
 fi
 
 if ! [ "$channel_follower_count" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "$channel_follower_count";
+channel_follower_count="\$(printf "$channel_follower_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel_follower_count${THEME_RESET}";
 fi
 
 if ! [ "$duration" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "$duration";
+duration="\$(printf "$duration" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$duration${THEME_RESET}";
 fi
 
 if ! [ "$view_count" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}%s views\n" "$view_count";
+view_count="\$(printf "$view_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$view_count views${THEME_RESET}";
 fi
 
 if ! [ "$live_status" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}%s\n" "$live_status";
+live_status="\$(printf "$live_status" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$live_status${THEME_RESET}";
 fi
 
 if ! [ "$timestamp" = "null" ];then
-printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "$timestamp";
+timestamp="\$(printf "$timestamp" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$timestamp${THEME_RESET}";
 fi
 if ! [ $channel = "null" ] || ! [ "$channel_follower_count" = "null" ] || ! [ "$duration" = "null" ] || ! [ "$view_count" = "null" ] || ! [ "$live_status" = "null" ] || ! [ "$timestamp" = "null" ];then
 draw_divider
