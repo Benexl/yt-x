@@ -1648,6 +1648,10 @@ channel_follower_count="\$(printf "$channel_follower_count" | fold -s -w \$FZF_P
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel_follower_count${THEME_RESET}";
 fi
 
+if ! [ $channel = "null" ] && ! [ "$duration" = "null" ];then
+draw_divider
+fi
+
 if ! [ "$duration" = "null" ];then
 duration="\$(printf "$duration" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$duration${THEME_RESET}";
