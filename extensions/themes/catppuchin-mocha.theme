@@ -34,8 +34,8 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
 
   THEME_BOLD="$(printf '\033[1m')"
   THEME_RESET="$(printf '\033[0m')"
-
-CONFIG_FZF_OPTS="
+  CONFIG_GUM_OPTS="--prompt.foreground #cba6f7 --indicator.foreground #cba6f7 --selected-indicator.foreground #cba6f7 --unselected-prefix.foreground #6c7086 --header.foreground #cba6f7 --text.foreground #cdd6f4 --cursor-text.foreground #cdd6f4 --match.foreground #a6e3a1 --placeholder.foreground #6c7086 --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."
+  CONFIG_FZF_OPTS="
 --color=bg+:#313244
 --color=bg:#1e1e2e
 --color=border:#89b4fe
