@@ -1102,7 +1102,7 @@ and incase you do please share :)
 </details>
 
 <details>
-<summary><b>I'm getting "Malformed State" or "Invalid Action" errors constantly.</b></summary>
+<summary><b>I'm getting "Malformed State" or "Invalid Action" error</b></summary>
 <br>
 
 Its either a bug or you pressed ctrl+c too fast and it triggered the state dir to be wiped by `trap cmd`
