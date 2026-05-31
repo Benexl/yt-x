@@ -210,7 +210,7 @@ __load_default_config() {
   --cycle
   --ghost='こんにちは...'
   --height=100%
-  --bind=right:accept,left:abort,ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+  --bind=ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
   --no-margin
   +m
   -i
