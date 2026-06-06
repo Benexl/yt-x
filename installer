@@ -10,10 +10,10 @@ readonly CLI_HEADER="\
 ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗ ██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗███████╗██║░░██║
 ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝ ╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝╚══════╝╚═╝░░╚═╝"
 readonly CLI_NAME="${YT_X_NAME:-yt-x}"
-readonly CLI_ARGS="$*"
-readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
-readonly CLI_VERSION="0.0.1"
-readonly CLI_AUTHOR="Benexl"
+# readonly CLI_ARGS="$*"
+# readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
+# readonly CLI_VERSION="0.0.1"
+# readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_RELEASE_URL="https://api.github.com/repos/Benexl/yt-x/releases/latest"
 
@@ -27,27 +27,8 @@ _dep_ch() {
 # ==============================================================================
 # SETUP ENVIRONMENT
 # ==============================================================================
-if [ -n "$BASH_VERSION" ]; then
-  readonly CLI_SHELL="bash"
-elif [ -n "$ZSH_VERSION" ]; then
-  readonly CLI_SHELL="zsh"
-  setopt shwordsplit
-elif [ -n "$KSH_VERSION" ]; then
-  readonly CLI_SHELL="ksh"
-else
-  readonly CLI_SHELL="sh"
-fi
-
 if ! _dep_ch local; then
   eval 'local() { unset -v $1; }'
-fi
-
-if _dep_ch realpath; then
-  # shellcheck disable=SC2155
-  readonly CLI_DIR="$(dirname "$(realpath "$0")")"
-else
-  # shellcheck disable=SC2155
-  readonly CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 fi
 
 case "$(uname -a)" in
@@ -58,16 +39,12 @@ case "$(uname -a)" in
 *)
   readonly CLI_PLATFORM="linux"
   if [ -f "/etc/os-release" ]; then
-    readonly CLI_LINUX_DISTRO_ID=$(awk -F= '/^ID=/ {gsub(/"/, "", $2); print $2}' /etc/os-release)
+    # sh doesnt declaration and assignment in separate lines
+    # shellcheck disable=SC2155
+    readonly CLI_LINUX_DISTRO_ID="$(awk -F= '/^ID=/ {gsub(/"/, "", $2); print $2}' /etc/os-release)"
   fi
   ;;
 esac
-
-if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
-  readonly CLI_SUPPORTS_TRUE_COLOR=true
-else
-  readonly CLI_SUPPORTS_TRUE_COLOR=false
-fi
 
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
@@ -82,33 +59,8 @@ RELEASE_JSON=""
 # INSTALLER CONFIG
 # ==============================================================================
 _installer_default_config() {
-  CONFIG_NO_COLOR=false
   CONFIG_VALIDATE_INTEGRITY=true
   CONFIG_NO_PREFER_UV=false
-}
-
-_installer_theme() {
-  THEME_ESC="$(printf '\033')"
-
-  if $CLI_SUPPORTS_TRUE_COLOR && ! $CONFIG_NO_COLOR; then
-    # Tokyo Night: Cyan (#2ac3de)
-    THEME_PRIMARY="$(printf '\033[38;2;42;195;222m')"
-
-    # Tokyo Night: Dark3 (#545c7e)
-    THEME_SECONDARY="$(printf '\033[38;2;84;92;126m')"
-
-    # Tokyo Night: Orange (#ff9e64)
-    THEME_ACCENT="$(printf '\033[38;2;255;158;100m')"
-
-    # Tokyo Night: Pink (#ff007c)
-    THEME_ERROR="$(printf '\033[38;2;255;0;124m')"
-
-    # Tokyo Night: Dark3 (#545c7e)
-    THEME_DIVIDER="$(printf '\033[38;2;88;91;112m')"
-
-    THEME_BOLD="$(printf '\033[1m')"
-    THEME_RESET="$(printf '\033[0m')"
-  fi
 }
 
 # ==============================================================================
@@ -850,6 +802,8 @@ installer() {
   _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
   _ui_print "======================================================================================================="
 
+  RELEASE_JSON="$(_fetch "$CLI_RELEASE_URL")"
+
   local missing_deps
 
   missing_deps="$(
@@ -931,6 +885,8 @@ installer() {
     YT_X_CONFIG_ROFI_THEME_PAGER="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER")"
   fi
   _print_yt_x_config >"$YT_X_CONFIG_FILE"
+
+  _ui_print "Completed installation! Enjoy and dont forget to leave a star on the github repo or maybe even buy me a coffe incase you find $CLI_NAME useful :)"
 }
 
 installer
