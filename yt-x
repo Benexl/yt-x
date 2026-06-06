@@ -9,7 +9,7 @@
 readonly CLI_NAME="yt-x"
 readonly CLI_ARGS="$*"
 readonly CLI_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
-readonly CLI_VERSION="0.8.2"
+readonly CLI_VERSION="0.8.3"
 readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"

@@ -148,7 +148,7 @@
 Ensure `~/.local/bin` exists and is added to your system's `$PATH`.
 
 ```bash
-curl -sL "https://github.com/Benexl/yt-x/releases/download/v0.8.2/yt-x" -o ~/.local/bin/yt-x
+curl -sL "https://github.com/Benexl/yt-x/releases/download/v0.8.3/yt-x" -o ~/.local/bin/yt-x
 chmod +x ~/.local/bin/yt-x
 ```
 
