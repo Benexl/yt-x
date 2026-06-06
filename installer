@@ -78,6 +78,7 @@ XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 # ==============================================================================
 _installer_default_config() {
   CONFIG_NO_COLOR=false
+  CONFIG_VALIDATE_INTEGRITY=true
 }
 
 _installer_theme() {
@@ -181,6 +182,33 @@ _yt_x_default_config() {
   --wrap"}"
 }
 
+# ==============================================================================
+# UTILS
+# ==============================================================================
+_validate_integrity() {
+  local expected_checksum
+  local file_path
+
+  if [ "$CONFIG_VALIDATE_INTEGRITY" = "true" ]; then
+    expected_checksum="$1"
+    file_path="$2"
+
+    if _dep_ch sha256sum; then
+      actual_checksum="$(sha256sum "$file_path" | awk '{print $1}')"
+    elif _dep_ch shasum; then
+      actual_checksum="$(shasum -a 256 "$file_path" | awk '{print $1}')"
+    else
+      _print "No checksum utility found. Exiting installer"
+      exit 1
+    fi
+
+    if [ "$expected_checksum" = "$actual_checksum" ]; then
+      return 0
+    else
+      return 1
+    fi
+  fi
+}
 # ==============================================================================
 # UI
 # ==============================================================================
