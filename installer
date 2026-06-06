@@ -681,3 +681,35 @@ _install_yt_x() {
   mv "${target_dest}.tmp" "$target_dest"
   rm "${target_dest}.tmp"
 }
+
+_yt_x() {
+  DEPENDENCIES="\
+yt-dlp - for fetching media metadata and streaming/downloading media (required)
+fzf - default launcher for browsing and searching media (required)
+rofi - alternative launcher; really cool great for keybinds (optional)
+gum - terminal QoL components for prompts, confirmations, pagers, spinners and more (optional)
+mpv - default media player for playing media (required)
+vlc - alternative media player (optional)
+tplay - terminal media player for a more 'authentic' experience (optional)
+chafa - for rendering media previews in the terminal (optional)
+ffmpegthumbnailer - for generating video thumbnails for local media previews (optional)"
+
+  LANG_EXTENSIONS="\
+es.lang - Spanish language extension
+br.lang - Brazilian Portuguese language extension"
+
+  THEME_EXTENSIONS="\
+catppuchin-mocha.theme - A catppuchin mocha inspired theme"
+
+  SITE_EXTENSIONS="\
+dailymotion.site - Extension for browsing Dailymotion"
+
+  CMD_EXTENSIONS="\
+downloads - Extension for listing and managing downloads"
+}
+
+installer() {
+  _yt_x_default_config
+  _installer_default_config
+  _yt_x
+}
