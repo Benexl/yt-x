@@ -880,8 +880,12 @@ installer() {
     printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_lang
   fi
 
-  if _ui_confirm "Would you like to add support for other sites (wont default, instead just copied to theme dir; must explicitly be defined in either your config or at runtime)?" "no"; then
+  if _ui_confirm "Would you like to add support for other sites (wont default, instead just copied to site dir; must explicitly be defined in either your config or at runtime)?" "no"; then
     printf "%s\n" "$SITE_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_site
+  fi
+
+  if _ui_confirm "Would you like to add other commands (wont default, instead just copied to cmd dir; must explicitly be defined in either your config or at runtime)?" "yes"; then
+    printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
   fi
 }
 
