@@ -12,7 +12,7 @@ readonly CLI_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
 readonly CLI_VERSION="0.8.2"
 readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
-readonly CLI_VERSION_URL="$CLI_REPO_URL/raw/refs/heads/master/version.txt"
+readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
 readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
 readonly CLI_RELEASE_TAG="$CLI_RELEASES_BASE/v$CLI_VERSION"
 readonly CLI_RELEASE_URL="$CLI_RELEASE_TAG/yt-x"
@@ -4264,7 +4264,7 @@ _app_update_check() {
   [ -z "$latest_version" ] && return 1
 
   if [ "$latest_version" != "$CLI_VERSION" ]; then
-    update="$(curl -s "${CLI_RELEASES_BASE}/v${latest_version}/$CLI_NAME")"
+    update="$(curl -sL "${CLI_RELEASES_BASE}/v${latest_version}/$CLI_NAME")"
     [ -z "$update" ] && return 1
 
     if _dep_ch diff; then
