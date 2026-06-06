@@ -609,11 +609,14 @@ _install_extension_lang() {
 
 _install_extension_default_theme() {
   local target_dest
+  local theme
+
+  theme="$(cat)"
 
   target_dest="$YT_X_DEFAULT_THEME_FILE"
 
-  if ! _get_release_asset "$1" "$target_dest" "extension" >"${target_dest}.tmp"; then
-    _ui_print "Failed to download $1 asset"
+  if ! _get_release_asset "$theme" "$target_dest" "extension" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download $theme asset"
     exit 1
   fi
 
