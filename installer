@@ -524,7 +524,6 @@ _install_asset_mpv_config() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 }
 
 _install_asset_yt_dlp_config() {
@@ -539,7 +538,6 @@ _install_asset_yt_dlp_config() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 }
 
 _install_asset_rofi_themes() {
@@ -553,7 +551,6 @@ _install_asset_rofi_themes() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 
   unzip "$target_dest" -d "$YT_X_CONFIG_DIR/rofi-themes"
   rm "$target_dest"
@@ -593,7 +590,6 @@ _install_extension_default_lang() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 }
 
 _install_extension_lang() {
@@ -608,7 +604,6 @@ _install_extension_lang() {
     fi
 
     mv "${target_dest}.tmp" "$target_dest"
-    rm "${target_dest}.tmp"
   done
 }
 
@@ -623,7 +618,6 @@ _install_extension_default_theme() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 }
 
 _install_extension_theme() {
@@ -638,7 +632,6 @@ _install_extension_theme() {
     fi
 
     mv "${target_dest}.tmp" "$target_dest"
-    rm "${target_dest}.tmp"
   done
 }
 
@@ -654,7 +647,6 @@ _install_extension_cmd() {
     fi
 
     mv "${target_dest}.tmp" "$target_dest"
-    rm "${target_dest}.tmp"
   done
 }
 
@@ -670,7 +662,6 @@ _install_extension_site() {
     fi
 
     mv "${target_dest}.tmp" "$target_dest"
-    rm "${target_dest}.tmp"
   done
 }
 
@@ -817,7 +808,6 @@ _install_yt_x() {
   fi
 
   mv "${target_dest}.tmp" "$target_dest"
-  rm "${target_dest}.tmp"
 
   chmod +x "$target_dest"
 
