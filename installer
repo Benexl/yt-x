@@ -270,7 +270,7 @@ _ui_choose() {
     case $choice in
     '' | *[!0-9]*)
       if [ "$2" = "multi" ]; then
-        choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]* //;p")"
+        choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]*  //;p")"
         if [ -z "$choice" ]; then
           return 1
         fi
