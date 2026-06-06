@@ -1,1 +1,19 @@
 #!/usr/bin/env sh
+
+if command -v realpath >/dev/null 2>&1; then
+  # shellcheck disable=SC2155
+  readonly BIN_DIR="$(dirname "$(realpath "$0")")"
+else
+  # shellcheck disable=SC2155
+  readonly BIN_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+fi
+
+REPO_DIR="$BIN_DIR/../.."
+
+NEW_VERSION="$1"
+[ -z "$NEW_VERSION" ] && printf "<new-version> is a required argument eg release 0.8.8" && exit 1
+
+OLD_VERSION="$(cat "$REPO_DIR/version.txt")"
+
+sed -i "s|$OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/yt-x"
+sed -i "s|$OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/README.md"
