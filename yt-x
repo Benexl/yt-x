@@ -13,6 +13,7 @@ readonly CLI_VERSION="0.8.1"
 readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_URL="https://github.com/Benexl/yt-x/releases/download/v$CLI_VERSION/yt-x"
+readonly CLI_VERSION_URL="https://github.com/Benexl/yt-x/raw/refs/heads/master/version.txt"
 
 # ==============================================================================
 # SETUP
