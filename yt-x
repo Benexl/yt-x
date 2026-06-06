@@ -11,10 +11,10 @@ readonly CLI_ARGS="$*"
 readonly CLI_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
 readonly CLI_VERSION="0.8.1"
 readonly CLI_AUTHOR="Benexl"
-readonly CLI_REPO_URL="https://github.com/$CLI_AUTHOR/$CLI_NAME"
-readonly CLI_RELEASES_BASE="$CLI_REPO_URL/releases/download"
-readonly CLI_URL="${CLI_RELEASES_BASE}/v$CLI_VERSION/$CLI_NAME"
+readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_VERSION_URL="$CLI_REPO_URL/raw/refs/heads/master/version.txt"
+readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_URL="$CLI_RELEASES_BASE/v$CLI_VERSION/$CLI_NAME"
 
 # ==============================================================================
 # SETUP
