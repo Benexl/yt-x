@@ -311,3 +311,122 @@ _ui_loader() {
   fi
 
 }
+
+# ==============================================================================
+# DATA FETCHING
+# ==============================================================================
+_fetch_latest_release() {
+  if _dep_ch curl; then
+    curl -sL "$CLI_RELEASE_URL"
+  elif _dep_ch wget; then
+    wget -qO- "$CLI_RELEASE_URL"
+  else
+    return 1
+  fi
+}
+
+_fetch_release_asset() {
+  local url
+  url="$1"
+
+  if _dep_ch curl; then
+    curl -sL "$url"
+  elif _dep_ch wget; then
+    wget -qO- "$url"
+  else
+    return 1
+  fi
+}
+
+# ==============================================================================
+# INSTALLATION: DEPENDENCIES
+# ==============================================================================
+_install_dep_fzf() {
+  :
+}
+_install_dep_gum() {
+  :
+}
+_install_dep_chafa() {
+  :
+}
+_install_dep_yt_dlp() {
+  :
+}
+_install_dep_mpv() {
+  :
+}
+_install_dep_vlc() {
+  :
+}
+_install_dep_tplay() {
+  :
+}
+_install_dep_rofi() {
+  :
+}
+_install_deps() {
+  case "$1" in
+  fzf)
+    _install_dep_fzf
+    ;;
+  gum)
+    _install_dep_gum
+    ;;
+  chafa)
+    _install_dep_chafa
+    ;;
+  yt-dlp)
+    _install_dep_yt_dlp
+    ;;
+  mpv)
+    _install_dep_mpv
+    ;;
+  vlc)
+    _install_dep_vlc
+    ;;
+  tplay)
+    _install_dep_tplay
+    ;;
+  rofi)
+    _install_dep_rofi
+    ;;
+  *) ;;
+  esac
+}
+
+# ==============================================================================
+# INSTALLATION: ASSETS
+# ==============================================================================
+_install_asset_mpv_config() {
+  :
+}
+_install_asset_yt_dlp_config() {
+  :
+}
+_intall_asset_rofi_themes() {
+  :
+}
+_install_assets() {
+  _install_asset_mpv_config
+  _install_asset_yt_dlp_config
+  _intall_asset_rofi_themes
+}
+# ==============================================================================
+# INSTALLATION: EXTENSIONS
+# ==============================================================================
+_install_extension_lang() {
+  :
+}
+_install_extension_theme() {
+  :
+}
+_install_extension_cmd() {
+  :
+}
+_install_extensions() {
+  _install_extension_lang
+  _install_extension_theme
+  _install_extension_sites
+  _install_extension_cmd
+}
