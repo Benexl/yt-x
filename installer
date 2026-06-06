@@ -1,3 +1,313 @@
 #!/usr/bin/env sh
+# shellcheck disable=SC3043
 # yt-x installer - Browse media from the terminal  or app launcher
 # MIT License - Copyright (c) 2024-2026 Benexl
+readonly CLI_HEADER="\
+██╗░░░██╗████████╗░░░░░░██╗░░██╗ ██╗███╗░░██╗░██████╗████████╗░█████╗░██╗░░░░░██╗░░░░░███████╗██████╗░
+╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝ ██║████╗░██║██╔════╝╚══██╔══╝██╔══██╗██║░░░░░██║░░░░░██╔════╝██╔══██╗
+░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░ ██║██╔██╗██║╚█████╗░░░░██║░░░███████║██║░░░░░██║░░░░░█████╗░░██████╔╝
+░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░ ██║██║╚████║░╚═══██╗░░░██║░░░██╔══██║██║░░░░░██║░░░░░██╔══╝░░██╔══██╗
+░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗ ██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗███████╗██║░░██║
+░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝ ╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝╚══════╝╚═╝░░╚═╝"
+readonly CLI_NAME="${YT_X_NAME:-yt-x}"
+readonly CLI_ARGS="$*"
+readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
+readonly CLI_VERSION="0.0.1"
+readonly CLI_AUTHOR="Benexl"
+readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
+readonly CLI_RELEASE_URL="https://api.github.com/repos/Benexl/yt-x/releases/latest"
+
+# ==============================================================================
+# SETUP
+# ==============================================================================
+_dep_ch() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# ==============================================================================
+# SETUP ENVIRONMENT
+# ==============================================================================
+if [ -n "$BASH_VERSION" ]; then
+  readonly CLI_SHELL="bash"
+elif [ -n "$ZSH_VERSION" ]; then
+  readonly CLI_SHELL="zsh"
+  setopt shwordsplit
+elif [ -n "$KSH_VERSION" ]; then
+  readonly CLI_SHELL="ksh"
+else
+  readonly CLI_SHELL="sh"
+fi
+
+if ! _dep_ch local; then
+  eval 'local() { unset -v $1; }'
+fi
+
+if _dep_ch realpath; then
+  # shellcheck disable=SC2155
+  readonly CLI_DIR="$(dirname "$(realpath "$0")")"
+else
+  # shellcheck disable=SC2155
+  readonly CLI_DIR="$(cd "$(dirname "$0")" && pwd -P)"
+fi
+
+case "$(uname -a)" in
+*ndroid*) readonly CLI_PLATFORM="android" ;;
+*Darwin*) readonly CLI_PLATFORM="mac" ;;
+*WSL* | *microsoft* | *Microsoft*) readonly CLI_PLATFORM="linux" ;;
+*MINGW* | *MSYS* | *CYGWIN*) readonly CLI_PLATFORM="windows" ;;
+*)
+  readonly CLI_PLATFORM="linux"
+  if [ -f "/etc/os-release" ]; then
+    readonly CLI_LINUX_DISTRO_ID=$(awk -F= '/^ID=/ {gsub(/"/, "", $2); print $2}' /etc/os-release)
+  fi
+  ;;
+esac
+
+if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then
+  readonly CLI_SUPPORTS_TRUE_COLOR=true
+else
+  readonly CLI_SUPPORTS_TRUE_COLOR=false
+fi
+
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+
+# ==============================================================================
+# INSTALLER CONFIG
+# ==============================================================================
+_installer_default_config() {
+  CONFIG_NO_COLOR=false
+}
+
+_installer_theme() {
+  THEME_ESC="$(printf '\033')"
+
+  if $CLI_SUPPORTS_TRUE_COLOR && ! $CONFIG_NO_COLOR; then
+    # Tokyo Night: Cyan (#2ac3de)
+    THEME_PRIMARY="$(printf '\033[38;2;42;195;222m')"
+
+    # Tokyo Night: Dark3 (#545c7e)
+    THEME_SECONDARY="$(printf '\033[38;2;84;92;126m')"
+
+    # Tokyo Night: Orange (#ff9e64)
+    THEME_ACCENT="$(printf '\033[38;2;255;158;100m')"
+
+    # Tokyo Night: Pink (#ff007c)
+    THEME_ERROR="$(printf '\033[38;2;255;0;124m')"
+
+    # Tokyo Night: Dark3 (#545c7e)
+    THEME_DIVIDER="$(printf '\033[38;2;88;91;112m')"
+
+    THEME_BOLD="$(printf '\033[1m')"
+    THEME_RESET="$(printf '\033[0m')"
+  fi
+}
+
+# ==============================================================================
+# YT_X DEFAULT CONFIG
+# ==============================================================================
+_yt_x_default_config() {
+  YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$CONFIG_APP_NAME"
+  : "${YT_X_CONFIG_AUTOLOADED_EXTENSIONS:=}"
+  : "${YT_X_CONFIG_ENABLE_COLORS:=true}"
+  : "${YT_X_CONFIG_LAUNCHER:=fzf}"
+  : "${YT_X_CONFIG_ENABLE_PREVIEW:=false}"
+  : "${YT_X_CONFIG_ENABLE_PREVIEW_IMAGES:=false}"
+  : "${YT_X_CONFIG_IMAGE_RENDERER:=chafa}"
+  : "${YT_X_CONFIG_CHAFA_ARGS:=}"
+  : "${YT_X_CONFIG_ICAT_ARGS:=}"
+  : "${YT_X_CONFIG_IMGCAT_ARGS:=}"
+  : "${YT_X_CONFIG_YT_DLP_OPTS:=}"
+  : "${YT_X_CONFIG_PLAYER:=mpv}"
+  : "${YT_X_CONFIG_DISOWN_PLAYER:=false}"
+  : "${YT_X_CONFIG_MPV_ARGS:=}"
+  : "${YT_X_CONFIG_VLC_ARGS:=}"
+  : "${YT_X_CONFIG_TPLAY_ARGS:=}"
+  : "${YT_X_CONFIG_PER_PAGE:=30}"
+  : "${YT_X_CONFIG_BROWSER:=}"
+  : "${YT_X_CONFIG_CACHE_RETENTION_DAYS:=3}"
+  : "${YT_X_CONFIG_EDITOR:=${EDITOR:-vi}}"
+  : "${YT_X_CONFIG_NOTIFICATION_DURATION:=5}"
+  : "${YT_X_CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
+  : "${YT_X_CONFIG_DOWNLOADS_ENUMERATE:=false}"
+  : "${YT_X_CONFIG_CHECK_FOR_UPDATES:=true}"
+  : "${YT_X_CONFIG_NO_OF_RECENT:=10}"
+  : "${YT_X_CONFIG_ENABLE_SEARCH_HISTORY:=true}"
+  : "${YT_X_CONFIG_ROFI_THEME:=}"
+  : "${YT_X_CONFIG_GUM_FILTER_OPTS:="--prompt.foreground #2ac3de --indicator.foreground #2ac3de --selected-indicator.foreground #2ac3de --unselected-prefix.foreground #585858 --header.foreground #2ac3de --text.foreground #c0caf5 --cursor-text.foreground #c0caf5 --match.foreground #2ac3de --placeholder.foreground #585858  --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."}"
+  : "${YT_X_CONFIG_GUM_INPUT_OPTS:="--prompt.foreground #2ac3de --cursor.foreground #c0caf5 --placeholder こんにちは... --cursor.mode blink"}"
+  : "${YT_X_CONFIG_GUM_PAGER_OPTS:="--foreground #c0caf5 --line-number.foreground #585858 --match.foreground #2ac3de --match-highlight.foreground #1a1b26 --match-highlight.background #2ac3de --help.foreground #585858 --show-line-numbers --soft-wrap --border-foreground #2ac3de"}"
+  : "${YT_X_CONFIG_GUM_SPIN_OPTS:="--spinner dot --spinner.foreground #2ac3de --title.foreground #585858  --align left"}"
+  : "${YT_X_CONFIG_GUM_CONFIRM_OPTS:="--prompt.foreground #2ac3de --selected.foreground #1a1b26 --selected.background #2ac3de --unselected.foreground #585858"}"
+  : "${YT_X_CONFIG_FZF_HEADER:=$CLI_HEADER}"
+  : "${YT_X_CONFIG_FZF_OPTS:="
+  --ansi
+  --border
+  --scheme=history
+  --style=full
+  --color=bg+:#283457
+  --color=bg:#16161e
+  --color=border:#27a1b9
+  --color=fg:#c0caf5
+  --color=gutter:#16161e
+  --color=header:#2ac3de
+  --color=hl+:#2ac3de
+  --color=hl:#2ac3de
+  --color=info:#545c7e
+  --color=marker:#ff007c
+  --color=pointer:#ff007c
+  --color=prompt:#2ac3de
+  --color=query:#c0caf5:regular
+  --color=scrollbar:#27a1b9
+  --color=separator:#ff9e64
+  --color=spinner:#ff007c
+  --border=rounded
+  --border-label=''
+  --prompt=' >'
+  --marker=' >'
+  --pointer='◆'
+  --layout=reverse
+  --cycle
+  --ghost='こんにちは...'
+  --height=100%
+  --bind=ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+  --no-margin
+  +m
+  -i
+  --exact
+  --tabstop=1
+  --preview-window=border-rounded,left,35%,wrap
+  --wrap"}"
+}
+
+# ==============================================================================
+# UI
+# ==============================================================================
+_ui_print() {
+  command printf "%s\n" "$1"
+}
+
+_ui_prompt() {
+  local header
+  local value
+  header="$2"
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum input $CONFIG_GUM_INPUT_OPTS --header "$header" --prompt "$1: "
+  else
+    printf "%s\n" "$header" >/dev/stderr
+    printf "%s: " "$1" >/dev/stderr
+    read -r value
+    printf "%s" "$value"
+  fi
+}
+
+_ui_confirm() {
+  local yes
+  local no
+  local default
+  local default_index
+
+  yes="${3:-$TXT_YES}"
+  no="${4:-$TXT_NO}"
+  default="${2:-$no}"
+
+  if [ "$default" = "$yes" ]; then
+    default_index=1
+  else
+    default_index=0
+  fi
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no" $CONFIG_GUM_CONFIRM_OPTS
+  else
+    printf "%s (${yes}[y]/${no}[n]; $TXT_CONFIRM_DEFAULT: $default): " "$1" >/dev/stderr
+    read -r CONFIRMED
+    case "$CONFIRMED" in
+    y | "$yes")
+      return 0
+      ;;
+    n | "$no")
+      return 1
+      ;;
+    *)
+      if [ "$default" = "$yes" ]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    esac
+  fi
+}
+
+_ui_choose() {
+  local multi_select
+  local header
+
+  if _dep_ch gum; then
+    [ -n "$2" ] && multi_select="--no-limit"
+    # shellcheck disable=SC2086
+    gum choose --header="${1}" $multi_select
+  else
+    local options
+    local choice
+
+    options="$(nl -s '  ' -w 1 | tac)"
+    printf "%s\n" "$options" >/dev/stderr
+    while true; do
+      if [ "$2" = "multi" ]; then
+        choice="$(_ui_prompt "$1" "choices to select (comma-separated for multiple; eg 1,4)")"
+      else
+        choice="$(_ui_prompt "$1" "choice to select (eg 1)")"
+      fi
+      case $choice in
+      '' | *[!0-9]*)
+        if [ "$2" = "multi" ]; then
+          choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]* //;p")"
+          if [ -n "$choice" ]; then
+            break
+          fi
+        fi
+        ;;
+      *)
+        choice="$(printf "%s\n" "$options" | sed -n "${choice}"'{ s/[0-9][0-9]* //;p }')"
+        if [ -n "$choice" ]; then
+          break
+        fi
+        ;;
+      esac
+    done
+    printf "%s" "$choice"
+  fi
+}
+
+_ui_pager() {
+  if _dep_ch bat; then
+    bat --paging=always --theme=TwoDark --color=always
+  elif _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum pager $CONFIG_GUM_PAGER_OPTS
+  elif _dep_ch less; then
+    less -R
+  else
+    more
+  fi
+}
+
+_ui_loader() {
+  local cmd
+  cmd="$*"
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum spin $CONFIG_GUM_SPIN_OPTS --show-output -- $cmd
+  else
+    printf '%s\n' "$TXT_LOADING" >/dev/stderr
+    $cmd
+  fi
+
+}
