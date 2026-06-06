@@ -239,7 +239,7 @@ _validate_integrity() {
 # UI
 # ==============================================================================
 _ui_print() {
-  command printf "%s\n" "$1"
+  command printf "%s\n" "$1" >/dev/stderr
 }
 
 _ui_prompt() {
@@ -263,8 +263,8 @@ _ui_confirm() {
   local default
   local default_index
 
-  yes="${3:-$TXT_YES}"
-  no="${4:-$TXT_NO}"
+  yes="${3:-yes}"
+  no="${4:-no}"
   default="${2:-$no}"
 
   if [ "$default" = "$yes" ]; then
@@ -276,7 +276,7 @@ _ui_confirm() {
   if _dep_ch gum; then
     gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
   else
-    printf "%s (${yes}[y]/${no}[n]; $TXT_CONFIRM_DEFAULT: $default): " "$1" >/dev/stderr
+    printf "%s (${yes}[y]/${no}[n]; Default: $default): " "$1" >/dev/stderr
     read -r CONFIRMED
     case "$CONFIRMED" in
     y | "$yes")
@@ -355,7 +355,7 @@ _ui_loader() {
     # shellcheck disable=SC2086
     gum spin --show-output -- $cmd
   else
-    printf '%s\n' "$TXT_LOADING" >/dev/stderr
+    printf '%s\n' "Loading..." >/dev/stderr
     $cmd
   fi
 
@@ -572,11 +572,14 @@ _install_assets() {
 # ==============================================================================
 _install_extension_default_lang() {
   local target_dest
+  local lang
+
+  lang="$(cat)"
 
   target_dest="$YT_X_DEFAULT_LANG_FILE"
 
-  if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
-    _ui_print "Failed to download $1 asset"
+  if ! _get_release_asset "$lang" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download $lang asset"
     exit 1
   fi
 
@@ -856,6 +859,17 @@ installer() {
   if [ -n "$missing_deps" ]; then
     printf "%s\n" "$missing_deps" | _ui_choose "There are some dependencies which have not been found. Select dependencies you would like to install" "multi" | awk -F ' - ' '{print $1}' | _install_deps
   fi
+
+  if _ui_confirm "Would you like to change the default language (English)?" "no"; then
+    _ui_print "Is your preferred language not in the list? You can contribute to the project by adding a language extension for it! Just fork the repo and add a new .lang file in the extensions/langs/ directory with the appropriate translations (you can use ai to do this by giving one of the already existing translations then just proof read) plus update the readme lang extensions section and submit a PR :)"
+    printf "%s\n" "$LANG_EXTENSIONS" | _ui_choose "Select language extensions to install" | awk -F ' - ' '{print $1}' | _install_extension_default_lang
+  fi
+
+  if _ui_confirm "Would you like to add other languages (wont default, instead just copied to lang dir; must explicitly be defined in either your config or at runtime)?" "no"; then
+    _ui_print "Is your preferred language not in the list? You can contribute to the project by adding a language extension for it! Just fork the repo and add a new .lang file in the extensions/langs/ directory with the appropriate translations (you can use ai to do this by giving one of the already existing translations then just proof read) plus update the readme lang extensions section and submit a PR :)"
+    printf "%s\n" "$LANG_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_lang
+  fi
+
 }
 
 installer
