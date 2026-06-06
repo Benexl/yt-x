@@ -812,6 +812,7 @@ _install_yt_x() {
 _yt_x() {
   readonly DEPENDENCIES="\
 yt-dlp - for fetching media metadata and streaming/downloading media (required)
+jq - for parsing json responses (required)
 fzf - default launcher for browsing and searching media (required)
 rofi - alternative launcher; really cool great for keybinds (optional)
 gum - terminal QoL components for prompts, confirmations, pagers, spinners and more (optional)
