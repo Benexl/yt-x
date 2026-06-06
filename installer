@@ -166,7 +166,7 @@ _yt_x_default_config() {
   : "${YT_X_CONFIG_GUM_PAGER_OPTS:="--foreground #c0caf5 --line-number.foreground #585858 --match.foreground #2ac3de --match-highlight.foreground #1a1b26 --match-highlight.background #2ac3de --help.foreground #585858 --show-line-numbers --soft-wrap --border-foreground #2ac3de"}"
   : "${YT_X_CONFIG_GUM_SPIN_OPTS:="--spinner dot --spinner.foreground #2ac3de --title.foreground #585858  --align left"}"
   : "${YT_X_CONFIG_GUM_CONFIRM_OPTS:="--prompt.foreground #2ac3de --selected.foreground #1a1b26 --selected.background #2ac3de --unselected.foreground #585858"}"
-  : "${YT_X_CONFIG_FZF_HEADER:=$CLI_HEADER}"
+  : "${YT_X_CONFIG_FZF_HEADER:=}"
   : "${YT_X_CONFIG_FZF_OPTS:="
   --ansi
   --border
@@ -245,10 +245,13 @@ _ui_print() {
 _ui_prompt() {
   local header
   local value
+  local default
+
   header="$2"
+  default="$3"
 
   if _dep_ch gum; then
-    gum input --header "$header" --prompt "$1: "
+    gum input --header "$header" --value "$default" --prompt "$1: "
   else
     printf "%s\n" "$header" >/dev/stderr
     printf "%s: " "$1" >/dev/stderr
@@ -887,6 +890,47 @@ installer() {
   if _ui_confirm "Would you like to add other commands (wont default, instead just copied to cmd dir; must explicitly be defined in either your config or at runtime)?" "yes"; then
     printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
   fi
+
+  if _ui_confirm "Would you like to interactively define your config?" "yes"; then
+    YT_X_CONFIG_AUTOLOADED_EXTENSIONS="$(_ui_prompt "YT_X_CONFIG_AUTOLOADED_EXTENSIONS" "$YT_X_CONFIG_AUTOLOADED_EXTENSIONS" "$YT_X_CONFIG_AUTOLOADED_EXTENSIONS")"
+    YT_X_CONFIG_ENABLE_COLORS="$(_ui_prompt "YT_X_CONFIG_ENABLE_COLORS" "$YT_X_CONFIG_ENABLE_COLORS" "$YT_X_CONFIG_ENABLE_COLORS")"
+    YT_X_CONFIG_LAUNCHER="$(_ui_prompt "YT_X_CONFIG_LAUNCHER" "$YT_X_CONFIG_LAUNCHER" "$YT_X_CONFIG_LAUNCHER")"
+    YT_X_CONFIG_ENABLE_PREVIEW="$(_ui_prompt "YT_X_CONFIG_ENABLE_PREVIEW" "$YT_X_CONFIG_ENABLE_PREVIEW" "$YT_X_CONFIG_ENABLE_PREVIEW")"
+    YT_X_CONFIG_ENABLE_PREVIEW_IMAGES="$(_ui_prompt "YT_X_CONFIG_ENABLE_PREVIEW_IMAGES" "$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES" "$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES")"
+
+    YT_X_CONFIG_IMAGE_RENDERER="$(_ui_prompt "YT_X_CONFIG_IMAGE_RENDERER" "$YT_X_CONFIG_IMAGE_RENDERER" "$YT_X_CONFIG_IMAGE_RENDERER")"
+    YT_X_CONFIG_CHAFA_ARGS="$(_ui_prompt "YT_X_CONFIG_CHAFA_ARGS" "$YT_X_CONFIG_CHAFA_ARGS" "$YT_X_CONFIG_CHAFA_ARGS")"
+    YT_X_CONFIG_ICAT_ARGS="$(_ui_prompt "YT_X_CONFIG_ICAT_ARGS" "$YT_X_CONFIG_ICAT_ARGS" "$YT_X_CONFIG_ICAT_ARGS")"
+    YT_X_CONFIG_IMGCAT_ARGS="$(_ui_prompt "YT_X_CONFIG_IMGCAT_ARGS" "$YT_X_CONFIG_IMGCAT_ARGS" "$YT_X_CONFIG_IMGCAT_ARGS")"
+
+    YT_X_CONFIG_PLAYER="$(_ui_prompt "YT_X_CONFIG_PLAYER" "$YT_X_CONFIG_PLAYER" "$YT_X_CONFIG_PLAYER")"
+    YT_X_CONFIG_DISOWN_PLAYER="$(_ui_prompt "YT_X_CONFIG_DISOWN_PLAYER" "$YT_X_CONFIG_DISOWN_PLAYER" "$YT_X_CONFIG_DISOWN_PLAYER")"
+    YT_X_CONFIG_MPV_ARGS="$(_ui_prompt "YT_X_CONFIG_MPV_ARGS" "$YT_X_CONFIG_MPV_ARGS" "$YT_X_CONFIG_MPV_ARGS")"
+    YT_X_CONFIG_VLC_ARGS="$(_ui_prompt "YT_X_CONFIG_VLC_ARGS" "$YT_X_CONFIG_VLC_ARGS" "$YT_X_CONFIG_VLC_ARGS")"
+    YT_X_CONFIG_TPLAY_ARGS="$(_ui_prompt "YT_X_CONFIG_TPLAY_ARGS" "$YT_X_CONFIG_TPLAY_ARGS" "$YT_X_CONFIG_TPLAY_ARGS")"
+
+    YT_X_CONFIG_DOWNLOAD_DIR="$(_ui_prompt "YT_X_CONFIG_DOWNLOAD_DIR" "$YT_X_CONFIG_DOWNLOAD_DIR" "$YT_X_CONFIG_DOWNLOAD_DIR")"
+    YT_X_CONFIG_YT_DLP_OPTS="$(_ui_prompt "YT_X_CONFIG_YT_DLP_OPTS" "$YT_X_CONFIG_YT_DLP_OPTS" "$YT_X_CONFIG_YT_DLP_OPTS")"
+
+    YT_X_CONFIG_PER_PAGE="$(_ui_prompt "YT_X_CONFIG_PER_PAGE" "$YT_X_CONFIG_PER_PAGE" "$YT_X_CONFIG_PER_PAGE")"
+    YT_X_CONFIG_BROWSER="$(_ui_prompt "YT_X_CONFIG_BROWSER" "$YT_X_CONFIG_BROWSER" "$YT_X_CONFIG_BROWSER")"
+
+    YT_X_CONFIG_EDITOR="$(_ui_prompt "YT_X_CONFIG_EDITOR" "$YT_X_CONFIG_EDITOR" "$YT_X_CONFIG_EDITOR")"
+    YT_X_CONFIG_TERMINAL_EXEC="$(_ui_prompt "YT_X_CONFIG_TERMINAL_EXEC" "$YT_X_CONFIG_TERMINAL_EXEC" "$YT_X_CONFIG_TERMINAL_EXEC")"
+    YT_X_CONFIG_NOTIFICATION_DURATION="$(_ui_prompt "YT_X_CONFIG_NOTIFICATION_DURATION" "$YT_X_CONFIG_NOTIFICATION_DURATION" "$YT_X_CONFIG_NOTIFICATION_DURATION")"
+
+    YT_X_CONFIG_DOWNLOADS_ENUMERATE="$(_ui_prompt "YT_X_CONFIG_ENUMERATE_DOWNLOADS" "$YT_X_CONFIG_ENUMERATE_DOWNLOADS" "$YT_X_CONFIG_ENUMERATE_DOWNLOADS")"
+    YT_X_CONFIG_CHECK_FOR_UPDATES="$(_ui_prompt "YT_X_CONFIG_CHECK_FOR_UPDATES" "$YT_X_CONFIG_CHECK_FOR_UPDATES" "$YT_X_CONFIG_CHECK_FOR_UPDATES")"
+    YT_X_CONFIG_NO_OF_RECENT="$(_ui_prompt "YT_X_CONFIG_NO_OF_RECENT" "$YT_X_CONFIG_NO_OF_RECENT" "$YT_X_CONFIG_NO_OF_RECENT")"
+    YT_X_CONFIG_ENABLE_SEARCH_HISTORY="$(_ui_prompt "YT_X_CONFIG_ENABLE_SEARCH_HISTORY" "$YT_X_CONFIG_ENABLE_SEARCH_HISTORY" "$YT_X_CONFIG_ENABLE_SEARCH_HISTORY")"
+
+    YT_X_CONFIG_ROFI_THEME_MAIN="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_MAIN" "$YT_X_CONFIG_ROFI_THEME_MAIN" "$YT_X_CONFIG_ROFI_THEME_MAIN")"
+    YT_X_CONFIG_ROFI_THEME_PREVIEW="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PREVIEW" "$YT_X_CONFIG_ROFI_THEME_PREVIEW" "$YT_X_CONFIG_ROFI_THEME_PREVIEW")"
+    YT_X_CONFIG_ROFI_THEME_PROMPT="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PROMPT" "$YT_X_CONFIG_ROFI_THEME_PROMPT" "$YT_X_CONFIG_ROFI_THEME_PROMPT")"
+    YT_X_CONFIG_ROFI_THEME_CONFIRM="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_CONFIRM" "$YT_X_CONFIG_ROFI_THEME_CONFIRM" "$YT_X_CONFIG_ROFI_THEME_CONFIRM")"
+    YT_X_CONFIG_ROFI_THEME_PAGER="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER")"
+  fi
+  _print_yt_x_config >"$YT_X_CONFIG_FILE"
 }
 
 installer
