@@ -841,6 +841,11 @@ dailymotion.site - Extension for browsing Dailymotion"
 
   readonly CMD_EXTENSIONS="\
 downloads - Extension for listing and managing downloads"
+
+  readonly ASSETS="\
+mpv config - Default mpv configuration file optimized for yt-x
+yt-dlp config - Default yt-dlp configuration file optimized for yt-x
+rofi themes - A collection of rofi themes optimized for yt-x"
 }
 
 installer() {
@@ -896,6 +901,17 @@ installer() {
 
   if _ui_confirm "Would you like to add other commands (wont default, instead just copied to cmd dir; must explicitly be defined in either your config or at runtime)?" "yes"; then
     printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select cmd extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
+  fi
+
+  if _ui_confirm "Would you like to install other external assets like rofi themes and mpv config" "yes"; then
+    printf "%s\n" "$ASSETS" | _ui_choose "Select assets to install" "multi" | awk -F ' - ' '{print $1}' | _install_assets
+    if [ -d "$YT_X_CONFIG_DIR/rofi-themes" ]; then
+      YT_X_CONFIG_ROFI_THEME_MAIN="$YT_X_CONFIG_DIR/rofi-themes/main.rasi"
+      YT_X_CONFIG_ROFI_THEME_PREVIEW="$YT_X_CONFIG_DIR/rofi-themes/preview.rasi"
+      YT_X_CONFIG_ROFI_THEME_PROMPT="$YT_X_CONFIG_DIR/rofi-themes/prompt.rasi"
+      YT_X_CONFIG_ROFI_THEME_CONFIRM="$YT_X_CONFIG_DIR/rofi-themes/confirm.rasi"
+      YT_X_CONFIG_ROFI_THEME_PAGER="$YT_X_CONFIG_DIR/rofi-themes/pager.rasi"
+    fi
   fi
 
   if _ui_confirm "Would you like to interactively define your config?" "yes"; then
