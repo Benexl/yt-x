@@ -301,7 +301,7 @@ _ui_choose() {
   local header
 
   if _dep_ch gum; then
-    [ -n "$2" ] && multi_select="--no-limit"
+    [ "$2" = "multi" ] && multi_select="--no-limit"
     # shellcheck disable=SC2086
     gum choose --header="${1}" $multi_select
   else
@@ -310,29 +310,27 @@ _ui_choose() {
 
     options="$(nl -s '  ' -w 1 | tac)"
     printf "%s\n" "$options" >/dev/stderr
-    while true; do
+    if [ "$2" = "multi" ]; then
+      choice="$(_ui_prompt "$1" "choices to select (comma-separated for multiple; eg 1,4)")"
+    else
+      choice="$(_ui_prompt "$1" "choice to select (eg 1)")"
+    fi
+    case $choice in
+    '' | *[!0-9]*)
       if [ "$2" = "multi" ]; then
-        choice="$(_ui_prompt "$1" "choices to select (comma-separated for multiple; eg 1,4)")"
-      else
-        choice="$(_ui_prompt "$1" "choice to select (eg 1)")"
-      fi
-      case $choice in
-      '' | *[!0-9]*)
-        if [ "$2" = "multi" ]; then
-          choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]* //;p")"
-          if [ -n "$choice" ]; then
-            break
-          fi
-        fi
-        ;;
-      *)
-        choice="$(printf "%s\n" "$options" | sed -n "${choice}"'{ s/[0-9][0-9]* //;p }')"
+        choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]* //;p")"
         if [ -n "$choice" ]; then
-          break
+          return 1
         fi
-        ;;
-      esac
-    done
+      fi
+      ;;
+    *)
+      choice="$(printf "%s\n" "$options" | sed -n "${choice}"'{ s/[0-9][0-9]* //;p }')"
+      if [ -n "$choice" ]; then
+        return 1
+      fi
+      ;;
+    esac
     printf "%s" "$choice"
   fi
 }
@@ -498,7 +496,6 @@ _install_deps() {
     ffmpegthumbnailer)
       _install_dep_ffmpegthumbnailer
       ;;
-    *) ;;
     esac
   done
 }
@@ -811,7 +808,7 @@ _install_yt_x() {
 }
 
 _yt_x() {
-  DEPENDENCIES="\
+  readonly DEPENDENCIES="\
 yt-dlp - for fetching media metadata and streaming/downloading media (required)
 fzf - default launcher for browsing and searching media (required)
 rofi - alternative launcher; really cool great for keybinds (optional)
@@ -822,17 +819,17 @@ tplay - terminal media player for a more 'authentic' experience (optional)
 chafa - for rendering media previews in the terminal (optional)
 ffmpegthumbnailer - for generating video thumbnails for local media previews (optional)"
 
-  LANG_EXTENSIONS="\
+  readonly LANG_EXTENSIONS="\
 es.lang - Spanish language extension
 br.lang - Brazilian Portuguese language extension"
 
-  THEME_EXTENSIONS="\
+  readonly THEME_EXTENSIONS="\
 catppuchin-mocha.theme - A catppuchin mocha inspired theme"
 
-  SITE_EXTENSIONS="\
+  readonly SITE_EXTENSIONS="\
 dailymotion.site - Extension for browsing Dailymotion"
 
-  CMD_EXTENSIONS="\
+  readonly CMD_EXTENSIONS="\
 downloads - Extension for listing and managing downloads"
 }
 
@@ -849,11 +846,16 @@ installer() {
 
   local missing_deps
 
-  missing_deps="$(printf "%s\n" "$DEPENDENCIES" | awk -F ' - ' '{print $1}' | while read -r dep; do
-    if ! _dep_ch "$dep"; then
-      printf "%s\n" "$dep"
-    fi
-  done)"
+  missing_deps="$(
+    printf "%s\n" "$DEPENDENCIES" | while read -r dep; do
+      if ! _dep_ch "$(printf "%s\n" "$dep" | awk -F ' - ' '{print $1}')"; then
+        printf "%s\n" "$dep"
+      fi
+    done
+  )"
+  if [ -n "$missing_deps" ]; then
+    printf "%s\n" "$missing_deps" | _ui_choose "There are some dependencies which have not been found. Select dependencies you would like to install" "multi" | awk -F ' - ' '{print $1}' | _install_deps
+  fi
 }
 
 installer
