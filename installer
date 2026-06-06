@@ -786,7 +786,7 @@ CONFIG_GUM_CONFIRM_OPTS="$YT_X_CONFIG_GUM_CONFIRM_OPTS"
 # Custom options passed directly to fzf
 CONFIG_FZF_HEADER="\\
 $YT_X_CONFIG_FZF_HEADER"
-CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS"
+CONFIG_FZF_OPTS="$YT_X_CONFIG_FZF_OPTS"
 
 # Rofi config all are required to run rofi as a launcher
 # get the official ones from $CLI_REPO_URL
