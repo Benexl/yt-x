@@ -11,13 +11,14 @@ fi
 REPO_DIR="$BIN_DIR/../.."
 
 OLD_VERSION="$(cat "$REPO_DIR/version.txt")"
+ESCAPED_OLD_VERSION=$(printf '%s\n' "$OLD_VERSION" | sed 's/\./\\./g')
 
 NEW_VERSION="$1"
 [ -z "$NEW_VERSION" ] && printf "<new-version> is a required argument eg release 0.8.8; current version is $OLD_VERSION" && exit 1
 
-sed -i "s|$OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/version.txt"
-sed -i "s|$OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/yt-x"
-sed -i "s|$OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/README.md"
+sed -i "s|$ESCAPED_OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/version.txt"
+sed -i "s|$ESCAPED_OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/yt-x"
+sed -i "s|$ESCAPED_OLD_VERSION|$NEW_VERSION|" "$REPO_DIR/README.md"
 
 git add "$REPO_DIR/version.txt" "$REPO_DIR/yt-x" "$REPO_DIR/README.md"
 git diff --staged
