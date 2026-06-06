@@ -4242,7 +4242,7 @@ _app_update_script() {
   update="$1"
   [ -z "$update" ] && ui_notify_critical "$TXT_UPDATE_FETCH_FAILED"
 
-  if printf "%s" "$update" >"$CLI_PATH"; then
+  if printf "%s\n" "$update" >"$CLI_PATH"; then
     rm "$CLI_FZF_PREVIEW_SCRIPT" >/dev/null 2>&1
     if ui_confirm "$TXT_UPDATE_SCRIPT_REEXECUTE"; then
       # shellcheck disable=SC2086
@@ -4268,8 +4268,8 @@ _app_update_check() {
     [ -z "$update" ] && return 1
 
     if _dep_ch diff; then
-      update_diff="$(printf "%s" "$update" | diff -u "$CLI_PATH" -)"
-      ui_confirm "$TXT_UPDATE_FOUND" && printf '%s' "$update_diff" | ui_pager
+      update_diff="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" -)"
+      ui_confirm "$TXT_UPDATE_FOUND" && printf '%s\n' "$update_diff" | ui_pager
     else
       _ui_notify_warning "$TXT_DEP_MISSING_DIFF"
     fi
