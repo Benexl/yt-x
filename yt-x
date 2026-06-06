@@ -31,6 +31,7 @@ if [ -n "$BASH_VERSION" ]; then
   readonly CLI_SHELL="bash"
 elif [ -n "$ZSH_VERSION" ]; then
   readonly CLI_SHELL="zsh"
+  setopt shwordsplit
 elif [ -n "$KSH_VERSION" ]; then
   readonly CLI_SHELL="ksh"
 else
@@ -50,10 +51,6 @@ else
 fi
 
 readonly CLI_PATH="$CLI_DIR/$CLI_NAME"
-
-if [ -n "$ZSH_VERSION" ]; then
-  setopt shwordsplit
-fi
 
 case "$(uname -a)" in
 *ndroid*) readonly CLI_PLATFORM="android" ;;
