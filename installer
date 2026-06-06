@@ -808,7 +808,8 @@ EOF
 _install_yt_x() {
   local target_dest
 
-  target_dest="$YT_X_CONFIG_FILE"
+  target_dest="$HOME/.local/bin/yt-x"
+  mkdir -p "$(dirname "$target_dest")"
 
   if ! _get_release_asset "yt-x" >"${target_dest}.tmp"; then
     _ui_print "Failed to download yt-x asset"
@@ -817,6 +818,10 @@ _install_yt_x() {
 
   mv "${target_dest}.tmp" "$target_dest"
   rm "${target_dest}.tmp"
+
+  chmod +x "$target_dest"
+
+  _ui_print "yt-x has been installed to $target_dest"
 }
 
 _yt_x() {
@@ -940,7 +945,13 @@ installer() {
   fi
   _print_yt_x_config >"$YT_X_CONFIG_FILE"
 
+  _install_yt_x
   _ui_print "Completed installation! Enjoy and dont forget to leave a star on the github repo or maybe even buy me a coffe incase you find $CLI_NAME useful :)"
 }
+
+if ! _dep_ch jq; then
+  _ui_print "jq is required to run the installer. Please install jq and try again."
+  exit 1
+fi
 
 installer
