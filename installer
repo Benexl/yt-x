@@ -854,7 +854,11 @@ installer() {
   _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
   _ui_print "======================================================================================================="
 
-  RELEASE_JSON="$(_fetch "$CLI_RELEASE_URL")"
+  if _dep_ch gh; then
+    RELEASE_JSON="$(gh api "$CLI_RELEASE_URL")"
+  else
+    RELEASE_JSON="$(_fetch "$CLI_RELEASE_URL")"
+  fi
 
   local missing_deps
 
