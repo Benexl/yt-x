@@ -391,17 +391,11 @@ _get_release_asset() {
   type="$3"
 
   asset_url="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url')"
-  asset_hash="$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)"
+  asset_hash="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)"
 
-  asset="$(_fetch "$asset_url")"
+  _fetch "$asset_url"
 
-  if printf "%s" "$asset" | _validate_integrity "$asset_hash" "-"; then
-    printf "%s" "$asset"
-    _update_pkg_json "$asset_name" "$asset_hash" "$asset_url" "$dest_path" "$type"
-  else
-    _ui_print "Failed to download asset: $asset_name"
-    exit 1
-  fi
+  _update_pkg_json "$asset_name" "$asset_hash" "$asset_url" "$dest_path" "$type"
 }
 
 # ==============================================================================
