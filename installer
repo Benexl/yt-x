@@ -664,3 +664,20 @@ _install_extension_site() {
     rm "${target_dest}.tmp"
   done
 }
+
+# ==============================================================================
+# INSTALLER
+# ==============================================================================
+_install_yt_x() {
+  local target_dest
+
+  target_dest="$YT_X_CONFIG_FILE"
+
+  if ! _get_release_asset "yt-x" >"${target_dest}.tmp"; then
+    _print "Failed to download yt-x asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
+}
