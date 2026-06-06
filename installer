@@ -209,6 +209,7 @@ _validate_integrity() {
     fi
   fi
 }
+
 # ==============================================================================
 # UI
 # ==============================================================================
@@ -222,8 +223,7 @@ _ui_prompt() {
   header="$2"
 
   if _dep_ch gum; then
-    # shellcheck disable=SC2086
-    gum input $CONFIG_GUM_INPUT_OPTS --header "$header" --prompt "$1: "
+    gum input --header "$header" --prompt "$1: "
   else
     printf "%s\n" "$header" >/dev/stderr
     printf "%s: " "$1" >/dev/stderr
@@ -249,8 +249,7 @@ _ui_confirm() {
   fi
 
   if _dep_ch gum; then
-    # shellcheck disable=SC2086
-    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no" $CONFIG_GUM_CONFIRM_OPTS
+    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
   else
     printf "%s (${yes}[y]/${no}[n]; $TXT_CONFIRM_DEFAULT: $default): " "$1" >/dev/stderr
     read -r CONFIRMED
@@ -317,8 +316,7 @@ _ui_pager() {
   if _dep_ch bat; then
     bat --paging=always --theme=TwoDark --color=always
   elif _dep_ch gum; then
-    # shellcheck disable=SC2086
-    gum pager $CONFIG_GUM_PAGER_OPTS
+    gum pager
   elif _dep_ch less; then
     less -R
   else
@@ -332,7 +330,7 @@ _ui_loader() {
 
   if _dep_ch gum; then
     # shellcheck disable=SC2086
-    gum spin $CONFIG_GUM_SPIN_OPTS --show-output -- $cmd
+    gum spin --show-output -- $cmd
   else
     printf '%s\n' "$TXT_LOADING" >/dev/stderr
     $cmd
