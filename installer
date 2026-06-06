@@ -341,20 +341,10 @@ _ui_loader() {
 # ==============================================================================
 # DATA FETCHING
 # ==============================================================================
-_fetch_latest_release() {
-  if _dep_ch curl; then
-    curl -sL "$CLI_RELEASE_URL"
-  elif _dep_ch wget; then
-    wget -qO- "$CLI_RELEASE_URL"
-  else
-    return 1
-  fi
-}
-
-_fetch_release_asset() {
+_fetch() {
   local url
-  url="$1"
 
+  url="$1"
   if _dep_ch curl; then
     curl -sL "$url"
   elif _dep_ch wget; then
