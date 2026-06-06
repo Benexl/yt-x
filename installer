@@ -464,6 +464,10 @@ _install_dep_rofi() {
   _install "rofi"
 }
 
+_install_dep_ffmpegthumbnailer() {
+  _install "ffmpegthumbnailer"
+}
+
 _install_deps() {
   while IFS= read -r dep; do
     case "$dep" in
@@ -491,6 +495,9 @@ _install_deps() {
     rofi)
       _install_dep_rofi
       ;;
+    ffmpegthumbnailer)
+      _install_dep_ffmpegthumbnailer
+      ;;
     *) ;;
     esac
   done
@@ -500,22 +507,66 @@ _install_deps() {
 # INSTALLATION: ASSETS
 # ==============================================================================
 _install_asset_mpv_config() {
-  local mpv_conf
+  local target_dest
 
-  mpv_conf="$(_get_release_asset "mpv.conf")"
+  target_dest="$XDG_CONFIG_HOME/mpv/mpv.conf"
+  mkdir -p "$XDG_CONFIG_HOME/mpv"
+
+  if ! _get_release_asset "mpv.conf" >"${target_dest}.tmp"; then
+    _print "Failed to download mpv.conf asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
 }
+
 _install_asset_yt_dlp_config() {
-  :
+  local target_dest
+
+  target_dest="$XDG_CONFIG_HOME/yt-dlp/config"
+  mkdir -p "$XDG_CONFIG_HOME/yt-dlp"
+
+  if ! _get_release_asset "yt-dlp.conf" >"${target_dest}.tmp"; then
+    _print "Failed to download yt-dlp.conf asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
 }
 
-_intall_asset_rofi_themes() {
-  :
+_install_asset_rofi_themes() {
+  local target_dest
+
+  target_dest="$YT_X_CONFIG_DIR/rofi-themes.zip"
+
+  if ! _get_release_asset "rofi-themes.zip" >"${target_dest}.tmp"; then
+    _print "Failed to download rofi-themes.zip asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
+
+  unzip "$target_dest"
 }
 
 _install_assets() {
-  _install_asset_mpv_config
-  _install_asset_yt_dlp_config
-  _intall_asset_rofi_themes
+  while IFS= read -r asset; do
+    case "$asset" in
+    "mpv config")
+      _install_asset_mpv_config
+      ;;
+    "yt-dlp config")
+      _install_asset_yt_dlp_config
+      ;;
+    "rofi themes")
+      _install_asset_rofi_themes
+      ;;
+    *) ;;
+    esac
+  done
 }
 
 # ==============================================================================
