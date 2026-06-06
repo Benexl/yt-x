@@ -15,7 +15,8 @@ readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
 # readonly CLI_VERSION="0.0.1"
 # readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
-readonly CLI_RELEASE_URL="https://api.github.com/repos/Benexl/yt-x/releases/latest"
+readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
 
 # ==============================================================================
 # SETUP
@@ -49,11 +50,6 @@ esac
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-
-# ==============================================================================
-# LSP DEFINITIONS
-# ==============================================================================
-RELEASE_JSON=""
 
 # ==============================================================================
 # INSTALLER CONFIG
@@ -344,28 +340,29 @@ _update_pkg_json() {
   local check_for_updates
   local pkg_json
 
-  name="$1"
-  hash="$2"
-  resolved_url="$3"
-  dest_path="$4"
-  type="$5"
+  if _dep_ch jq; then
+    name="$1"
+    hash="$2"
+    resolved_url="$3"
+    dest_path="$4"
+    type="$5"
 
-  check_for_updates="true"
-  repo="Benexl/yt-x"
-  tag="$RELEASE_TAG_NAME"
+    check_for_updates="true"
+    repo="Benexl/yt-x"
+    tag="$RELEASE_TAG_NAME"
 
-  pkg_json="[]"
-  [ -s "$YT_X_PKG_JSON" ] && pkg_json=$(cat "$YT_X_PKG_JSON")
+    pkg_json="[]"
+    [ -s "$YT_X_PKG_JSON" ] && pkg_json=$(cat "$YT_X_PKG_JSON")
 
-  printf '%s' "$pkg_json" | jq \
-    --arg name "$name" \
-    --arg hash "$hash" \
-    --arg resolved_url "$resolved_url" \
-    --arg dest_path "$dest_path" \
-    --arg type "$type" \
-    --arg check_for_updates "$check_for_updates" \
-    --arg repo "$repo" \
-    --arg tag "$tag" '
+    printf '%s' "$pkg_json" | jq \
+      --arg name "$name" \
+      --arg hash "$hash" \
+      --arg resolved_url "$resolved_url" \
+      --arg dest_path "$dest_path" \
+      --arg type "$type" \
+      --arg check_for_updates "$check_for_updates" \
+      --arg repo "$repo" \
+      --arg tag "$tag" '
       .+=[
         {
           "name": $name,
@@ -379,6 +376,7 @@ _update_pkg_json() {
         }
       ]
     ' >"$YT_X_PKG_JSON"
+  fi
 }
 
 _get_release_asset() {
@@ -390,12 +388,11 @@ _get_release_asset() {
   dest_path="$2"
   type="$3"
 
-  asset_url="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url')"
-  asset_hash="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)"
+  asset_url="$YT_X_RELEASE_TAG/$asset_name"
 
   _fetch "$asset_url"
 
-  _update_pkg_json "$asset_name" "$asset_hash" "$asset_url" "$dest_path" "$type"
+  _update_pkg_json "$asset_name" "" "$asset_url" "$dest_path" "$type"
 }
 
 # ==============================================================================
@@ -848,11 +845,8 @@ installer() {
   _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
   _ui_print "======================================================================================================="
 
-  if _dep_ch gh; then
-    RELEASE_JSON="$(gh api "$CLI_RELEASE_URL")"
-  else
-    RELEASE_JSON="$(_fetch "$CLI_RELEASE_URL")"
-  fi
+  readonly YT_X_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
+  readonly YT_X_RELEASE_TAG="$YT_X_RELEASES_BASE/v$CLI_VERSION"
 
   local missing_deps
 
@@ -939,10 +933,5 @@ installer() {
   _install_yt_x
   _ui_print "Completed installation! Enjoy and dont forget to leave a star on the github repo or maybe even buy me a coffe incase you find $CLI_NAME useful :)"
 }
-
-if ! _dep_ch jq; then
-  _ui_print "jq is required to run the installer. Please install jq and try again."
-  exit 1
-fi
 
 installer
