@@ -850,7 +850,7 @@ installer() {
   _ui_print "======================================================================================================="
 
   readonly YT_X_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
-  readonly YT_X_RELEASE_TAG="$YT_X_RELEASES_BASE/v$CLI_VERSION"
+  readonly YT_X_RELEASE_TAG="$YT_X_RELEASES_BASE/v$YT_X_LATEST_VERSION"
 
   local missing_deps
 
