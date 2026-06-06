@@ -84,6 +84,7 @@ RELEASE_JSON=""
 _installer_default_config() {
   CONFIG_NO_COLOR=false
   CONFIG_VALIDATE_INTEGRITY=true
+  CONFIG_NO_PREFER_UV=false
 }
 
 _installer_theme() {
@@ -380,197 +381,68 @@ _get_release_asset() {
 # ==============================================================================
 # INSTALLATION: DEPENDENCIES
 # ==============================================================================
-_install_dep_fzf() {
+__install_archlinux() {
+  if _dep_ch yay; then
+    yay -S --noconfirm "$1"
+  elif _dep_ch pacman; then
+    sudo pacman -S --noconfirm "$1"
+  else
+    _print "No supported package manager found (yay or pacman). Please install $1 manually. Or contribute to the project by adding support for your distribution."
+  fi
+}
+
+_install() {
   case "$CLI_PLATFORM" in
   linux)
     case "$CLI_LINUX_DISTRO_ID" in
     arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm fzf
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm fzf
-      else
-        _print "No supported package manager found (yay or pacman). Please install fzf manually. Or contribute to the project by adding support for your distribution."
-      fi
+      __install_archlinux "$1"
       ;;
     *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install fzf manually. Or contribute to the project by adding support for your distribution."
+      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install $1 manually. Or contribute to the project by adding support for your distribution."
       ;;
     esac
     ;;
   *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install fzf manually. Or contribute to the project by adding support for your platform."
+    _print "Unsupported platform: $CLI_PLATFORM. Please install $1 manually. Or contribute to the project by adding support for your platform."
     ;;
   esac
+}
+
+_install_dep_fzf() {
+  _install "fzf"
 }
 
 _install_dep_gum() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm gum
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm gum
-      else
-        _print "No supported package manager found (yay or pacman). Please install gum manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install gum manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install gum manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "gum"
 }
+
 _install_dep_chafa() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm chafa
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm chafa
-      else
-        _print "No supported package manager found (yay or pacman). Please install chafa manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install chafa manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install chafa manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "chafa"
 }
 
 _install_dep_yt_dlp() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch uv; then
-        uv tool install "yt-dlp[default,curl-cffi]"
-      elif _dep_ch yay; then
-        yay -S --noconfirm yt-dlp
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm yt-dlp
-      else
-        _print "No supported package manager found (uv or yay or pacman). Please install yt-dlp manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install yt-dlp manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install yt-dlp manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  if _dep_ch uv && ! $CONFIG_NO_PREFER_UV; then
+    uv tool install "yt-dlp[default,curl-cffi]"
+  else
+    _install "yt-dlp"
+  fi
 }
 
 _install_dep_mpv() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm mpv
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm mpv
-      else
-        _print "No supported package manager found (yay or pacman). Please install mpv manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install mpv manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install mpv manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "mpv"
 }
 
 _install_dep_vlc() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm vlc
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm vlc
-      else
-        _print "No supported package manager found (yay or pacman). Please install vlc manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install vlc manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install vlc manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "vlc"
 }
 
 _install_dep_tplay() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm tplay
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm tplay
-      else
-        _print "No supported package manager found (yay or pacman). Please install tplay manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install tplay manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install tplay manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "tplay"
 }
 
 _install_dep_rofi() {
-  case "$CLI_PLATFORM" in
-  linux)
-    case "$CLI_LINUX_DISTRO_ID" in
-    arch)
-      if _dep_ch yay; then
-        yay -S --noconfirm rofi
-      elif _dep_ch pacman; then
-        sudo pacman -S --noconfirm rofi
-      else
-        _print "No supported package manager found (yay or pacman). Please install rofi manually. Or contribute to the project by adding support for your distribution."
-      fi
-      ;;
-    *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install rofi manually. Or contribute to the project by adding support for your distribution."
-      ;;
-    esac
-    ;;
-  *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install rofi manually. Or contribute to the project by adding support for your platform."
-    ;;
-  esac
+  _install "rofi"
 }
 
 _install_deps() {
@@ -609,7 +481,9 @@ _install_deps() {
 # INSTALLATION: ASSETS
 # ==============================================================================
 _install_asset_mpv_config() {
-  :
+  local mpv_conf
+
+  mpv_conf="$(_get_asset "mpv.conf")"
 }
 _install_asset_yt_dlp_config() {
   :
