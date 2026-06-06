@@ -375,7 +375,7 @@ _fetch() {
   elif _dep_ch wget; then
     wget -qO- "$url"
   else
-    _print "No supported download utility found (curl or wget). Please install one of them and try again."
+    _ui_print "No supported download utility found (curl or wget). Please install one of them and try again."
     exit 1
   fi
 }
@@ -393,7 +393,7 @@ _get_release_asset() {
   if printf "%s" "$asset" | _validate_integrity "$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)" "-"; then
     printf "%s" "$asset"
   else
-    _print "Failed to download asset: $asset_name"
+    _ui_print "Failed to download asset: $asset_name"
     exit 1
   fi
 }
@@ -406,7 +406,7 @@ __install_archlinux() {
   elif _dep_ch pacman; then
     sudo pacman -S --noconfirm "$1"
   else
-    _print "No supported package manager found (yay or pacman). Please install $1 manually. Or contribute to the project by adding support for your distribution."
+    _ui_print "No supported package manager found (yay or pacman). Please install $1 manually. Or contribute to the project by adding support for your distribution."
   fi
 }
 
@@ -418,12 +418,12 @@ _install() {
       __install_archlinux "$1"
       ;;
     *)
-      _print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install $1 manually. Or contribute to the project by adding support for your distribution."
+      _ui_print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install $1 manually. Or contribute to the project by adding support for your distribution."
       ;;
     esac
     ;;
   *)
-    _print "Unsupported platform: $CLI_PLATFORM. Please install $1 manually. Or contribute to the project by adding support for your platform."
+    _ui_print "Unsupported platform: $CLI_PLATFORM. Please install $1 manually. Or contribute to the project by adding support for your platform."
     ;;
   esac
 }
@@ -513,7 +513,7 @@ _install_asset_mpv_config() {
   mkdir -p "$XDG_CONFIG_HOME/mpv"
 
   if ! _get_release_asset "mpv.conf" >"${target_dest}.tmp"; then
-    _print "Failed to download mpv.conf asset"
+    _ui_print "Failed to download mpv.conf asset"
     exit 1
   fi
 
@@ -528,7 +528,7 @@ _install_asset_yt_dlp_config() {
   mkdir -p "$XDG_CONFIG_HOME/yt-dlp"
 
   if ! _get_release_asset "yt-dlp.conf" >"${target_dest}.tmp"; then
-    _print "Failed to download yt-dlp.conf asset"
+    _ui_print "Failed to download yt-dlp.conf asset"
     exit 1
   fi
 
@@ -542,7 +542,7 @@ _install_asset_rofi_themes() {
   target_dest="$YT_X_CONFIG_DIR/rofi-themes.zip"
 
   if ! _get_release_asset "rofi-themes.zip" >"${target_dest}.tmp"; then
-    _print "Failed to download rofi-themes.zip asset"
+    _ui_print "Failed to download rofi-themes.zip asset"
     exit 1
   fi
 
@@ -579,7 +579,7 @@ _install_extension_default_lang() {
   target_dest="$YT_X_DEFAULT_LANG_FILE"
 
   if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
-    _print "Failed to download $1 asset"
+    _ui_print "Failed to download $1 asset"
     exit 1
   fi
 
@@ -594,7 +594,7 @@ _install_extension_lang() {
     target_dest="$YT_X_EXTENSIONS_LANGS_DIR/$lang"
 
     if ! _get_release_asset "$lang" >"${target_dest}.tmp"; then
-      _print "Failed to download $lang asset"
+      _ui_print "Failed to download $lang asset"
       exit 1
     fi
 
@@ -609,7 +609,7 @@ _install_extension_default_theme() {
   target_dest="$YT_X_DEFAULT_THEME_FILE"
 
   if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
-    _print "Failed to download $1 asset"
+    _ui_print "Failed to download $1 asset"
     exit 1
   fi
 
@@ -624,7 +624,7 @@ _install_extension_theme() {
     target_dest="$YT_X_EXTENSIONS_THEMES_DIR/$theme"
 
     if ! _get_release_asset "$theme" >"${target_dest}.tmp"; then
-      _print "Failed to download $theme asset"
+      _ui_print "Failed to download $theme asset"
       exit 1
     fi
 
@@ -640,7 +640,7 @@ _install_extension_cmd() {
     target_dest="$YT_X_EXTENSIONS_CMDS_DIR/$cmd"
 
     if ! _get_release_asset "$cmd" >"${target_dest}.tmp"; then
-      _print "Failed to download $cmd asset"
+      _ui_print "Failed to download $cmd asset"
       exit 1
     fi
 
@@ -656,7 +656,7 @@ _install_extension_site() {
     target_dest="$YT_X_EXTENSIONS_SITES_DIR/$site"
 
     if ! _get_release_asset "$site" >"${target_dest}.tmp"; then
-      _print "Failed to download $site asset"
+      _ui_print "Failed to download $site asset"
       exit 1
     fi
 
@@ -668,13 +668,141 @@ _install_extension_site() {
 # ==============================================================================
 # INSTALLER
 # ==============================================================================
+_print_yt_x_config() {
+  cat <<EOF
+# ===================================================================================
+# 大きな力には大きな責任が伴う
+# ===================================================================================
+#
+#     ██╗░░░██╗████████╗░░░░░░██╗░░██╗  ░█████╗░░█████╗░███╗░░██╗███████╗██╗░██████╗░
+#     ╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝  ██╔══██╗██╔══██╗████╗░██║██╔════╝██║██╔════╝░
+#     ░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░  ██║░░╚═╝██║░░██║██╔██╗██║█████╗░░██║██║░░██╗░
+#     ░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░  ██║░░██╗██║░░██╗██║╚████║██╔══╝░░██║██║░░╚██╗
+#     ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗  ╚█████╔╝╚█████╔╝██║░╚███║██║░░░░░██║╚██████╔╝
+#     ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝╚═╝░░░░░╚═╝░╚═════╝░
+#
+# ===================================================================================
+#
+# !! BE CAREFUL WHAT YOU INCLUDE HERE SINCE THE CONFIG FILE IS SOURCED AS A SCRIPT  !!
+# !! ITS RECOMMENDED TO ONLY DO VARIABLE ASSIGNMENTS AND CONDITIONAL ASSIGNMENTS    !!
+# !! AND DO MORE COMPLEX STUFF USING EXTENSIONS BY CONVENTION                       !!
+# !! Environment variables (export YT_X_VAR=...) override these settings.           !!
+#
+# ===================================================================================
+
+# List of extensions to load automatically on startup
+CONFIG_AUTOLOADED_EXTENSIONS="$YT_X_CONFIG_AUTOLOADED_EXTENSIONS"
+
+# Enable or disable colored/formatted output
+# Options: true, false (Default: true)
+CONFIG_ENABLE_COLORS="$YT_X_CONFIG_ENABLE_COLORS"
+
+# The menu launcher tool used for the ui
+# Options: fzf, rofi, gum (Default: fzf)
+CONFIG_LAUNCHER="$YT_X_CONFIG_LAUNCHER"
+
+# Enable image/video previews within the selector
+# Options: true, false (Default: false)
+CONFIG_ENABLE_PREVIEW="$YT_X_CONFIG_ENABLE_PREVIEW"
+CONFIG_ENABLE_PREVIEW_IMAGES="$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES"
+
+# The tool used to render previews in the terminal
+# Options: chafa, icat, imgcat (Default: chafa)
+CONFIG_IMAGE_RENDERER="$YT_X_CONFIG_IMAGE_RENDERER"
+
+# Extra arguments for specific image renderers
+CONFIG_CHAFA_ARGS="$YT_X_CONFIG_CHAFA_ARGS"
+CONFIG_ICAT_ARGS="$YT_X_CONFIG_ICAT_ARGS"
+CONFIG_IMGCAT_ARGS="$YT_X_CONFIG_IMGCAT_ARGS"
+
+# custom opts for yt-dlp
+CONFIG_YT_DLP_OPTS="$YT_X_CONFIG_YT_DLP_OPTS"
+
+# The media player used for playback
+# Options: mpv, vlc, tplay (Default: mpv)
+CONFIG_PLAYER="$YT_X_CONFIG_PLAYER"
+
+# Extra arguments for specific media players
+CONFIG_MPV_ARGS="$YT_X_CONFIG_MPV_ARGS"
+CONFIG_VLC_ARGS="$YT_X_CONFIG_VLC_ARGS"
+CONFIG_TPLAY_ARGS="$YT_X_CONFIG_TPLAY_ARGS"
+
+# Whether to disown the player, process to prevent blocking the UI
+# options: true, false (Default: false)
+CONFIG_DISOWN_PLAYER="$YT_X_CONFIG_DISOWN_PLAYER"
+
+# Maximum number of search results to fetch per page
+# Options: Integer (Default: 30)
+CONFIG_PER_PAGE="$YT_X_CONFIG_PER_PAGE"
+
+# Browser for yt-dlp to get cookies from
+# passed to --cookies-from-browser yt-dlp option
+# Currently supported browsers are: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
+# NOTE: this option is entirely dependent on what yt-dlp supports
+CONFIG_BROWSER="$YT_X_CONFIG_BROWSER"
+
+# Text editor for manual configuration/metadata editing
+# Options: vim, nano, code ... (Default: \$EDITOR or vi)
+CONFIG_EDITOR="$YT_X_CONFIG_EDITOR"
+
+# The terminal to use to execute commands that require a terminal
+CONFIG_TERMINAL_EXEC="$YT_X_CONFIG_TERMINAL_EXEC"
+
+# Duration in seconds for desktop notifications
+CONFIG_NOTIFICATION_DURATION="$YT_X_CONFIG_NOTIFICATION_DURATION"
+
+# Directory where downloads are saved
+# Default: $HOME/Videos/$CLI_NAME
+CONFIG_DOWNLOAD_DIR="$YT_X_CONFIG_DOWNLOAD_DIR"
+CONFIG_DOWNLOADS_ENUMERATE="$YT_X_CONFIG_DOWNLOADS_ENUMERATE"
+
+# Automatically check for script updates on startup
+# Options: true, false (Default: true)
+CONFIG_CHECK_FOR_UPDATES="$YT_X_CONFIG_CHECK_FOR_UPDATES"
+
+# Number of items to keep in the recent history
+CONFIG_NO_OF_RECENT="$YT_X_CONFIG_NO_OF_RECENT"
+
+# Enable or disable saving search queries to history
+# Options: true, false (Default: true)
+CONFIG_ENABLE_SEARCH_HISTORY="$YT_X_CONFIG_ENABLE_SEARCH_HISTORY"
+
+# Custom options passed directly to gum
+CONFIG_GUM_OPTS="$YT_X_CONFIG_GUM_FILTER_OPTS"
+CONFIG_GUM_INPUT_OPTS="$YT_X_CONFIG_GUM_INPUT_OPTS"
+CONFIG_GUM_PAGER_OPTS="$YT_X_CONFIG_GUM_PAGER_OPTS"
+CONFIG_GUM_SPIN_OPTS="$YT_X_CONFIG_GUM_SPIN_OPTS"
+CONFIG_GUM_CONFIRM_OPTS="$YT_X_CONFIG_GUM_CONFIRM_OPTS"
+
+# Custom options passed directly to fzf
+CONFIG_FZF_HEADER="\\
+$YT_X_CONFIG_FZF_HEADER"
+CONFIG_FZF_OPTS="$CONFIG_FZF_OPTS"
+
+# Rofi config all are required to run rofi as a launcher
+# get the official ones from $CLI_REPO_URL
+CONFIG_ROFI_THEME_MAIN="$YT_X_CONFIG_ROFI_THEME_MAIN"
+CONFIG_ROFI_THEME_PREVIEW="$YT_X_CONFIG_ROFI_THEME_PREVIEW"
+CONFIG_ROFI_THEME_PROMPT="$YT_X_CONFIG_ROFI_THEME_PROMPT"
+CONFIG_ROFI_THEME_CONFIRM="$YT_X_CONFIG_ROFI_THEME_CONFIRM"
+CONFIG_ROFI_THEME_PAGER="$YT_X_CONFIG_ROFI_THEME_PAGER"
+
+# Number of days to keep cached preview images, playlists, and logs
+# Default: 3
+CONFIG_CACHE_RETENTION_DAYS="$YT_X_CONFIG_CACHE_RETENTION_DAYS"
+# ==============================================================================
+# 楽しんでね
+# ==============================================================================
+EOF
+}
+
 _install_yt_x() {
   local target_dest
 
   target_dest="$YT_X_CONFIG_FILE"
 
   if ! _get_release_asset "yt-x" >"${target_dest}.tmp"; then
-    _print "Failed to download yt-x asset"
+    _ui_print "Failed to download yt-x asset"
     exit 1
   fi
 
@@ -712,4 +840,20 @@ installer() {
   _yt_x_default_config
   _installer_default_config
   _yt_x
+
+  _ui_print "======================================================================================================="
+  _ui_print "$CLI_HEADER"
+  _ui_print "======================================================================================================="
+  _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
+  _ui_print "======================================================================================================="
+
+  local missing_deps
+
+  missing_deps="$(printf "%s\n" "$DEPENDENCIES" | awk -F ' - ' '{print $1}' | while read -r dep; do
+    if ! _dep_ch "$dep"; then
+      printf "%s\n" "$dep"
+    fi
+  done)"
 }
+
+installer
