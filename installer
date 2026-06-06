@@ -447,6 +447,10 @@ _install_dep_yt_dlp() {
   fi
 }
 
+_install_dep_jq() {
+  _install "jq"
+}
+
 _install_dep_mpv() {
   _install "mpv"
 }
@@ -481,6 +485,9 @@ _install_deps() {
       ;;
     yt-dlp)
       _install_dep_yt_dlp
+      ;;
+    jq)
+      _install_dep_jq
       ;;
     mpv)
       _install_dep_mpv
