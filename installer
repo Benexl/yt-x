@@ -402,7 +402,11 @@ __install_archlinux() {
   if _dep_ch yay; then
     yay -S --noconfirm "$1"
   elif _dep_ch pacman; then
-    sudo pacman -S --noconfirm "$1"
+    if _dep_ch sudo; then
+      sudo pacman -S --noconfirm "$1"
+    else
+      pacman -S --noconfirm "$1"
+    fi
   else
     _ui_print "No supported package manager found (yay or pacman). Please install $1 manually. Or contribute to the project by adding support for your distribution."
   fi
