@@ -10,4 +10,4 @@ fi
 
 REPO_DIR="$BIN_DIR/../../"
 
-exec "$REPO_DIR/yt-x"
+exec "$REPO_DIR/yt-x" "$@"
