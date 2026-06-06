@@ -6,13 +6,16 @@
 # ==============================================================================
 # META
 # ==============================================================================
-readonly CLI_NAME="${YT_X_NAME:-yt-x}"
+readonly CLI_NAME="yt-x"
 readonly CLI_ARGS="$*"
-readonly CLI_APP_NAME="${YT_X_APP_NAME:-yt-x}"
-readonly CLI_VERSION="0.8.1"
+readonly CLI_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
+readonly CLI_VERSION="0.8.4"
 readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
-readonly CLI_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x"
+readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
+readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_RELEASE_TAG="$CLI_RELEASES_BASE/v$CLI_VERSION"
+readonly CLI_RELEASE_URL="$CLI_RELEASE_TAG/yt-x"
 
 # ==============================================================================
 # SETUP
@@ -458,6 +461,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_UPDATE_FAILED="Can't update for some reason!"
   TXT_UPDATE_FETCH_FAILED="Something went wrong fetching the update, can't proceed with the update"
   TXT_UPDATE_FOUND="An update has been found would you like to see the changes before deciding whether to update?"
+  TXT_DEP_MISSING_DIFF="Could not find diff in path please install it to view update diffs"
   TXT_UPDATE_CONFIRM="Would you like to proceed with the update?"
   TXT_UPDATE_NOT_FOUND="No updates found"
 
@@ -4235,7 +4239,7 @@ _app_update_script() {
   update="$1"
   [ -z "$update" ] && ui_notify_critical "$TXT_UPDATE_FETCH_FAILED"
 
-  if printf "%s" "$update" >"$CLI_PATH"; then
+  if printf "%s\n" "$update" >"$CLI_PATH"; then
     rm "$CLI_FZF_PREVIEW_SCRIPT" >/dev/null 2>&1
     if ui_confirm "$TXT_UPDATE_SCRIPT_REEXECUTE"; then
       # shellcheck disable=SC2086
@@ -4250,15 +4254,23 @@ _app_update_script() {
 
 _app_update_check() {
   local update
-  local is_update
+  local update_diff
+  local latest_version
 
-  update=$(curl -s "$CLI_URL")
-  [ -z "$update" ] && return 1
+  latest_version=$(curl -s "$CLI_VERSION_URL")
+  [ -z "$latest_version" ] && return 1
 
-  is_update="$(printf "%s" "$update" | diff -u "$CLI_PATH" -)"
+  if [ "$latest_version" != "$CLI_VERSION" ]; then
+    update="$(curl -sL "${CLI_RELEASES_BASE}/v${latest_version}/$CLI_NAME")"
+    [ -z "$update" ] && return 1
 
-  if [ -n "$is_update" ]; then
-    ui_confirm "$TXT_UPDATE_FOUND" && printf '%s' "$is_update" | ui_pager
+    if _dep_ch diff; then
+      update_diff="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" -)"
+      ui_confirm "$TXT_UPDATE_FOUND" && printf '%s\n' "$update_diff" | ui_pager
+    else
+      _ui_notify_warning "$TXT_DEP_MISSING_DIFF"
+    fi
+
     ui_confirm "$TXT_UPDATE_CONFIRM" && _app_update_script "$update"
   else
     return 1

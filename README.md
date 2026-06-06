@@ -4,11 +4,12 @@
 
 **Browse YouTube and other `yt-dlp` supported sites directly from your terminal or app launcher.**
 
-[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/issues)
-[![GitHub License](https://img.shields.io/github/license/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/blob/master/LICENSE)
-[![GitHub file size in bytes](https://img.shields.io/github/size/Benex254/yt-x/yt-x?style=flat-square)]()
-[![GitHub Release](https://img.shields.io/github/v/release/Benex254/yt-x?style=flat-square)](https://github.com/Benex254/yt-x/releases)
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Benex254/yt-x?style=flat-square)]()
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/Benexl/yt-x?style=flat-square)](https://github.com/Benexl/yt-x/issues)
+[![GitHub License](https://img.shields.io/github/license/Benexl/yt-x?style=flat-square)](https://github.com/Benexl/yt-x/blob/master/LICENSE)
+[![GitHub file size in bytes](https://img.shields.io/github/size/Benexl/yt-x/yt-x?style=flat-square)]()
+![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/Benexl/yt-x/yt-x?displayAssetName=false&style=flat-square&color=%2397ca00)
+[![GitHub Release](https://img.shields.io/github/v/release/Benexl/yt-x?style=flat-square)](https://github.com/Benexl/yt-x/releases)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Benexl/yt-x?style=flat-square)]()
 
 </div>
 
@@ -127,7 +128,7 @@
 
 **Optional:**
 
-- **Media Players:** `mpv` (default), `vlc`, or `tplay
+- **Media Players:** `mpv` (default), `vlc`, or `tplay`
 - **Modern Terminal That Supports True Color:**
   - `kitty` _personal favourite; started the great terminal era lol_
   - `ghostty`
@@ -148,7 +149,7 @@
 Ensure `~/.local/bin` exists and is added to your system's `$PATH`.
 
 ```bash
-curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/yt-x" -o ~/.local/bin/yt-x
+curl -sL "https://github.com/Benexl/yt-x/releases/download/v0.8.4/yt-x" -o ~/.local/bin/yt-x
 chmod +x ~/.local/bin/yt-x
 ```
 
