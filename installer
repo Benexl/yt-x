@@ -10,12 +10,9 @@ readonly CLI_HEADER="\
 ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗ ██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗███████╗██║░░██║
 ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝ ╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝╚══════╝╚═╝░░╚═╝"
 readonly CLI_NAME="${YT_X_NAME:-yt-x}"
-# readonly CLI_ARGS="$*"
 readonly YT_X_APP_NAME="${YT_X_APP_NAME:-yt-x}"
-# readonly CLI_VERSION="0.0.1"
-# readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
-readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_RELEASE_BASE="https://github.com/Benexl/yt-x/releases/download"
 readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
 
 # ==============================================================================
@@ -849,8 +846,8 @@ installer() {
   _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
   _ui_print "======================================================================================================="
 
-  readonly YT_X_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
-  readonly YT_X_RELEASE_TAG="$YT_X_RELEASES_BASE/v$YT_X_LATEST_VERSION"
+  readonly CLI_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
+  readonly YT_X_RELEASE_TAG="$CLI_RELEASE_BASE/v$CLI_LATEST_VERSION"
 
   local missing_deps
 
