@@ -67,7 +67,7 @@ _installer_default_config() {
 # YT_X DEFAULT CONFIG
 # ==============================================================================
 _yt_x_default_config() {
-  readonly YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$CONFIG_APP_NAME"
+  readonly YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$YT_X_APP_NAME"
 
   readonly YT_X_EXTENSIONS_DIR="$YT_X_CONFIG_DIR/extensions"
   readonly YT_X_EXTENSIONS_SITES_DIR="$YT_X_EXTENSIONS_DIR/sites"
