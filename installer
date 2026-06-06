@@ -74,6 +74,11 @@ XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 # ==============================================================================
+# LSP DEFINITIONS
+# ==============================================================================
+RELEASE_JSON=""
+
+# ==============================================================================
 # INSTALLER CONFIG
 # ==============================================================================
 _installer_default_config() {
@@ -350,10 +355,28 @@ _fetch() {
   elif _dep_ch wget; then
     wget -qO- "$url"
   else
-    return 1
+    _print "No supported download utility found (curl or wget). Please install one of them and try again."
+    exit 1
   fi
 }
 
+_get_release_asset() {
+  local asset_name
+  local asset_url
+  local asset
+
+  asset_name="$1"
+
+  asset_url="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url')"
+  asset="$(_fetch "$asset_url")"
+
+  if printf "%s" "$asset" | _validate_integrity "$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)" "-"; then
+    printf "%s" "$asset"
+  else
+    _print "Failed to download asset: $asset_name"
+    exit 1
+  fi
+}
 # ==============================================================================
 # INSTALLATION: DEPENDENCIES
 # ==============================================================================
