@@ -115,7 +115,26 @@ _installer_theme() {
 # YT_X DEFAULT CONFIG
 # ==============================================================================
 _yt_x_default_config() {
-  YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$CONFIG_APP_NAME"
+  readonly YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$CONFIG_APP_NAME"
+
+  readonly YT_X_EXTENSIONS_DIR="$YT_X_CONFIG_DIR/extensions"
+  readonly YT_X_EXTENSIONS_SITES_DIR="$YT_X_EXTENSIONS_DIR/sites"
+  readonly YT_X_EXTENSIONS_THEMES_DIR="$YT_X_EXTENSIONS_DIR/themes"
+  readonly YT_X_EXTENSIONS_LANGS_DIR="$YT_X_EXTENSIONS_DIR/langs"
+  readonly YT_X_EXTENSIONS_CMDS_DIR="$YT_X_EXTENSIONS_DIR/cmds"
+  readonly YT_X_EXTENSIONS_UI_DIR="$YT_X_EXTENSIONS_DIR/ui"
+
+  readonly YT_X_CONFIG_FILE="$YT_X_CONFIG_DIR/config"
+  readonly YT_X_DEFAULT_THEME_FILE="$YT_X_EXTENSIONS_THEMES_DIR/default.theme"
+  readonly YT_X_DEFAULT_LANG_FILE="$YT_X_EXTENSIONS_LANGS_DIR/default.lang"
+
+  mkdir -p \
+    "$YT_X_EXTENSIONS_SITES_DIR" \
+    "$YT_X_EXTENSIONS_THEMES_DIR" \
+    "$YT_X_EXTENSIONS_LANGS_DIR" \
+    "$YT_X_EXTENSIONS_CMDS_DIR" \
+    "$YT_X_EXTENSIONS_UI_DIR"
+
   : "${YT_X_CONFIG_AUTOLOADED_EXTENSIONS:=}"
   : "${YT_X_CONFIG_ENABLE_COLORS:=true}"
   : "${YT_X_CONFIG_LAUNCHER:=fzf}"
@@ -483,31 +502,37 @@ _install_deps() {
 _install_asset_mpv_config() {
   local mpv_conf
 
-  mpv_conf="$(_get_asset "mpv.conf")"
+  mpv_conf="$(_get_release_asset "mpv.conf")"
 }
 _install_asset_yt_dlp_config() {
   :
 }
+
 _intall_asset_rofi_themes() {
   :
 }
+
 _install_assets() {
   _install_asset_mpv_config
   _install_asset_yt_dlp_config
   _intall_asset_rofi_themes
 }
+
 # ==============================================================================
 # INSTALLATION: EXTENSIONS
 # ==============================================================================
 _install_extension_lang() {
   :
 }
+
 _install_extension_theme() {
   :
 }
+
 _install_extension_cmd() {
   :
 }
+
 _install_extensions() {
   _install_extension_lang
   _install_extension_theme
