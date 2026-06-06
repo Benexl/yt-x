@@ -1,0 +1,33 @@
+name: Upload Release Assets
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upload-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Create rofi-themes.zip
+        run: zip -r rofi-themes.zip rofi-themes/
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            yt-x
+            external-configs/mpv.conf
+            external-configs/yt-dlp.conf
+            extensions/langs/br.lang
+            extensions/langs/es.lang
+            extensions/themes/catppuchin-mocha.theme
+            extensions/sites/dailymotion.site
+            extensions/cmds/downloads
+            rofi-themes.zip
