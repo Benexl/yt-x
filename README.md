@@ -127,7 +127,7 @@
 
 **Optional:**
 
-- **Media Players:** `mpv` (default), `vlc`, or `tplay
+- **Media Players:** `mpv` (default), `vlc`, or `tplay`
 - **Modern Terminal That Supports True Color:**
   - `kitty` _personal favourite; started the great terminal era lol_
   - `ghostty`
