@@ -882,20 +882,20 @@ installer() {
 
   if _ui_confirm "Would you like to change the default theme (Tokyo Night)?" "no"; then
     _ui_print "Is your preferred theme not in the list? You can contribute to the project by adding a theme extension for it! Just fork the repo and add a new .theme file in the extensions/themes/ directory with the appropriate theme settings (you can use ai to do this by giving one of the already existing themes then just proof read) plus update the readme theme extensions section and submit a PR :)"
-    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select language extensions to install" | awk -F ' - ' '{print $1}' | _install_extension_default_theme
+    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select theme extensions to install" | awk -F ' - ' '{print $1}' | _install_extension_default_theme
   fi
 
   if _ui_confirm "Would you like to add other themes (wont default, instead just copied to theme dir; must explicitly be defined in either your config or at runtime)?" "no"; then
     _ui_print "Is your preferred theme not in the list? You can contribute to the project by adding a theme extension for it! Just fork the repo and add a new .theme file in the extensions/themes/ directory with the appropriate theme settings (you can use ai to do this by giving one of the already existing themes then just proof read) plus update the readme theme extensions section and submit a PR :)"
-    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_theme
+    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select theme extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_theme
   fi
 
   if _ui_confirm "Would you like to add support for other sites (wont default, instead just copied to site dir; must explicitly be defined in either your config or at runtime)?" "no"; then
-    printf "%s\n" "$SITE_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_site
+    printf "%s\n" "$SITE_EXTENSIONS" | _ui_choose "Select site extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_site
   fi
 
   if _ui_confirm "Would you like to add other commands (wont default, instead just copied to cmd dir; must explicitly be defined in either your config or at runtime)?" "yes"; then
-    printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
+    printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select cmd extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
   fi
 
   if _ui_confirm "Would you like to interactively define your config?" "yes"; then
