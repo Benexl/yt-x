@@ -204,7 +204,7 @@ _ui_prompt() {
   else
     printf "%s\n" "$header" >/dev/stderr
     printf "%s: " "$1" >/dev/stderr
-    read -r value
+    read -r value </dev/tty
     printf "%s" "$value"
   fi
 }
