@@ -77,6 +77,7 @@ _yt_x_default_config() {
   readonly YT_X_EXTENSIONS_UI_DIR="$YT_X_EXTENSIONS_DIR/ui"
 
   readonly YT_X_CONFIG_FILE="$YT_X_CONFIG_DIR/config"
+  readonly YT_X_PKG_JSON="$YT_X_CONFIG_DIR/pkg.json"
   readonly YT_X_DEFAULT_THEME_FILE="$YT_X_EXTENSIONS_THEMES_DIR/default.theme"
   readonly YT_X_DEFAULT_LANG_FILE="$YT_X_EXTENSIONS_LANGS_DIR/default.lang"
 
@@ -333,24 +334,77 @@ _fetch() {
   fi
 }
 
+_update_pkg_json() {
+  local name
+  local repo
+  local hash
+  local tag
+  local resolved_url
+  local dest_path
+  local check_for_updates
+  local pkg_json
+
+  name="$1"
+  hash="$2"
+  resolved_url="$3"
+  dest_path="$4"
+  type="$5"
+
+  check_for_updates="true"
+  repo="Benexl/yt-x"
+  tag="$RELEASE_TAG_NAME"
+
+  pkg_json="[]"
+  [ -s "$YT_X_PKG_JSON" ] && pkg_json=$(cat "$YT_X_PKG_JSON")
+
+  printf '%s' "$pkg_json" | jq \
+    --arg name "$name" \
+    --arg hash "$hash" \
+    --arg resolved_url "$resolved_url" \
+    --arg dest_path "$dest_path" \
+    --arg type "$type" \
+    --arg check_for_updates "$check_for_updates" \
+    --arg repo "$repo" \
+    --arg tag "$tag" '
+      .+=[
+        {
+          "name": $name,
+          "hash": $hash,
+          "resolved_url": $resolved_url,
+          "dest_path": $dest_path,
+          "type": $type,
+          "check_for_updates": $check_for_updates,
+          "repo": $repo,
+          "tag": $tag
+        }
+      ]
+    ' >"$YT_X_PKG_JSON"
+}
+
 _get_release_asset() {
   local asset_name
   local asset_url
   local asset
 
   asset_name="$1"
+  dest_path="$2"
+  type="$3"
 
   asset_url="$(printf "%s\n" "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url')"
+  asset_hash="$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)"
+
   asset="$(_fetch "$asset_url")"
 
-  if printf "%s" "$asset" | _validate_integrity "$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest' | cut -d ':' -f 2)" "-"; then
+  if printf "%s" "$asset" | _validate_integrity "$asset_hash" "-"; then
     printf "%s" "$asset"
+    _update_pkg_json "$asset_name" "$asset_hash" "$asset_url" "$dest_path" "$type"
   else
     _ui_print "Failed to download asset: $asset_name"
     exit 1
   fi
 }
-# ==============================================================================
+
+==============================================================================
 # INSTALLATION: DEPENDENCIES
 # ==============================================================================
 __install_archlinux() {
@@ -464,7 +518,7 @@ _install_asset_mpv_config() {
   target_dest="$XDG_CONFIG_HOME/mpv/mpv.conf"
   mkdir -p "$XDG_CONFIG_HOME/mpv"
 
-  if ! _get_release_asset "mpv.conf" >"${target_dest}.tmp"; then
+  if ! _get_release_asset "mpv.conf" "$target_dest" "asset" >"${target_dest}.tmp"; then
     _ui_print "Failed to download mpv.conf asset"
     exit 1
   fi
@@ -479,7 +533,7 @@ _install_asset_yt_dlp_config() {
   target_dest="$XDG_CONFIG_HOME/yt-dlp/config"
   mkdir -p "$XDG_CONFIG_HOME/yt-dlp"
 
-  if ! _get_release_asset "yt-dlp.conf" >"${target_dest}.tmp"; then
+  if ! _get_release_asset "yt-dlp.conf" "$target_dest" "asset" >"${target_dest}.tmp"; then
     _ui_print "Failed to download yt-dlp.conf asset"
     exit 1
   fi
@@ -493,7 +547,7 @@ _install_asset_rofi_themes() {
 
   target_dest="$YT_X_CONFIG_DIR/rofi-themes.zip"
 
-  if ! _get_release_asset "rofi-themes.zip" >"${target_dest}.tmp"; then
+  if ! _get_release_asset "rofi-themes.zip" "$YT_X_CONFIG_DIR/rofi-themes" "asset" >"${target_dest}.tmp"; then
     _ui_print "Failed to download rofi-themes.zip asset"
     exit 1
   fi
@@ -533,7 +587,7 @@ _install_extension_default_lang() {
 
   target_dest="$YT_X_DEFAULT_LANG_FILE"
 
-  if ! _get_release_asset "$lang" >"${target_dest}.tmp"; then
+  if ! _get_release_asset "$lang" "$target_dest" "extension" >"${target_dest}.tmp"; then
     _ui_print "Failed to download $lang asset"
     exit 1
   fi
@@ -548,7 +602,7 @@ _install_extension_lang() {
 
     target_dest="$YT_X_EXTENSIONS_LANGS_DIR/$lang"
 
-    if ! _get_release_asset "$lang" >"${target_dest}.tmp"; then
+    if ! _get_release_asset "$lang" "$target_dest" "extension" >"${target_dest}.tmp"; then
       _ui_print "Failed to download $lang asset"
       exit 1
     fi
@@ -563,7 +617,7 @@ _install_extension_default_theme() {
 
   target_dest="$YT_X_DEFAULT_THEME_FILE"
 
-  if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
+  if ! _get_release_asset "$1" "$target_dest" "extension" >"${target_dest}.tmp"; then
     _ui_print "Failed to download $1 asset"
     exit 1
   fi
@@ -578,7 +632,7 @@ _install_extension_theme() {
 
     target_dest="$YT_X_EXTENSIONS_THEMES_DIR/$theme"
 
-    if ! _get_release_asset "$theme" >"${target_dest}.tmp"; then
+    if ! _get_release_asset "$theme" "$target_dest" "extension" >"${target_dest}.tmp"; then
       _ui_print "Failed to download $theme asset"
       exit 1
     fi
@@ -594,7 +648,7 @@ _install_extension_cmd() {
 
     target_dest="$YT_X_EXTENSIONS_CMDS_DIR/$cmd"
 
-    if ! _get_release_asset "$cmd" >"${target_dest}.tmp"; then
+    if ! _get_release_asset "$cmd" "$target_dest" "extension" >"${target_dest}.tmp"; then
       _ui_print "Failed to download $cmd asset"
       exit 1
     fi
@@ -610,7 +664,7 @@ _install_extension_site() {
 
     target_dest="$YT_X_EXTENSIONS_SITES_DIR/$site"
 
-    if ! _get_release_asset "$site" >"${target_dest}.tmp"; then
+    if ! _get_release_asset "$site" "$target_dest" "extension" >"${target_dest}.tmp"; then
       _ui_print "Failed to download $site asset"
       exit 1
     fi
