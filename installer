@@ -549,7 +549,8 @@ _install_asset_rofi_themes() {
   mv "${target_dest}.tmp" "$target_dest"
   rm "${target_dest}.tmp"
 
-  unzip "$target_dest"
+  unzip "$target_dest" -d "$YT_X_CONFIG_DIR/rofi-themes"
+  rm "$target_dest"
 }
 
 _install_assets() {
@@ -572,21 +573,94 @@ _install_assets() {
 # ==============================================================================
 # INSTALLATION: EXTENSIONS
 # ==============================================================================
+_install_extension_default_lang() {
+  local target_dest
+
+  target_dest="$YT_X_DEFAULT_LANG_FILE"
+
+  if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
+    _print "Failed to download $1 asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
+}
+
 _install_extension_lang() {
-  :
+  while IFS= read -r lang; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_LANGS_DIR/$lang"
+
+    if ! _get_release_asset "$lang" >"${target_dest}.tmp"; then
+      _print "Failed to download $lang asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+    rm "${target_dest}.tmp"
+  done
+}
+
+_install_extension_default_theme() {
+  local target_dest
+
+  target_dest="$YT_X_DEFAULT_THEME_FILE"
+
+  if ! _get_release_asset "$1" >"${target_dest}.tmp"; then
+    _print "Failed to download $1 asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+  rm "${target_dest}.tmp"
 }
 
 _install_extension_theme() {
-  :
+  while IFS= read -r theme; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_THEMES_DIR/$theme"
+
+    if ! _get_release_asset "$theme" >"${target_dest}.tmp"; then
+      _print "Failed to download $theme asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+    rm "${target_dest}.tmp"
+  done
 }
 
 _install_extension_cmd() {
-  :
+  while IFS= read -r cmd; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_CMDS_DIR/$cmd"
+
+    if ! _get_release_asset "$cmd" >"${target_dest}.tmp"; then
+      _print "Failed to download $cmd asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+    rm "${target_dest}.tmp"
+  done
 }
 
-_install_extensions() {
-  _install_extension_lang
-  _install_extension_theme
-  _install_extension_sites
-  _install_extension_cmd
+_install_extension_site() {
+  while IFS= read -r site; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_SITES_DIR/$site"
+
+    if ! _get_release_asset "$site" >"${target_dest}.tmp"; then
+      _print "Failed to download $site asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+    rm "${target_dest}.tmp"
+  done
 }
