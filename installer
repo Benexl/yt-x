@@ -551,6 +551,10 @@ _install_asset_rofi_themes() {
 
   mv "${target_dest}.tmp" "$target_dest"
 
+  if ! _dep_ch unzip; then
+    _ui_print "No supported unzip utility found. Please install unzip and try again."
+    exit 1
+  fi
   unzip "$target_dest" -d "$YT_X_CONFIG_DIR/rofi-themes"
   rm "$target_dest"
 }
