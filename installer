@@ -387,9 +387,9 @@ _get_release_asset() {
 
   asset_url="$YT_X_RELEASE_TAG/$asset_name"
 
-  _fetch "$asset_url"
-
-  _update_pkg_json "$asset_name" "" "$asset_url" "$dest_path" "$type"
+  if _fetch "$asset_url"; then
+    _update_pkg_json "$asset_name" "" "$asset_url" "$dest_path" "$type"
+  fi
 }
 
 # ==============================================================================
