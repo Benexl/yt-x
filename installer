@@ -156,7 +156,7 @@ _yt_x_default_config() {
 # ==============================================================================
 # UTILS
 # ==============================================================================
-_validate_integrity() {
+_util_validate_integrity() {
   local expected_checksum
   local file_path
 
@@ -178,6 +178,41 @@ _validate_integrity() {
     else
       return 1
     fi
+  fi
+}
+
+_util_open() {
+  local target
+  local converted_target
+  target="$1"
+
+  if _dep_ch open; then
+    open "$target" || return 1
+    return 0
+  elif _dep_ch xdg-open; then
+    xdg-open "$target" || return 1
+    return 0
+  elif _dep_ch wslview; then
+    wslview "$target" || return 1
+    return 0
+  elif _dep_ch cmd.exe; then
+    converted_target="$target"
+
+    case "$target" in
+    http://* | https://* | ftp://* | ftps://* | mailto:*) ;;
+    *)
+      if _dep_ch cygpath; then
+        converted_target="$(cygpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+      elif _dep_ch wslpath; then
+        converted_target="$(wslpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+      fi
+      ;;
+    esac
+
+    cmd.exe /C start "" "$converted_target" >/dev/null 2>&1 || return 1
+    return 0
+  else
+    return 1
   fi
 }
 
@@ -963,8 +998,14 @@ installer() {
   fi
   _print_yt_x_config >"$YT_X_CONFIG_FILE"
 
-  _install_yt_x
-  _ui_print "Completed installation! Enjoy and dont forget to leave a star on the github repo or maybe even buy me a coffe incase you find $CLI_NAME useful :)"
+  if _install_yt_x; then
+    _ui_print "Installation complete 🥳! If you have any questions, please visit the GitHub repository (especially the FAQ). Enjoy! Don't forget to leave a star on the repo, or maybe even buy me a coffee if you find $CLI_NAME useful :)"
+    if _ui_confirm "Would you like to open the github repo page?" "yes"; then
+      _util_open "$CLI_REPO_URL"
+    fi
+  else
+    _ui_print "Installation failed. Please try again or report the issue on GitHub if the problem persists."
+  fi
 }
 
 installer
