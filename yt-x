@@ -9,7 +9,7 @@
 readonly CLI_NAME="yt-x"
 readonly CLI_ARGS="$*"
 readonly CLI_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
-readonly CLI_VERSION="0.8.4"
+readonly CLI_VERSION="0.8.5"
 readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
@@ -2346,7 +2346,7 @@ __cached_mix_path() {
   local cached_mix_path
 
   url="$1"
-  video_id=$(printf '%s' "$STATE_CURRENT_VIDEO" | jq '.id' -r | sed 's/RD//g')
+  video_id=$(printf '%s' "$url" | sed 's/.*RD//g')
 
   cached_mix_path="$CLI_AUTO_GEN_PLAYLISTS/$(_util_generate_hash "https://www.youtube.com/watch?v=${video_id}&list=RD$video_id").m3u8"
 
