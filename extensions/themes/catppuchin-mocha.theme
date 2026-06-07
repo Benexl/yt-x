@@ -42,7 +42,8 @@ if $CLI_SUPPORTS_TRUE_COLOR && $CONFIG_ENABLE_COLORS; then
   CONFIG_GUM_SPIN_OPTS="--spinner dot --spinner.foreground #cba6f7 --title.foreground #585858 --align left"
   CONFIG_GUM_CONFIRM_OPTS="--prompt.foreground #cba6f7 --selected.foreground #11111b --selected.background #cba6f7 --unselected.foreground #585858"
 
-  CONFIG_FZF_OPTS="
+CONFIG_FZF_OPTS="\
+$CONFIG_FZF_OPTS
 --color=bg+:#313244
 --color=bg:#1e1e2e
 --color=border:#89b4fe
