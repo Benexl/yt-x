@@ -9,7 +9,7 @@ readonly CLI_HEADER="\
 ░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░ ██║██║╚████║░╚═══██╗░░░██║░░░██╔══██║██║░░░░░██║░░░░░██╔══╝░░██╔══██╗
 ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗ ██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗███████╗██║░░██║
 ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝ ╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝╚══════╝╚═╝░░╚═╝"
-readonly CLI_NAME="yt-x}"
+readonly CLI_NAME="yt-x"
 readonly YT_X_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_RELEASE_BASE="https://github.com/Benexl/yt-x/releases/download"
