@@ -169,7 +169,7 @@ _validate_integrity() {
     elif _dep_ch shasum; then
       actual_checksum="$(shasum -a 256 "$file_path" | awk '{print $1}')"
     else
-      _print "No checksum utility found. Exiting installer"
+      _ui_print "No checksum utility found. Exiting installer"
       exit 1
     fi
 
