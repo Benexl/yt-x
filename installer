@@ -226,7 +226,7 @@ _ui_confirm() {
     gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
   else
     printf "%s (${yes}[y]/${no}[n]; Default: $default): " "$1" >/dev/stderr
-    read -r CONFIRMED
+    read -r CONFIRMED </dev/tty
     case "$CONFIRMED" in
     y | "$yes")
       return 0
