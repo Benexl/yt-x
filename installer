@@ -257,7 +257,11 @@ _ui_choose() {
     local options
     local choice
 
-    options="$(nl -s '  ' -w 1 | tac)"
+    if _dep_ch tac; then
+      options="$(nl -s '  ' -w 1 | tac)"
+    else
+      options="$(nl -s '  ' -w 1)"
+    fi
     printf "%s\n" "$options" >/dev/stderr
     if [ "$2" = "multi" ]; then
       choice="$(_ui_prompt "$1" "choices to select (comma-separated for multiple; eg 1,4)")"
