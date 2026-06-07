@@ -149,6 +149,11 @@
 Ensure `~/.local/bin` exists and is added to your system's `$PATH`.
 
 ```bash
+# automated interactive installer
+# helps you setup dependencies and configure themes, languages and other options.
+curl -sL "https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/installer" |sh
+
+# or manual setup
 curl -sL "https://github.com/Benexl/yt-x/releases/download/v0.8.5/yt-x" -o ~/.local/bin/yt-x
 chmod +x ~/.local/bin/yt-x
 ```

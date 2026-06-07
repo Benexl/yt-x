@@ -1,0 +1,1013 @@
+#!/usr/bin/env sh
+# shellcheck disable=SC3043
+# yt-x installer - Browse media from the terminal or app launcher
+# MIT License - Copyright (c) 2024-2026 Benexl
+readonly CLI_HEADER="\
+██╗░░░██╗████████╗░░░░░░██╗░░██╗ ██╗███╗░░██╗░██████╗████████╗░█████╗░██╗░░░░░██╗░░░░░███████╗██████╗░
+╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝ ██║████╗░██║██╔════╝╚══██╔══╝██╔══██╗██║░░░░░██║░░░░░██╔════╝██╔══██╗
+░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░ ██║██╔██╗██║╚█████╗░░░░██║░░░███████║██║░░░░░██║░░░░░█████╗░░██████╔╝
+░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░ ██║██║╚████║░╚═══██╗░░░██║░░░██╔══██║██║░░░░░██║░░░░░██╔══╝░░██╔══██╗
+░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗ ██║██║░╚███║██████╔╝░░░██║░░░██║░░██║███████╗███████╗███████╗██║░░██║
+░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝ ╚═╝╚═╝░░╚══╝╚═════╝░░░░╚═╝░░░╚═╝░░╚═╝╚══════╝╚══════╝╚══════╝╚═╝░░╚═╝"
+readonly CLI_NAME="yt-x"
+readonly YT_X_APP_NAME="${YT_X_APP_NAME:-"$CLI_NAME"}"
+readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
+readonly CLI_RELEASE_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
+
+# ==============================================================================
+# SETUP
+# ==============================================================================
+_dep_ch() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# ==============================================================================
+# SETUP ENVIRONMENT
+# ==============================================================================
+if ! _dep_ch local; then
+  eval 'local() { unset -v $1; }'
+fi
+
+case "$(uname -a)" in
+*ndroid*) readonly CLI_PLATFORM="android" ;;
+*Darwin*) readonly CLI_PLATFORM="mac" ;;
+*WSL* | *microsoft* | *Microsoft*) readonly CLI_PLATFORM="linux" ;;
+*MINGW* | *MSYS* | *CYGWIN*) readonly CLI_PLATFORM="windows" ;;
+*)
+  readonly CLI_PLATFORM="linux"
+  if [ -f "/etc/os-release" ]; then
+    # sh doesnt declaration and assignment in separate lines
+    # shellcheck disable=SC2155
+    readonly CLI_LINUX_DISTRO_ID="$(awk -F= '/^ID=/ {gsub(/"/, "", $2); print $2}' /etc/os-release)"
+  fi
+  ;;
+esac
+
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+
+# ==============================================================================
+# INSTALLER CONFIG
+# ==============================================================================
+_installer_default_config() {
+  CONFIG_VALIDATE_INTEGRITY=true
+  CONFIG_NO_PREFER_UV=false
+}
+
+# ==============================================================================
+# YT_X DEFAULT CONFIG
+# ==============================================================================
+_yt_x_default_config() {
+  readonly YT_X_CONFIG_DIR="$XDG_CONFIG_HOME/$YT_X_APP_NAME"
+
+  readonly YT_X_EXTENSIONS_DIR="$YT_X_CONFIG_DIR/extensions"
+  readonly YT_X_EXTENSIONS_SITES_DIR="$YT_X_EXTENSIONS_DIR/sites"
+  readonly YT_X_EXTENSIONS_THEMES_DIR="$YT_X_EXTENSIONS_DIR/themes"
+  readonly YT_X_EXTENSIONS_LANGS_DIR="$YT_X_EXTENSIONS_DIR/langs"
+  readonly YT_X_EXTENSIONS_CMDS_DIR="$YT_X_EXTENSIONS_DIR/cmds"
+  readonly YT_X_EXTENSIONS_UI_DIR="$YT_X_EXTENSIONS_DIR/ui"
+
+  readonly YT_X_CONFIG_FILE="$YT_X_CONFIG_DIR/config"
+  readonly YT_X_PKG_JSON="$YT_X_CONFIG_DIR/pkg.json"
+  readonly YT_X_DEFAULT_THEME_FILE="$YT_X_EXTENSIONS_THEMES_DIR/default.theme"
+  readonly YT_X_DEFAULT_LANG_FILE="$YT_X_EXTENSIONS_LANGS_DIR/default.lang"
+
+  mkdir -p \
+    "$YT_X_EXTENSIONS_SITES_DIR" \
+    "$YT_X_EXTENSIONS_THEMES_DIR" \
+    "$YT_X_EXTENSIONS_LANGS_DIR" \
+    "$YT_X_EXTENSIONS_CMDS_DIR" \
+    "$YT_X_EXTENSIONS_UI_DIR"
+
+  : "${YT_X_CONFIG_AUTOLOADED_EXTENSIONS:=}"
+  : "${YT_X_CONFIG_ENABLE_COLORS:=true}"
+  : "${YT_X_CONFIG_LAUNCHER:=fzf}"
+  : "${YT_X_CONFIG_ENABLE_PREVIEW:=false}"
+  : "${YT_X_CONFIG_ENABLE_PREVIEW_IMAGES:=false}"
+  : "${YT_X_CONFIG_IMAGE_RENDERER:=chafa}"
+  : "${YT_X_CONFIG_CHAFA_ARGS:=}"
+  : "${YT_X_CONFIG_ICAT_ARGS:=}"
+  : "${YT_X_CONFIG_IMGCAT_ARGS:=}"
+  : "${YT_X_CONFIG_YT_DLP_OPTS:=}"
+  : "${YT_X_CONFIG_PLAYER:=mpv}"
+  : "${YT_X_CONFIG_DISOWN_PLAYER:=false}"
+  : "${YT_X_CONFIG_MPV_ARGS:=}"
+  : "${YT_X_CONFIG_VLC_ARGS:=}"
+  : "${YT_X_CONFIG_TPLAY_ARGS:=}"
+  : "${YT_X_CONFIG_PER_PAGE:=30}"
+  : "${YT_X_CONFIG_BROWSER:=}"
+  : "${YT_X_CONFIG_CACHE_RETENTION_DAYS:=3}"
+  : "${YT_X_CONFIG_EDITOR:=${EDITOR:-vi}}"
+  : "${YT_X_CONFIG_NOTIFICATION_DURATION:=5}"
+  : "${YT_X_CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
+  : "${YT_X_CONFIG_DOWNLOADS_ENUMERATE:=false}"
+  : "${YT_X_CONFIG_CHECK_FOR_UPDATES:=true}"
+  : "${YT_X_CONFIG_NO_OF_RECENT:=10}"
+  : "${YT_X_CONFIG_ENABLE_SEARCH_HISTORY:=true}"
+  : "${YT_X_CONFIG_ROFI_THEME:=}"
+  : "${YT_X_CONFIG_GUM_FILTER_OPTS:="--prompt.foreground #2ac3de --indicator.foreground #2ac3de --selected-indicator.foreground #2ac3de --unselected-prefix.foreground #585858 --header.foreground #2ac3de --text.foreground #c0caf5 --cursor-text.foreground #c0caf5 --match.foreground #2ac3de --placeholder.foreground #585858  --prompt  > --indicator ◆ --selected-prefix  ◉  --unselected-prefix  ○  --placeholder こんにちは..."}"
+  : "${YT_X_CONFIG_GUM_INPUT_OPTS:="--prompt.foreground #2ac3de --cursor.foreground #c0caf5 --placeholder こんにちは... --cursor.mode blink"}"
+  : "${YT_X_CONFIG_GUM_PAGER_OPTS:="--foreground #c0caf5 --line-number.foreground #585858 --match.foreground #2ac3de --match-highlight.foreground #1a1b26 --match-highlight.background #2ac3de --help.foreground #585858 --show-line-numbers --soft-wrap --border-foreground #2ac3de"}"
+  : "${YT_X_CONFIG_GUM_SPIN_OPTS:="--spinner dot --spinner.foreground #2ac3de --title.foreground #585858  --align left"}"
+  : "${YT_X_CONFIG_GUM_CONFIRM_OPTS:="--prompt.foreground #2ac3de --selected.foreground #1a1b26 --selected.background #2ac3de --unselected.foreground #585858"}"
+  : "${YT_X_CONFIG_FZF_HEADER:=}"
+  : "${YT_X_CONFIG_FZF_OPTS:="
+  --ansi
+  --border
+  --scheme=history
+  --style=full
+  --color=bg+:#283457
+  --color=bg:#16161e
+  --color=border:#27a1b9
+  --color=fg:#c0caf5
+  --color=gutter:#16161e
+  --color=header:#2ac3de
+  --color=hl+:#2ac3de
+  --color=hl:#2ac3de
+  --color=info:#545c7e
+  --color=marker:#ff007c
+  --color=pointer:#ff007c
+  --color=prompt:#2ac3de
+  --color=query:#c0caf5:regular
+  --color=scrollbar:#27a1b9
+  --color=separator:#ff9e64
+  --color=spinner:#ff007c
+  --border=rounded
+  --border-label=''
+  --prompt=' >'
+  --marker=' >'
+  --pointer='◆'
+  --layout=reverse
+  --cycle
+  --ghost='こんにちは...'
+  --height=100%
+  --bind=ctrl-/:toggle-preview,ctrl-space:toggle-wrap+toggle-preview-wrap
+  --no-margin
+  +m
+  -i
+  --exact
+  --tabstop=1
+  --preview-window=border-rounded,left,35%,wrap
+  --wrap"}"
+}
+
+# ==============================================================================
+# UTILS
+# ==============================================================================
+_util_validate_integrity() {
+  local expected_checksum
+  local file_path
+
+  if [ "$CONFIG_VALIDATE_INTEGRITY" = "true" ]; then
+    expected_checksum="$1"
+    file_path="$2"
+
+    if _dep_ch sha256sum; then
+      actual_checksum="$(sha256sum "$file_path" | awk '{print $1}')"
+    elif _dep_ch shasum; then
+      actual_checksum="$(shasum -a 256 "$file_path" | awk '{print $1}')"
+    else
+      _ui_print "No checksum utility found. Exiting installer"
+      exit 1
+    fi
+
+    if [ "$expected_checksum" = "$actual_checksum" ]; then
+      return 0
+    else
+      return 1
+    fi
+  fi
+}
+
+_util_open() {
+  local target
+  local converted_target
+  target="$1"
+
+  if _dep_ch open; then
+    open "$target" || return 1
+    return 0
+  elif _dep_ch xdg-open; then
+    xdg-open "$target" || return 1
+    return 0
+  elif _dep_ch wslview; then
+    wslview "$target" || return 1
+    return 0
+  elif _dep_ch cmd.exe; then
+    converted_target="$target"
+
+    case "$target" in
+    http://* | https://* | ftp://* | ftps://* | mailto:*) ;;
+    *)
+      if _dep_ch cygpath; then
+        converted_target="$(cygpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+      elif _dep_ch wslpath; then
+        converted_target="$(wslpath -w "$target" 2>/dev/null || printf "%s" "$target")"
+      fi
+      ;;
+    esac
+
+    cmd.exe /C start "" "$converted_target" >/dev/null 2>&1 || return 1
+    return 0
+  else
+    return 1
+  fi
+}
+
+# ==============================================================================
+# UI
+# ==============================================================================
+_ui_print() {
+  command printf "%s\n" "$1" >/dev/stderr
+}
+
+_ui_prompt() {
+  local header
+  local value
+  local default
+
+  header="$2"
+  default="$3"
+
+  if _dep_ch gum; then
+    gum input --header "$header" --value "$default" --prompt "$1: "
+  else
+    printf "%s\n" "$header" >/dev/stderr
+    printf "%s: " "$1" >/dev/stderr
+    read -r value </dev/tty
+    printf "%s" "$value"
+  fi
+}
+
+_ui_confirm() {
+  local yes
+  local no
+  local default
+  local default_index
+
+  yes="${3:-yes}"
+  no="${4:-no}"
+  default="${2:-$no}"
+
+  if [ "$default" = "$yes" ]; then
+    default_index=1
+  else
+    default_index=0
+  fi
+
+  if _dep_ch gum; then
+    gum confirm "$1" --default="$default_index" --affirmative="$yes" --negative="$no"
+  else
+    printf "%s (${yes}[y]/${no}[n]; Default: $default): " "$1" >/dev/stderr
+    read -r CONFIRMED </dev/tty
+    case "$CONFIRMED" in
+    y | "$yes")
+      return 0
+      ;;
+    n | "$no")
+      return 1
+      ;;
+    *)
+      if [ "$default" = "$yes" ]; then
+        return 0
+      else
+        return 1
+      fi
+      ;;
+    esac
+  fi
+}
+
+_ui_choose() {
+  local multi_select
+  local header
+
+  if _dep_ch gum; then
+    [ "$2" = "multi" ] && multi_select="--no-limit"
+    # shellcheck disable=SC2086
+    gum choose --header="${1}" $multi_select
+  else
+    local options
+    local choice
+
+    if _dep_ch tac; then
+      options="$(nl -s '  ' -w 1 | tac)"
+    else
+      options="$(nl -s '  ' -w 1)"
+    fi
+    printf "%s\n" "$options" >/dev/stderr
+    if [ "$2" = "multi" ]; then
+      choice="$(_ui_prompt "$1" "choices to select (comma-separated for multiple; eg 1,4)")"
+    else
+      choice="$(_ui_prompt "$1" "choice to select (eg 1)")"
+    fi
+    case $choice in
+    '' | *[!0-9]*)
+      if [ "$2" = "multi" ]; then
+        choice="$(printf "%s\n" "$options" | grep -E "^[[:space:]]*($(printf "%s\n" "$choice" | tr ',' '|'))" | sed -n "s/[0-9][0-9]*  //;p")"
+        if [ -z "$choice" ]; then
+          return 1
+        fi
+      fi
+      ;;
+    *)
+      choice="$(printf "%s\n" "$options" | sed -n "${choice}"'{ s/[0-9][0-9]* //;p }')"
+      if [ -z "$choice" ]; then
+        return 1
+      fi
+      ;;
+    esac
+    printf "%s" "$choice"
+  fi
+}
+
+_ui_pager() {
+  if _dep_ch bat; then
+    bat --paging=always --theme=TwoDark --color=always
+  elif _dep_ch gum; then
+    gum pager
+  elif _dep_ch less; then
+    less -R
+  else
+    more
+  fi
+}
+
+_ui_loader() {
+  local cmd
+  cmd="$*"
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum spin --show-output -- $cmd
+  else
+    printf '%s\n' "Loading..." >/dev/stderr
+    $cmd
+  fi
+
+}
+
+# ==============================================================================
+# DATA FETCHING
+# ==============================================================================
+_fetch() {
+  local url
+
+  url="$1"
+  if _dep_ch curl; then
+    curl -sL "$url"
+  elif _dep_ch wget; then
+    wget -qO- "$url"
+  else
+    _ui_print "No supported download utility found (curl or wget). Please install one of them and try again."
+    exit 1
+  fi
+}
+
+_update_pkg_json() {
+  local name
+  local repo
+  local hash
+  local tag
+  local resolved_url
+  local dest_path
+  local check_for_updates
+  local pkg_json
+
+  if _dep_ch jq; then
+    name="$1"
+    hash="$2"
+    resolved_url="$3"
+    dest_path="$4"
+    type="$5"
+
+    check_for_updates="true"
+    repo="Benexl/yt-x"
+    tag="$RELEASE_TAG_NAME"
+
+    pkg_json="[]"
+    [ -s "$YT_X_PKG_JSON" ] && pkg_json=$(cat "$YT_X_PKG_JSON")
+
+    printf '%s' "$pkg_json" | jq \
+      --arg name "$name" \
+      --arg hash "$hash" \
+      --arg resolved_url "$resolved_url" \
+      --arg dest_path "$dest_path" \
+      --arg type "$type" \
+      --arg check_for_updates "$check_for_updates" \
+      --arg repo "$repo" \
+      --arg tag "$tag" '
+      .+=[
+        {
+          "name": $name,
+          "hash": $hash,
+          "resolved_url": $resolved_url,
+          "dest_path": $dest_path,
+          "type": $type,
+          "check_for_updates": $check_for_updates,
+          "repo": $repo,
+          "tag": $tag
+        }
+      ]
+    ' >"$YT_X_PKG_JSON"
+  fi
+}
+
+_get_release_asset() {
+  local asset_name
+  local asset_url
+  local asset
+
+  asset_name="$1"
+  dest_path="$2"
+  type="$3"
+
+  asset_url="$YT_X_RELEASE_TAG/$asset_name"
+
+  if _fetch "$asset_url"; then
+    _update_pkg_json "$asset_name" "" "$asset_url" "$dest_path" "$type"
+  fi
+}
+
+# ==============================================================================
+# INSTALLATION: DEPENDENCIES
+# ==============================================================================
+__install_archlinux() {
+  if _dep_ch yay; then
+    yay -S --noconfirm "$1"
+  elif _dep_ch pacman; then
+    if _dep_ch sudo; then
+      sudo pacman -S --noconfirm "$1"
+    else
+      pacman -S --noconfirm "$1"
+    fi
+  else
+    _ui_print "No supported package manager found (yay or pacman). Please install $1 manually. Or contribute to the project by adding support for your distribution."
+  fi
+}
+
+_install() {
+  case "$CLI_PLATFORM" in
+  linux)
+    case "$CLI_LINUX_DISTRO_ID" in
+    arch)
+      __install_archlinux "$1"
+      ;;
+    *)
+      _ui_print "Unsupported Linux distribution: $CLI_LINUX_DISTRO_ID. Please install $1 manually. Or contribute to the project by adding support for your distribution."
+      ;;
+    esac
+    ;;
+  *)
+    _ui_print "Unsupported platform: $CLI_PLATFORM. Please install $1 manually. Or contribute to the project by adding support for your platform."
+    ;;
+  esac
+}
+
+_install_dep_fzf() {
+  _install "fzf"
+}
+
+_install_dep_gum() {
+  _install "gum"
+}
+
+_install_dep_chafa() {
+  _install "chafa"
+}
+
+_install_dep_yt_dlp() {
+  if _dep_ch uv && ! $CONFIG_NO_PREFER_UV; then
+    uv tool install "yt-dlp[default,curl-cffi]"
+  else
+    _install "yt-dlp"
+  fi
+}
+
+_install_dep_jq() {
+  _install "jq"
+}
+
+_install_dep_mpv() {
+  _install "mpv"
+}
+
+_install_dep_vlc() {
+  _install "vlc"
+}
+
+_install_dep_tplay() {
+  _install "tplay"
+}
+
+_install_dep_rofi() {
+  _install "rofi"
+}
+
+_install_dep_ffmpegthumbnailer() {
+  _install "ffmpegthumbnailer"
+}
+
+_install_deps() {
+  while IFS= read -r dep; do
+    case "$dep" in
+    fzf)
+      _install_dep_fzf
+      ;;
+    gum)
+      _install_dep_gum
+      ;;
+    chafa)
+      _install_dep_chafa
+      ;;
+    yt-dlp)
+      _install_dep_yt_dlp
+      ;;
+    jq)
+      _install_dep_jq
+      ;;
+    mpv)
+      _install_dep_mpv
+      ;;
+    vlc)
+      _install_dep_vlc
+      ;;
+    tplay)
+      _install_dep_tplay
+      ;;
+    rofi)
+      _install_dep_rofi
+      ;;
+    ffmpegthumbnailer)
+      _install_dep_ffmpegthumbnailer
+      ;;
+    esac
+  done
+}
+
+# ==============================================================================
+# INSTALLATION: ASSETS
+# ==============================================================================
+_install_asset_mpv_config() {
+  local target_dest
+
+  target_dest="$XDG_CONFIG_HOME/mpv/mpv.conf"
+  mkdir -p "$XDG_CONFIG_HOME/mpv"
+
+  if ! _get_release_asset "mpv.conf" "$target_dest" "asset" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download mpv.conf asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+}
+
+_install_asset_yt_dlp_config() {
+  local target_dest
+
+  target_dest="$XDG_CONFIG_HOME/yt-dlp/config"
+  mkdir -p "$XDG_CONFIG_HOME/yt-dlp"
+
+  if ! _get_release_asset "yt-dlp.conf" "$target_dest" "asset" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download yt-dlp.conf asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+}
+
+_install_asset_rofi_themes() {
+  local target_dest
+
+  target_dest="$YT_X_CONFIG_DIR/rofi-themes.zip"
+
+  if ! _get_release_asset "rofi-themes.zip" "$YT_X_CONFIG_DIR/rofi-themes" "asset" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download rofi-themes.zip asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+
+  if ! _dep_ch unzip; then
+    _ui_print "No supported unzip utility found. Please install unzip and try again."
+    exit 1
+  fi
+  unzip "$target_dest" -d "$YT_X_CONFIG_DIR/"
+  rm "$target_dest"
+}
+
+_install_assets() {
+  while IFS= read -r asset; do
+    case "$asset" in
+    "mpv config")
+      _install_asset_mpv_config
+      ;;
+    "yt-dlp config")
+      _install_asset_yt_dlp_config
+      ;;
+    "rofi themes")
+      _install_asset_rofi_themes
+      ;;
+    *) ;;
+    esac
+  done
+}
+
+# ==============================================================================
+# INSTALLATION: EXTENSIONS
+# ==============================================================================
+_install_extension_default_lang() {
+  local target_dest
+  local lang
+
+  lang="$(cat)"
+
+  target_dest="$YT_X_DEFAULT_LANG_FILE"
+
+  if ! _get_release_asset "$lang" "$target_dest" "extension" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download $lang asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+}
+
+_install_extension_lang() {
+  while IFS= read -r lang; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_LANGS_DIR/$lang"
+
+    if ! _get_release_asset "$lang" "$target_dest" "extension" >"${target_dest}.tmp"; then
+      _ui_print "Failed to download $lang asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+  done
+}
+
+_install_extension_default_theme() {
+  local target_dest
+  local theme
+
+  theme="$(cat)"
+
+  target_dest="$YT_X_DEFAULT_THEME_FILE"
+
+  if ! _get_release_asset "$theme" "$target_dest" "extension" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download $theme asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+}
+
+_install_extension_theme() {
+  while IFS= read -r theme; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_THEMES_DIR/$theme"
+
+    if ! _get_release_asset "$theme" "$target_dest" "extension" >"${target_dest}.tmp"; then
+      _ui_print "Failed to download $theme asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+  done
+}
+
+_install_extension_cmd() {
+  while IFS= read -r cmd; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_CMDS_DIR/$cmd"
+
+    if ! _get_release_asset "$cmd" "$target_dest" "extension" >"${target_dest}.tmp"; then
+      _ui_print "Failed to download $cmd asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+  done
+}
+
+_install_extension_site() {
+  while IFS= read -r site; do
+    local target_dest
+
+    target_dest="$YT_X_EXTENSIONS_SITES_DIR/$site"
+
+    if ! _get_release_asset "$site" "$target_dest" "extension" >"${target_dest}.tmp"; then
+      _ui_print "Failed to download $site asset"
+      exit 1
+    fi
+
+    mv "${target_dest}.tmp" "$target_dest"
+  done
+}
+
+# ==============================================================================
+# INSTALLER
+# ==============================================================================
+_print_yt_x_config() {
+  cat <<EOF
+# ===================================================================================
+# 大きな力には大きな責任が伴う
+# ===================================================================================
+#
+#     ██╗░░░██╗████████╗░░░░░░██╗░░██╗  ░█████╗░░█████╗░███╗░░██╗███████╗██╗░██████╗░
+#     ╚██╗░██╔╝╚══██╔══╝░░░░░░╚██╗██╔╝  ██╔══██╗██╔══██╗████╗░██║██╔════╝██║██╔════╝░
+#     ░╚████╔╝░░░░██║░░░█████╗░╚███╔╝░  ██║░░╚═╝██║░░██║██╔██╗██║█████╗░░██║██║░░██╗░
+#     ░░╚██╔╝░░░░░██║░░░╚════╝░██╔██╗░  ██║░░██╗██║░░██╗██║╚████║██╔══╝░░██║██║░░╚██╗
+#     ░░░██║░░░░░░██║░░░░░░░░░██╔╝╚██╗  ╚█████╔╝╚█████╔╝██║░╚███║██║░░░░░██║╚██████╔╝
+#     ░░░╚═╝░░░░░░╚═╝░░░░░░░░░╚═╝░░╚═╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝╚═╝░░░░░╚═╝░╚═════╝░
+#
+# ===================================================================================
+#
+# !! BE CAREFUL WHAT YOU INCLUDE HERE SINCE THE CONFIG FILE IS SOURCED AS A SCRIPT  !!
+# !! ITS RECOMMENDED TO ONLY DO VARIABLE ASSIGNMENTS AND CONDITIONAL ASSIGNMENTS    !!
+# !! AND DO MORE COMPLEX STUFF USING EXTENSIONS BY CONVENTION                       !!
+# !! Environment variables (export YT_X_VAR=...) override these settings.           !!
+#
+# ===================================================================================
+
+# List of extensions to load automatically on startup
+CONFIG_AUTOLOADED_EXTENSIONS="$YT_X_CONFIG_AUTOLOADED_EXTENSIONS"
+
+# Enable or disable colored/formatted output
+# Options: true, false (Default: true)
+CONFIG_ENABLE_COLORS="$YT_X_CONFIG_ENABLE_COLORS"
+
+# The menu launcher tool used for the ui
+# Options: fzf, rofi, gum (Default: fzf)
+CONFIG_LAUNCHER="$YT_X_CONFIG_LAUNCHER"
+
+# Enable image/video previews within the selector
+# Options: true, false (Default: false)
+CONFIG_ENABLE_PREVIEW="$YT_X_CONFIG_ENABLE_PREVIEW"
+CONFIG_ENABLE_PREVIEW_IMAGES="$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES"
+
+# The tool used to render previews in the terminal
+# Options: chafa, icat, imgcat (Default: chafa)
+CONFIG_IMAGE_RENDERER="$YT_X_CONFIG_IMAGE_RENDERER"
+
+# Extra arguments for specific image renderers
+CONFIG_CHAFA_ARGS="$YT_X_CONFIG_CHAFA_ARGS"
+CONFIG_ICAT_ARGS="$YT_X_CONFIG_ICAT_ARGS"
+CONFIG_IMGCAT_ARGS="$YT_X_CONFIG_IMGCAT_ARGS"
+
+# custom opts for yt-dlp
+CONFIG_YT_DLP_OPTS="$YT_X_CONFIG_YT_DLP_OPTS"
+
+# The media player used for playback
+# Options: mpv, vlc, tplay (Default: mpv)
+CONFIG_PLAYER="$YT_X_CONFIG_PLAYER"
+
+# Extra arguments for specific media players
+CONFIG_MPV_ARGS="$YT_X_CONFIG_MPV_ARGS"
+CONFIG_VLC_ARGS="$YT_X_CONFIG_VLC_ARGS"
+CONFIG_TPLAY_ARGS="$YT_X_CONFIG_TPLAY_ARGS"
+
+# Whether to disown the player, process to prevent blocking the UI
+# options: true, false (Default: false)
+CONFIG_DISOWN_PLAYER="$YT_X_CONFIG_DISOWN_PLAYER"
+
+# Maximum number of search results to fetch per page
+# Options: Integer (Default: 30)
+CONFIG_PER_PAGE="$YT_X_CONFIG_PER_PAGE"
+
+# Browser for yt-dlp to get cookies from
+# passed to --cookies-from-browser yt-dlp option
+# Currently supported browsers are: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
+# NOTE: this option is entirely dependent on what yt-dlp supports
+CONFIG_BROWSER="$YT_X_CONFIG_BROWSER"
+
+# Text editor for manual configuration/metadata editing
+# Options: vim, nano, code ... (Default: \$EDITOR or vi)
+CONFIG_EDITOR="$YT_X_CONFIG_EDITOR"
+
+# The terminal to use to execute commands that require a terminal
+CONFIG_TERMINAL_EXEC="$YT_X_CONFIG_TERMINAL_EXEC"
+
+# Duration in seconds for desktop notifications
+CONFIG_NOTIFICATION_DURATION="$YT_X_CONFIG_NOTIFICATION_DURATION"
+
+# Directory where downloads are saved
+# Default: $HOME/Videos/$CLI_NAME
+CONFIG_DOWNLOAD_DIR="$YT_X_CONFIG_DOWNLOAD_DIR"
+CONFIG_DOWNLOADS_ENUMERATE="$YT_X_CONFIG_DOWNLOADS_ENUMERATE"
+
+# Automatically check for script updates on startup
+# Options: true, false (Default: true)
+CONFIG_CHECK_FOR_UPDATES="$YT_X_CONFIG_CHECK_FOR_UPDATES"
+
+# Number of items to keep in the recent history
+CONFIG_NO_OF_RECENT="$YT_X_CONFIG_NO_OF_RECENT"
+
+# Enable or disable saving search queries to history
+# Options: true, false (Default: true)
+CONFIG_ENABLE_SEARCH_HISTORY="$YT_X_CONFIG_ENABLE_SEARCH_HISTORY"
+
+# Custom options passed directly to gum
+CONFIG_GUM_OPTS="$YT_X_CONFIG_GUM_FILTER_OPTS"
+CONFIG_GUM_INPUT_OPTS="$YT_X_CONFIG_GUM_INPUT_OPTS"
+CONFIG_GUM_PAGER_OPTS="$YT_X_CONFIG_GUM_PAGER_OPTS"
+CONFIG_GUM_SPIN_OPTS="$YT_X_CONFIG_GUM_SPIN_OPTS"
+CONFIG_GUM_CONFIRM_OPTS="$YT_X_CONFIG_GUM_CONFIRM_OPTS"
+
+# Custom options passed directly to fzf
+CONFIG_FZF_HEADER="\\
+$YT_X_CONFIG_FZF_HEADER"
+CONFIG_FZF_OPTS="$YT_X_CONFIG_FZF_OPTS"
+
+# Rofi config all are required to run rofi as a launcher
+# get the official ones from $CLI_REPO_URL
+CONFIG_ROFI_THEME_MAIN="$YT_X_CONFIG_ROFI_THEME_MAIN"
+CONFIG_ROFI_THEME_PREVIEW="$YT_X_CONFIG_ROFI_THEME_PREVIEW"
+CONFIG_ROFI_THEME_PROMPT="$YT_X_CONFIG_ROFI_THEME_PROMPT"
+CONFIG_ROFI_THEME_CONFIRM="$YT_X_CONFIG_ROFI_THEME_CONFIRM"
+CONFIG_ROFI_THEME_PAGER="$YT_X_CONFIG_ROFI_THEME_PAGER"
+
+# Number of days to keep cached preview images, playlists, and logs
+# Default: 3
+CONFIG_CACHE_RETENTION_DAYS="$YT_X_CONFIG_CACHE_RETENTION_DAYS"
+# ==============================================================================
+# 楽しんでね
+# ==============================================================================
+EOF
+}
+
+_install_yt_x() {
+  local target_dest
+
+  target_dest="$HOME/.local/bin/yt-x"
+  mkdir -p "$(dirname "$target_dest")"
+
+  if ! _get_release_asset "yt-x" >"${target_dest}.tmp"; then
+    _ui_print "Failed to download yt-x asset"
+    exit 1
+  fi
+
+  mv "${target_dest}.tmp" "$target_dest"
+
+  chmod +x "$target_dest"
+
+  _ui_print "yt-x has been installed to $target_dest"
+}
+
+_yt_x() {
+  readonly DEPENDENCIES="\
+yt-dlp - for fetching media metadata and streaming/downloading media (required)
+jq - for parsing json responses (required)
+fzf - default launcher for browsing and searching media (required)
+rofi - alternative launcher; really cool great for keybinds (optional)
+gum - terminal QoL components for prompts, confirmations, pagers, spinners and more (optional)
+mpv - default media player for playing media (required)
+vlc - alternative media player (optional)
+tplay - terminal media player for a more 'authentic' experience (optional)
+chafa - for rendering media previews in the terminal (optional)
+ffmpegthumbnailer - for generating video thumbnails for local media previews (optional)"
+
+  readonly LANG_EXTENSIONS="\
+es.lang - Spanish language extension
+br.lang - Brazilian Portuguese language extension"
+
+  readonly THEME_EXTENSIONS="\
+catppuchin-mocha.theme - A catppuchin mocha inspired theme"
+
+  readonly SITE_EXTENSIONS="\
+dailymotion.site - Extension for browsing Dailymotion"
+
+  readonly CMD_EXTENSIONS="\
+downloads - Extension for listing and managing downloads"
+
+  readonly ASSETS="\
+mpv config - Default mpv configuration file optimized for yt-x
+yt-dlp config - Default yt-dlp configuration file optimized for yt-x
+rofi themes - A collection of rofi themes optimized for yt-x"
+}
+
+installer() {
+  _yt_x_default_config
+  _installer_default_config
+  _yt_x
+
+  _ui_print "======================================================================================================="
+  _ui_print "$CLI_HEADER"
+  _ui_print "======================================================================================================="
+  _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
+  _ui_print "======================================================================================================="
+
+  # sh doesnt allow declaration and assignment on separate lines
+  # shellcheck disable=SC2155
+  readonly CLI_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
+  readonly YT_X_RELEASE_TAG="$CLI_RELEASE_BASE/v$CLI_LATEST_VERSION"
+
+  local missing_deps
+
+  missing_deps="$(
+    printf "%s\n" "$DEPENDENCIES" | while read -r dep; do
+      if ! _dep_ch "$(printf "%s\n" "$dep" | awk -F ' - ' '{print $1}')"; then
+        printf "%s\n" "$dep"
+      fi
+    done
+  )"
+  if [ -n "$missing_deps" ]; then
+    printf "%s\n" "$missing_deps" | _ui_choose "There are some dependencies which have not been found. Select dependencies you would like to install" "multi" | awk -F ' - ' '{print $1}' | _install_deps
+  fi
+
+  if _ui_confirm "Would you like to change the default language (English)?" "no"; then
+    _ui_print "Is your preferred language not in the list? You can contribute to the project by adding a language extension for it! Just fork the repo and add a new .lang file in the extensions/langs/ directory with the appropriate translations (you can use ai to do this by giving one of the already existing translations then just proof read) plus update the readme lang extensions section and submit a PR :)"
+    printf "%s\n" "$LANG_EXTENSIONS" | _ui_choose "Select language extensions to install" | awk -F ' - ' '{print $1}' | _install_extension_default_lang
+  fi
+
+  if _ui_confirm "Would you like to add other languages (wont default, instead just copied to lang dir; must explicitly be defined in either your config or at runtime)?" "no"; then
+    _ui_print "Is your preferred language not in the list? You can contribute to the project by adding a language extension for it! Just fork the repo and add a new .lang file in the extensions/langs/ directory with the appropriate translations (you can use ai to do this by giving one of the already existing translations then just proof read) plus update the readme lang extensions section and submit a PR :)"
+    printf "%s\n" "$LANG_EXTENSIONS" | _ui_choose "Select language extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_lang
+  fi
+
+  if _ui_confirm "Would you like to change the default theme (Tokyo Night)?" "no"; then
+    _ui_print "Is your preferred theme not in the list? You can contribute to the project by adding a theme extension for it! Just fork the repo and add a new .theme file in the extensions/themes/ directory with the appropriate theme settings (you can use ai to do this by giving one of the already existing themes then just proof read) plus update the readme theme extensions section and submit a PR :)"
+    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select theme extensions to install" | awk -F ' - ' '{print $1}' | _install_extension_default_theme
+  fi
+
+  if _ui_confirm "Would you like to add other themes (wont default, instead just copied to theme dir; must explicitly be defined in either your config or at runtime)?" "no"; then
+    _ui_print "Is your preferred theme not in the list? You can contribute to the project by adding a theme extension for it! Just fork the repo and add a new .theme file in the extensions/themes/ directory with the appropriate theme settings (you can use ai to do this by giving one of the already existing themes then just proof read) plus update the readme theme extensions section and submit a PR :)"
+    printf "%s\n" "$THEME_EXTENSIONS" | _ui_choose "Select theme extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_theme
+  fi
+
+  if _ui_confirm "Would you like to add support for other sites (wont default, instead just copied to site dir; must explicitly be defined in either your config or at runtime)?" "no"; then
+    printf "%s\n" "$SITE_EXTENSIONS" | _ui_choose "Select site extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_site
+  fi
+
+  if _ui_confirm "Would you like to add other commands (wont default, instead just copied to cmd dir; must explicitly be defined in either your config or at runtime)?" "yes"; then
+    printf "%s\n" "$CMD_EXTENSIONS" | _ui_choose "Select cmd extensions to install" "multi" | awk -F ' - ' '{print $1}' | _install_extension_cmd
+  fi
+
+  if _ui_confirm "Would you like to install other external assets like rofi themes and mpv config" "yes"; then
+    printf "%s\n" "$ASSETS" | _ui_choose "Select assets to install" "multi" | awk -F ' - ' '{print $1}' | _install_assets
+    if [ -d "$YT_X_CONFIG_DIR/rofi-themes" ]; then
+      YT_X_CONFIG_ROFI_THEME_MAIN="$YT_X_CONFIG_DIR/rofi-themes/main.rasi"
+      YT_X_CONFIG_ROFI_THEME_PREVIEW="$YT_X_CONFIG_DIR/rofi-themes/preview.rasi"
+      YT_X_CONFIG_ROFI_THEME_PROMPT="$YT_X_CONFIG_DIR/rofi-themes/prompt.rasi"
+      YT_X_CONFIG_ROFI_THEME_CONFIRM="$YT_X_CONFIG_DIR/rofi-themes/confirm.rasi"
+      YT_X_CONFIG_ROFI_THEME_PAGER="$YT_X_CONFIG_DIR/rofi-themes/pager.rasi"
+    fi
+  fi
+
+  if _ui_confirm "Would you like to interactively define your config?" "yes"; then
+    YT_X_CONFIG_AUTOLOADED_EXTENSIONS="$(_ui_prompt "YT_X_CONFIG_AUTOLOADED_EXTENSIONS" "$YT_X_CONFIG_AUTOLOADED_EXTENSIONS" "$YT_X_CONFIG_AUTOLOADED_EXTENSIONS")"
+    YT_X_CONFIG_ENABLE_COLORS="$(_ui_prompt "YT_X_CONFIG_ENABLE_COLORS" "$YT_X_CONFIG_ENABLE_COLORS" "$YT_X_CONFIG_ENABLE_COLORS")"
+    YT_X_CONFIG_LAUNCHER="$(_ui_prompt "YT_X_CONFIG_LAUNCHER" "$YT_X_CONFIG_LAUNCHER" "$YT_X_CONFIG_LAUNCHER")"
+    YT_X_CONFIG_ENABLE_PREVIEW="$(_ui_prompt "YT_X_CONFIG_ENABLE_PREVIEW" "$YT_X_CONFIG_ENABLE_PREVIEW" "$YT_X_CONFIG_ENABLE_PREVIEW")"
+    YT_X_CONFIG_ENABLE_PREVIEW_IMAGES="$(_ui_prompt "YT_X_CONFIG_ENABLE_PREVIEW_IMAGES" "$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES" "$YT_X_CONFIG_ENABLE_PREVIEW_IMAGES")"
+
+    YT_X_CONFIG_IMAGE_RENDERER="$(_ui_prompt "YT_X_CONFIG_IMAGE_RENDERER" "$YT_X_CONFIG_IMAGE_RENDERER" "$YT_X_CONFIG_IMAGE_RENDERER")"
+    YT_X_CONFIG_CHAFA_ARGS="$(_ui_prompt "YT_X_CONFIG_CHAFA_ARGS" "$YT_X_CONFIG_CHAFA_ARGS" "$YT_X_CONFIG_CHAFA_ARGS")"
+    YT_X_CONFIG_ICAT_ARGS="$(_ui_prompt "YT_X_CONFIG_ICAT_ARGS" "$YT_X_CONFIG_ICAT_ARGS" "$YT_X_CONFIG_ICAT_ARGS")"
+    YT_X_CONFIG_IMGCAT_ARGS="$(_ui_prompt "YT_X_CONFIG_IMGCAT_ARGS" "$YT_X_CONFIG_IMGCAT_ARGS" "$YT_X_CONFIG_IMGCAT_ARGS")"
+
+    YT_X_CONFIG_PLAYER="$(_ui_prompt "YT_X_CONFIG_PLAYER" "$YT_X_CONFIG_PLAYER" "$YT_X_CONFIG_PLAYER")"
+    YT_X_CONFIG_DISOWN_PLAYER="$(_ui_prompt "YT_X_CONFIG_DISOWN_PLAYER" "$YT_X_CONFIG_DISOWN_PLAYER" "$YT_X_CONFIG_DISOWN_PLAYER")"
+    YT_X_CONFIG_MPV_ARGS="$(_ui_prompt "YT_X_CONFIG_MPV_ARGS" "$YT_X_CONFIG_MPV_ARGS" "$YT_X_CONFIG_MPV_ARGS")"
+    YT_X_CONFIG_VLC_ARGS="$(_ui_prompt "YT_X_CONFIG_VLC_ARGS" "$YT_X_CONFIG_VLC_ARGS" "$YT_X_CONFIG_VLC_ARGS")"
+    YT_X_CONFIG_TPLAY_ARGS="$(_ui_prompt "YT_X_CONFIG_TPLAY_ARGS" "$YT_X_CONFIG_TPLAY_ARGS" "$YT_X_CONFIG_TPLAY_ARGS")"
+
+    YT_X_CONFIG_DOWNLOAD_DIR="$(_ui_prompt "YT_X_CONFIG_DOWNLOAD_DIR" "$YT_X_CONFIG_DOWNLOAD_DIR" "$YT_X_CONFIG_DOWNLOAD_DIR")"
+    YT_X_CONFIG_YT_DLP_OPTS="$(_ui_prompt "YT_X_CONFIG_YT_DLP_OPTS" "$YT_X_CONFIG_YT_DLP_OPTS" "$YT_X_CONFIG_YT_DLP_OPTS")"
+
+    YT_X_CONFIG_PER_PAGE="$(_ui_prompt "YT_X_CONFIG_PER_PAGE" "$YT_X_CONFIG_PER_PAGE" "$YT_X_CONFIG_PER_PAGE")"
+    YT_X_CONFIG_BROWSER="$(_ui_prompt "YT_X_CONFIG_BROWSER" "$YT_X_CONFIG_BROWSER" "$YT_X_CONFIG_BROWSER")"
+
+    YT_X_CONFIG_EDITOR="$(_ui_prompt "YT_X_CONFIG_EDITOR" "$YT_X_CONFIG_EDITOR" "$YT_X_CONFIG_EDITOR")"
+    YT_X_CONFIG_TERMINAL_EXEC="$(_ui_prompt "YT_X_CONFIG_TERMINAL_EXEC" "$YT_X_CONFIG_TERMINAL_EXEC" "$YT_X_CONFIG_TERMINAL_EXEC")"
+    YT_X_CONFIG_NOTIFICATION_DURATION="$(_ui_prompt "YT_X_CONFIG_NOTIFICATION_DURATION" "$YT_X_CONFIG_NOTIFICATION_DURATION" "$YT_X_CONFIG_NOTIFICATION_DURATION")"
+
+    YT_X_CONFIG_DOWNLOADS_ENUMERATE="$(_ui_prompt "YT_X_CONFIG_ENUMERATE_DOWNLOADS" "$YT_X_CONFIG_DOWNLOADS_ENUMERATE" "$YT_X_CONFIG_DOWNLOADS_ENUMERATE")"
+    YT_X_CONFIG_CHECK_FOR_UPDATES="$(_ui_prompt "YT_X_CONFIG_CHECK_FOR_UPDATES" "$YT_X_CONFIG_CHECK_FOR_UPDATES" "$YT_X_CONFIG_CHECK_FOR_UPDATES")"
+    YT_X_CONFIG_NO_OF_RECENT="$(_ui_prompt "YT_X_CONFIG_NO_OF_RECENT" "$YT_X_CONFIG_NO_OF_RECENT" "$YT_X_CONFIG_NO_OF_RECENT")"
+    YT_X_CONFIG_ENABLE_SEARCH_HISTORY="$(_ui_prompt "YT_X_CONFIG_ENABLE_SEARCH_HISTORY" "$YT_X_CONFIG_ENABLE_SEARCH_HISTORY" "$YT_X_CONFIG_ENABLE_SEARCH_HISTORY")"
+
+    YT_X_CONFIG_ROFI_THEME_MAIN="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_MAIN" "$YT_X_CONFIG_ROFI_THEME_MAIN" "$YT_X_CONFIG_ROFI_THEME_MAIN")"
+    YT_X_CONFIG_ROFI_THEME_PREVIEW="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PREVIEW" "$YT_X_CONFIG_ROFI_THEME_PREVIEW" "$YT_X_CONFIG_ROFI_THEME_PREVIEW")"
+    YT_X_CONFIG_ROFI_THEME_PROMPT="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PROMPT" "$YT_X_CONFIG_ROFI_THEME_PROMPT" "$YT_X_CONFIG_ROFI_THEME_PROMPT")"
+    YT_X_CONFIG_ROFI_THEME_CONFIRM="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_CONFIRM" "$YT_X_CONFIG_ROFI_THEME_CONFIRM" "$YT_X_CONFIG_ROFI_THEME_CONFIRM")"
+    YT_X_CONFIG_ROFI_THEME_PAGER="$(_ui_prompt "YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER" "$YT_X_CONFIG_ROFI_THEME_PAGER")"
+  fi
+  _print_yt_x_config >"$YT_X_CONFIG_FILE"
+
+  if _install_yt_x; then
+    _ui_print "Installation complete 🥳! If you have any questions, please visit the GitHub repository (especially the FAQ). Enjoy! Don't forget to leave a star on the repo, or maybe even buy me a coffee if you find $CLI_NAME useful :)"
+    if _ui_confirm "Would you like to open the github repo page?" "yes"; then
+      _util_open "$CLI_REPO_URL"
+    fi
+  else
+    _ui_print "Installation failed. Please try again or report the issue on GitHub if the problem persists."
+  fi
+}
+
+installer
