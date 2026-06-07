@@ -385,7 +385,7 @@ _update_pkg_json() {
 
     check_for_updates="true"
     repo="Benexl/yt-x"
-    tag="$RELEASE_TAG_NAME"
+    tag="$CLI_LATEST_VERSION"
 
     pkg_json="[]"
     [ -s "$YT_X_PKG_JSON" ] && pkg_json=$(cat "$YT_X_PKG_JSON")
