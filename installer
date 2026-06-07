@@ -902,6 +902,8 @@ installer() {
   _ui_print "Welcome to the interactive $CLI_NAME installer! Lets get you settled in :)"
   _ui_print "======================================================================================================="
 
+  # sh doesnt allow declaration and assignment on separate lines
+  # shellcheck disable=SC2155
   readonly CLI_LATEST_VERSION="$(_fetch "$CLI_VERSION_URL")"
   readonly YT_X_RELEASE_TAG="$CLI_RELEASE_BASE/v$CLI_LATEST_VERSION"
 
