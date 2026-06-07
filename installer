@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # shellcheck disable=SC3043
-# yt-x installer - Browse media from the terminal  or app launcher
+# yt-x installer - Browse media from the terminal or app launcher
 # MIT License - Copyright (c) 2024-2026 Benexl
 readonly CLI_HEADER="\
 ██╗░░░██╗████████╗░░░░░░██╗░░██╗ ██╗███╗░░██╗░██████╗████████╗░█████╗░██╗░░░░░██╗░░░░░███████╗██████╗░
