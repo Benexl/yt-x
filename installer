@@ -623,6 +623,7 @@ _install_extension_default_lang() {
   local lang
 
   lang="$(cat)"
+  [ -z "$lang" ] && return 1
 
   target_dest="$YT_X_DEFAULT_LANG_FILE"
 
@@ -637,6 +638,8 @@ _install_extension_default_lang() {
 _install_extension_lang() {
   while IFS= read -r lang; do
     local target_dest
+
+    [ -z "$lang" ] && continue
 
     target_dest="$YT_X_EXTENSIONS_LANGS_DIR/$lang"
 
@@ -654,6 +657,7 @@ _install_extension_default_theme() {
   local theme
 
   theme="$(cat)"
+  [ -z "$theme" ] && return 1
 
   target_dest="$YT_X_DEFAULT_THEME_FILE"
 
@@ -668,6 +672,8 @@ _install_extension_default_theme() {
 _install_extension_theme() {
   while IFS= read -r theme; do
     local target_dest
+
+    [ -z "$theme" ] && continue
 
     target_dest="$YT_X_EXTENSIONS_THEMES_DIR/$theme"
 
@@ -684,6 +690,8 @@ _install_extension_cmd() {
   while IFS= read -r cmd; do
     local target_dest
 
+    [ -z "$cmd" ] && continue
+
     target_dest="$YT_X_EXTENSIONS_CMDS_DIR/$cmd"
 
     if ! _get_release_asset "$cmd" "$target_dest" "extension" >"${target_dest}.tmp"; then
@@ -698,6 +706,8 @@ _install_extension_cmd() {
 _install_extension_site() {
   while IFS= read -r site; do
     local target_dest
+
+    [ -z "$site" ] && continue
 
     target_dest="$YT_X_EXTENSIONS_SITES_DIR/$site"
 
