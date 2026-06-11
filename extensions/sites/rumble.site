@@ -214,7 +214,7 @@ __rumble_parse_cards() {
 # Live browse page: server rendered "videostream" cards
 __rumble_parse_streams() {
   tr '\n\t' '  ' |
-    sed 's/class="videostream thumbnail__grid-item"/\n&/g' |
+    sed 's/class="videostream thumbnail__grid--\{0,1\}item"/\n&/g' |
     awk '
       function attr(re, strip,  s) {
         s = ""
@@ -224,7 +224,7 @@ __rumble_parse_streams() {
         }
         return s
       }
-      /^class="videostream thumbnail__grid-item"/ {
+      /^class="videostream thumbnail__grid--?item"/ {
         href = attr("href=\"/v[a-z0-9]+-[^\"]+", "href=\"")
         sub(/\?.*/, "", href)
         thumb = attr("class=\"thumbnail__image[^\"]*\"[^>]*src=\"[^\"]+", ".*src=\"")
