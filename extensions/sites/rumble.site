@@ -1,0 +1,452 @@
+#!/bin/sh
+# shellcheck disable=SC3043,SC2034,SC1090
+# ==============================================================================
+# Rumble Site Extension for yt-x
+#
+# Rumble cannot be browsed through yt-dlp alone:
+#
+#   * Watch pages (rumble.com/v{id}-{slug}.html) return HTTP 403 to yt-dlp.
+#     Only embed URLs (rumble.com/embed/{id}/) are fetchable, and the embed id
+#     differs from the watch page id, so every selected video is resolved
+#     through Rumble's public oEmbed API. Resolved URLs are cached on disk so
+#     each video only ever costs one extra request.
+#
+#   * Channel pages are rendered client side from JSON embedded in
+#     <rum-videos-grid> blocks, while search results and the live browse page
+#     are server rendered HTML cards (two different card layouts). All three
+#     formats are scraped here and converted into the same playlist JSON shape
+#     yt-dlp produces, so the existing playlist explorer, previews, downloads
+#     and saved/recent tracking work unchanged.
+#
+# Known limitations:
+#   * "Watch All" / "Listen All" on a Rumble listing is not supported, since
+#     the listing URL itself is not resolvable by yt-dlp.
+#   * "Open in Browser" opens the embed URL rather than the watch page.
+# ==============================================================================
+
+RUMBLE_BASE_URL="https://rumble.com"
+RUMBLE_USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"
+RUMBLE_EMBED_CACHE_FILE="$CLI_CACHE_DIR/rumble-embed-urls.txt"
+
+# state for the rumble playlist explorer's page based pagination
+# (rumble serves fixed size pages selected with ?page=N, unlike yt-dlp's
+# --playlist-start/--playlist-end slicing used by the core explorer);
+# RUMBLE_STATE_URL_FMT holds the listing URL with a literal __PAGE__ token
+RUMBLE_STATE_URL_FMT=""
+RUMBLE_STATE_PAGE=1
+RUMBLE_STATE_TITLE=""
+RUMBLE_STATE_PARSER=""
+
+__rumble_fetch_html() {
+  local url
+  url="$1"
+
+  if _dep_ch gum; then
+    # shellcheck disable=SC2086
+    gum spin $CONFIG_GUM_SPIN_OPTS --show-output -- \
+      sh -c 'curl -s -L -A "$1" "$2"' _ "$RUMBLE_USER_AGENT" "$url"
+  else
+    printf '%s\n' "$TXT_LOADING" >/dev/stderr
+    curl -s -L -A "$RUMBLE_USER_AGENT" "$url"
+  fi
+}
+
+# Resolve a rumble watch page URL to its embed URL via the oEmbed API.
+# The embed id is unrelated to the watch page id, so this lookup cannot be
+# computed offline; results are cached as "watch_url embed_url" lines.
+__rumble_to_embed() {
+  local url
+  local embed
+  url="${1%%\?*}"
+
+  case "$url" in
+  "$RUMBLE_BASE_URL"/embed/*)
+    printf '%s' "$url"
+    return 0
+    ;;
+  esac
+
+  if [ -s "$RUMBLE_EMBED_CACHE_FILE" ]; then
+    embed="$(grep -F "$url " "$RUMBLE_EMBED_CACHE_FILE" | head -n 1 | cut -d' ' -f2)"
+    if [ -n "$embed" ]; then
+      printf '%s' "$embed"
+      return 0
+    fi
+  fi
+
+  embed="$(
+    curl -s -A "$RUMBLE_USER_AGENT" \
+      "$RUMBLE_BASE_URL/api/Media/oembed.json?url=$(printf '%s' "$url" | jq -sRr '@uri')" |
+      jq -r '.html // ""' |
+      sed -n 's|.*src="\(https://rumble\.com/embed/[^"/]*/\)".*|\1|p'
+  )"
+
+  if [ -z "$embed" ]; then
+    printf '%s' "$url"
+    return 1
+  fi
+
+  printf '%s %s\n' "$url" "$embed" >>"$RUMBLE_EMBED_CACHE_FILE"
+  printf '%s' "$embed"
+}
+
+# jq helpers shared by all parsers, producing yt-dlp shaped entries so
+# previews (title, channel, duration, views, live status, age, thumbnail)
+# keep working without core changes
+RUMBLE_JQ_LIB='
+  def rumble_id: . as $u | (try (capture("/(?<id>v[a-z0-9]+)[-.]").id) catch $u);
+  def html_unescape:
+    gsub("&amp;"; "&") | gsub("&#0?39;"; "\u0027") | gsub("&#34;|&quot;"; "\u0022")
+    | gsub("&lt;"; "<") | gsub("&gt;"; ">");
+  def short_count:
+    if . == null or . == "" then null
+    elif test("^[0-9,]+$") then (gsub(","; "") | tonumber)
+    elif test("^[0-9.]+K$") then (.[:-1] | tonumber * 1000 | floor)
+    elif test("^[0-9.]+M$") then (.[:-1] | tonumber * 1000000 | floor)
+    elif test("^[0-9.]+B$") then (.[:-1] | tonumber * 1000000000 | floor)
+    else null end;
+  def clock_to_seconds:
+    if . == null or . == "" then null
+    else (try (split(":") | map(tonumber) | reduce .[] as $x (0; . * 60 + $x)) catch null)
+    end;
+  def iso_to_timestamp:
+    if . == null or . == "" then null
+    else (sub("(\\+00:00|[+-][0-9]{2}:[0-9]{2})$"; "Z") | try fromdateiso8601 catch null)
+    end;
+  def dedup_by_url:
+    reduce .[] as $item ([]; if any(.[]; .url == $item.url) then . else . + [$item] end);
+'
+
+# Channel pages: video entries live in JSON documents embedded in
+# <rum-videos-grid><script type="application/json"> blocks
+__rumble_parse_grid() {
+  awk '
+    BEGIN { RS = "</script>" }
+    /<script type="application\/json"/ {
+      sub(/.*<script type="application\/json"[^>]*>/, "")
+      print
+    }
+  ' | jq -c "$RUMBLE_JQ_LIB"'
+    .items[]?
+    | select(.object_type == "video")
+    | {
+        id: (.url | rumble_id),
+        title: .title,
+        url: .url,
+        webpage_url: .url,
+        duration: (if (.duration // 0) > 0 then .duration else null end),
+        view_count: (.views // null),
+        channel: (.by.name // null),
+        channel_follower_count: (.by.followers // null),
+        live_status: (if .live == true or .livestream_status == "live" or .livestream_status == 1 then "is_live" else null end),
+        timestamp: (.upload_date | iso_to_timestamp),
+        thumbnails: [{url: (.thumb // "")}]
+      }
+  ' | jq -s "$RUMBLE_JQ_LIB dedup_by_url"
+}
+
+# Shared tail for the two HTML card parsers: turns unit separator (US, 0x1f)
+# delimited records (href, title, thumb, duration, live, datetime, channel,
+# views) into yt-dlp shaped entries
+__rumble_records_to_entries() {
+  jq -Rc "$RUMBLE_JQ_LIB"'
+    split("\u001f")
+    | select(length == 8)
+    | {
+        id: (.[0] | rumble_id),
+        title: (.[1] | html_unescape),
+        url: ("'"$RUMBLE_BASE_URL"'" + .[0]),
+        webpage_url: ("'"$RUMBLE_BASE_URL"'" + .[0]),
+        duration: (.[3] | clock_to_seconds),
+        view_count: (.[7] | short_count),
+        channel: (if .[6] == "" then null else (.[6] | html_unescape) end),
+        live_status: (if .[4] == "1" then "is_live" else null end),
+        timestamp: (.[5] | iso_to_timestamp),
+        thumbnails: [{url: .[2]}]
+      }
+  ' | jq -s "$RUMBLE_JQ_LIB dedup_by_url"
+}
+
+# Search result pages: server rendered "video-item" cards
+__rumble_parse_cards() {
+  tr '\n\t' '  ' |
+    sed 's/<a class="video-item--a/\n&/g' |
+    awk '
+      function attr(re, strip,  s) {
+        s = ""
+        if (match($0, re)) {
+          s = substr($0, RSTART, RLENGTH)
+          sub(strip, "", s)
+        }
+        return s
+      }
+      function trim(s) {
+        gsub(/^ +| +$/, "", s)
+        return s
+      }
+      /^<a class="video-item--a/ {
+        href = attr("href=\"[^\"]+", "href=\"")
+        sub(/\?.*/, "", href)
+        thumb = attr("class=\"video-item--img\" +src=\"[^\"]+", ".*src=\"")
+        duration = attr("video-item--duration\" data-value=\"[^\"]+", ".*data-value=\"")
+        datetime = attr("datetime=[^ >]+", "datetime=")
+        title = attr("video-item--title[^>]*>[^<]+", "[^>]*>")
+        channel = attr("class=ellipsis-1>[^<]+", "[^>]*>")
+        views = ""
+        i = index($0, "video-item--views")
+        if (i > 0) {
+          s = substr($0, i)
+          j = index(s, "</svg>")
+          if (j > 0) {
+            s = substr(s, j + 6)
+            k = index(s, "<")
+            if (k > 1) views = substr(s, 1, k - 1)
+          }
+        }
+        live = (index($0, "video-item--live") > 0) ? "1" : ""
+        if (href != "")
+          printf "%s\037%s\037%s\037%s\037%s\037%s\037%s\037%s\n", \
+            href, trim(title), thumb, duration, live, datetime, trim(channel), trim(views)
+      }
+    ' | __rumble_records_to_entries
+}
+
+# Live browse page: server rendered "videostream" cards
+__rumble_parse_streams() {
+  tr '\n\t' '  ' |
+    sed 's/class="videostream thumbnail__grid-item"/\n&/g' |
+    awk '
+      function attr(re, strip,  s) {
+        s = ""
+        if (match($0, re)) {
+          s = substr($0, RSTART, RLENGTH)
+          sub(strip, "", s)
+        }
+        return s
+      }
+      /^class="videostream thumbnail__grid-item"/ {
+        href = attr("href=\"/v[a-z0-9]+-[^\"]+", "href=\"")
+        sub(/\?.*/, "", href)
+        thumb = attr("class=\"thumbnail__image[^\"]*\"[^>]*src=\"[^\"]+", ".*src=\"")
+        title = attr("class=\"thumbnail__title[^\"]*\"[^>]*title=\"[^\"]+", ".*title=\"")
+        channel = attr("class=\"channel__name[^\"]*\"[^>]*title=\"[^\"]+", ".*title=\"")
+        views = attr("data-views=\"[^\"]+", "data-views=\"")
+        duration = attr("videostream__status--duration\"[^>]*> *[0-9:]+", ".*> *")
+        live = (index($0, "videostream__status--live") > 0) ? "1" : ""
+        if (href != "" && title != "")
+          printf "%s\037%s\037%s\037%s\037%s\037%s\037%s\037%s\n", \
+            href, title, thumb, duration, live, "", channel, views
+      }
+    ' | __rumble_records_to_entries
+}
+
+# Fetch one rumble page and expose it through the same state variables the
+# core playlist explorer reads, numbering titles the same way _fetch_playlist
+# does. Returns 1 when the page contains no videos.
+__rumble_fetch_playlist_page() {
+  local url
+  local results
+  url="$(printf '%s' "$RUMBLE_STATE_URL_FMT" | sed "s/__PAGE__/$RUMBLE_STATE_PAGE/")"
+
+  results="$(
+    __rumble_fetch_html "$url" |
+      "__rumble_parse_$RUMBLE_STATE_PARSER" |
+      jq --arg title "$RUMBLE_STATE_TITLE" '
+        {title: $title, entries: .}
+        | .entries=(.entries
+        | to_entries
+        | map(.value.title="\(.key+1|tostring| if (.|length) < 2 then "0" + . else . end) "+.value.title)
+        | map(.value))
+      '
+  )"
+
+  if [ "$(printf '%s' "$results" | jq '.entries | length')" -eq 0 ]; then
+    return 1
+  fi
+
+  STATE_CURRENT_PLAYLIST_RESULTS="$results"
+  STATE_CURRENT_PLAYLIST_URL="$url"
+  STATE_CURRENT_PLAYLIST_TITLE="$RUMBLE_STATE_TITLE"
+}
+
+# ==============================================================================
+# Menus: rumble playlist explorer
+#
+# Mirrors _menu_playlist_explorer but pages with rumble's ?page=N parameter
+# and resolves the selected watch URL to its embed URL before handing over to
+# the regular playlist actions menu.
+# ==============================================================================
+__rumble_menu_playlist_explorer() {
+  local title
+  local id
+  local watch_url
+
+  title="$1"
+  id=$(printf "%s" "$title" | sed -E 's/^0*([0-9]+) .*/\1/')
+
+  STATE_CURRENT_VIDEO="$(
+    printf '%s' "$STATE_CURRENT_PLAYLIST_RESULTS" |
+      jq --argjson id "$((id - 1))" '.entries[$id]'
+  )"
+  watch_url="$(printf '%s' "$STATE_CURRENT_VIDEO" | jq '.url' -r)"
+
+  if ! STATE_CURRENT_VIDEO_URL="$(__rumble_to_embed "$watch_url")"; then
+    _ui_notify_error "Failed to resolve Rumble embed URL for: $watch_url"
+  fi
+
+  # store the playable embed URL on the entry itself so saved/recent videos
+  # replay through yt-dlp without hitting rumble's 403 on watch pages
+  STATE_CURRENT_VIDEO="$(
+    printf '%s' "$STATE_CURRENT_VIDEO" |
+      jq --arg url "$STATE_CURRENT_VIDEO_URL" '.url=$url'
+  )"
+  STATE_CURRENT_VIDEO_TITLE="$(printf '%s' "$title" | sed -E 's/^[0-9]+ //g')"
+  _state_push
+
+  menu_playlist_actions
+}
+
+__rumble_menu_playlist_explorer_next() {
+  RUMBLE_STATE_PAGE=$((RUMBLE_STATE_PAGE + 1))
+  if ! __rumble_fetch_playlist_page; then
+    RUMBLE_STATE_PAGE=$((RUMBLE_STATE_PAGE - 1))
+    _ui_notify_error "No more results"
+    return
+  fi
+  _state_push
+}
+
+__rumble_menu_playlist_explorer_previous() {
+  [ "$RUMBLE_STATE_PAGE" -le 1 ] && return
+  RUMBLE_STATE_PAGE=$((RUMBLE_STATE_PAGE - 1))
+  __rumble_fetch_playlist_page
+  _state_push
+}
+
+_rumble_menu_playlist_explorer() {
+  local other_choices
+  local titles
+  local choice
+  local base_state
+
+  base_state="$STATE_CURRENT"
+
+  other_choices="\
+$TXT_MENU_NEXT
+$TXT_MENU_PREVIOUS
+$TXT_MENU_BACK
+$TXT_MENU_EXIT"
+
+  while true; do
+    titles=$(printf '%s\n' "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+
+    choice="$(
+      printf "%s\n%s" "$titles" "$other_choices" |
+        preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
+        ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
+    )"
+
+    case "$choice" in
+    "$TXT_MENU_NEXT") __rumble_menu_playlist_explorer_next ;;
+    "$TXT_MENU_PREVIOUS") __rumble_menu_playlist_explorer_previous ;;
+    "$TXT_MENU_BACK" | "") _state_pop "$((STATE_CURRENT - base_state + 1))" && break ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
+    *) __rumble_menu_playlist_explorer "$choice" ;;
+    esac
+  done
+}
+
+__rumble_browse() {
+  RUMBLE_STATE_URL_FMT="$1"
+  RUMBLE_STATE_TITLE="$2"
+  RUMBLE_STATE_PARSER="$3"
+  RUMBLE_STATE_PAGE=1
+
+  if ! __rumble_fetch_playlist_page; then
+    _ui_notify_error "No Rumble videos found"
+    return
+  fi
+  _state_push
+
+  _rumble_menu_playlist_explorer
+}
+
+# ==============================================================================
+# Menus: rumble
+# ==============================================================================
+__menu_rumble_search() {
+  local search_term
+
+  search_term="$(ui_prompt "Enter Rumble search query")"
+  [ -z "$search_term" ] && return
+
+  __rumble_browse \
+    "$RUMBLE_BASE_URL/search/video?q=$(printf '%s' "$search_term" | jq -sRr '@uri')&page=__PAGE__" \
+    "Rumble search: $search_term" \
+    cards
+}
+
+__menu_rumble_channel() {
+  local channel
+  local url
+
+  channel="$(ui_prompt "Enter Rumble channel (name, /c/name, /user/name or URL)")"
+  [ -z "$channel" ] && return
+
+  case "$channel" in
+  http://* | https://*) url="${channel%%\?*}" ;;
+  /c/* | /user/*) url="$RUMBLE_BASE_URL$channel" ;;
+  *) url="$RUMBLE_BASE_URL/c/$channel" ;;
+  esac
+
+  __rumble_browse \
+    "$url?page=__PAGE__" \
+    "Rumble channel: ${url##*/}" \
+    grid
+}
+
+__menu_rumble_live() {
+  __rumble_browse \
+    "$RUMBLE_BASE_URL/browse/live?page=__PAGE__" \
+    "Rumble live streams" \
+    streams
+}
+
+_menu_rumble() {
+  local actions
+  local action
+
+  actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  Search Rumble
+${THEME_FZF_ICON_COLOR_PRIMARY}󰑈${THEME_RESET}  Explore Channel
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  Live Streams
+${THEME_FZF_ICON_COLOR_PRIMARY}${THEME_RESET}  ${TXT_MENU_BACK}"
+
+  while true; do
+    action="$(printf "%s" "$actions" | ui_launcher "Rumble Menu" | sed 's/.*  //g')"
+    case "$action" in
+    "Search Rumble") __menu_rumble_search ;;
+    "Explore Channel") __menu_rumble_channel ;;
+    "Live Streams") __menu_rumble_live ;;
+    "$TXT_MENU_BACK" | "") break ;;
+    *) _ui_notify_error "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+  done
+}
+
+# ==============================================================================
+# Main menu integration: plug into _menu_main's extra options hook
+# ==============================================================================
+__rumble_main_menu_handler() {
+  case "$1" in
+  "Rumble") _menu_rumble ;;
+  *) return 1 ;;
+  esac
+}
+
+menu_main() {
+  _state_init
+  _menu_main "" "" \
+    " ${THEME_FZF_ICON_COLOR_ACCENT}${THEME_RESET}  Rumble" \
+    __rumble_main_menu_handler
+}

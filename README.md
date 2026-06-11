@@ -713,6 +713,29 @@ Uses the same playlist explorer and media actions as YouTube.
 
 </details>
 
+<details>
+<summary><code>rumble.site</code></summary>
+
+Adds a **Rumble** entry to the main menu.  
+Allows you to:
+
+- Search Rumble videos.
+- Explore a channel's uploads (`/c/` and `/user/` channels).
+- Browse live streams.
+
+Uses the same playlist explorer and media actions as YouTube.
+
+Rumble watch pages return HTTP 403 to `yt-dlp`, so the extension resolves
+each selected video to its embed URL through Rumble's oEmbed API (cached on
+disk) before playback. Listings are scraped directly from rumble.com since
+`yt-dlp`'s Rumble channel extractor no longer finds entries on the current
+client-rendered pages.
+
+**Load with:**  
+`yt-x -x sites/rumble.site`
+
+</details>
+
 ---
 
 #### Theme Extensions (`themes/`)
