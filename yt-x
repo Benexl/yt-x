@@ -1048,27 +1048,17 @@ _util_generate_hash() {
 }
 
 _util_menu_sort() {
-  # TODO: shift to using awk
-  local options_to_sort
-  local options_to_sort_copy
-  local sort
-  local i
-  i=0
-  options_to_sort="$1"
-  sort="$2"
-
-  for option in $(printf '%s' "$options_to_sort" | tr ' ' '-'); do
-    i=$((i + 1))
-    if [ -z "$options_to_sort_copy" ]; then
-      options_to_sort_copy="$i:$option"
-    else
-      options_to_sort_copy="$options_to_sort_copy\n$i:$option"
-    fi
-  done
-
-  for order in $(printf '%s' "$sort" | tr ',' '\n'); do
-    printf "$options_to_sort_copy" | grep "^$order:" | sed "s/$order://g" | tr '-' ' '
-  done
+  awk -v sort="$1" '
+    BEGIN {
+      split(sort,sort_array,",")
+    }
+    {
+      input_array[NR]=$0
+    }
+    END {
+    for(o in sort_array)
+      print input_array[sort_array[o]]
+    }'
 }
 
 _util_byebye() {
@@ -2950,7 +2940,8 @@ _menu_playlist_actions() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_PLAYLIST_ACTIONS_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -2958,7 +2949,7 @@ _menu_playlist_actions() {
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -3216,7 +3207,8 @@ _menu_channel_actions() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_CHANNEL_ACTIONS_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -3224,7 +3216,7 @@ _menu_channel_actions() {
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -3668,7 +3660,8 @@ _menu_miscellaneous() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_MISC_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -3676,7 +3669,7 @@ _menu_miscellaneous() {
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -4170,7 +4163,8 @@ _menu_main() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_MAIN_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -4178,7 +4172,7 @@ _menu_main() {
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
