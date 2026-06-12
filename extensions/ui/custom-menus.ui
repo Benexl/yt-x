@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC3043
 # ==============================================================================
 # This extension demonstrates how to add custom menus eg sites and any ui extensions that add new menu entries in an optimal way
 # This would also be the perfect place to specify menu sorts and filters
@@ -7,15 +7,49 @@
 # available for the following menus: _menu_main, _menu_miscellaneous, _menu_channel_actions, _menu_media_actions
 # ==============================================================================
 
-. "$CLI_EXTENSIONS_SITES_DIR/dailymotion.site"
+# ==============================================================================
+# lang defs
+# ==============================================================================
+TXT_MENU_SITES_ICON=" "
+TXT_MENU_SITES="Sites"
+TXT_MENU_SITES_PROMPT="Select site"
 
-TXT_MENU_DAILYMOTION_ICON=" 󱖲"
-TXT_MENU_DAILYMOTION="Dailymotion"
+TXT_MENU_SITES_DAILYMOTION_ICON="󱖲"
+TXT_MENU_SITES_DAILYMOTION="Dailymotion"
+
+# ==============================================================================
+# Menus
+# ==============================================================================
+_menu_sites() {
+  local sites
+  local site
+
+  sites="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_SITES_DAILYMOTION_ICON}${THEME_RESET}  $TXT_MENU_SITES_DAILYMOTION
+$TXT_MENU_BACK
+$TXT_MENU_EXIT"
+
+  while true; do
+    site="$(printf "%s" "$sites" | ui_launcher "$TXT_MENU_SITES_PROMPT" | sed 's/^.  //g')"
+
+    case "$site" in
+    "$TXT_MENU_SITES_DAILYMOTION")
+      if ! command _menu_dailymotion 2>/dev/null; then
+        . "$CLI_EXTENSIONS_SITES_DIR/dailymotion.site"
+      fi
+      _menu_dailymotion
+      ;;
+    "$TXT_MENU_BACK" | "") break ;;
+    "$TXT_MENU_EXIT") _util_byebye ;;
+    *) ui_notify_critical "$TXT_MENU_INVALID_ACTION" ;;
+    esac
+
+  done
+
+}
 _custom_main_menus() {
   case "$1" in
-  "$TXT_MENU_DAILYMOTION")
-    _menu_dailymotion
-    ;;
+  "$TXT_MENU_SITES") _menu_sites ;;
   *)
     return 1
     ;;
@@ -47,7 +81,7 @@ _custom_media_actions_menus() {
 }
 
 menu_main() {
-  extra_actions="${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_DAILYMOTION_ICON}${THEME_RESET}  $TXT_MENU_DAILYMOTION"
+  extra_actions="${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_SITES_ICON}${THEME_RESET}  $TXT_MENU_SITES"
   _state_init
   _menu_main "1,2,3,4,5,6,7,8,9,10,11,12,16,13,14,15" "" "$extra_actions" "_custom_main_menus"
 }
