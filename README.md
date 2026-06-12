@@ -688,7 +688,7 @@ Replaces the default `yt-x` main menu entirely, making Dailymotion the primary e
 
 Demonstrates the optimal way to inject custom menu entries (such as integrating the Dailymotion site directly into the main menu) without overwriting the core script. 
 
-It serves as a perfect template for specifying menu sorts, filters, and binding external handlers across `_menu_main`, `_menu_miscellaneous`, `_menu_channel_actions`, and `_menu_playlist_actions`.
+It serves as a perfect template for specifying menu sorts, filters, and binding external handlers across `_menu_main`, `_menu_miscellaneous`, `_menu_channel_actions`, and `_menu_media_actions`.
 
 **Load with:**  
 `yt-x -x ui/custom-menus.ui`
@@ -791,7 +791,7 @@ CONFIG_AUTOLOADED_EXTENSIONS="themes/catppuchin-mocha.theme,langs/es.lang,ui/cus
 1. Create the appropriate subdirectory (if missing) inside `~/.config/yt-x/extensions/`.
 2. Write a **POSIX‑compliant** shell script.
 3. The script is sourced by `yt-x`, so you can:
-   - Override any function (e.g., `menu_main`, `_menu_playlist_actions`).
+   - Override any function (e.g., `menu_main`, `_menu_media_actions`).
    - Add new menu items by appending to the `actions` variable.
    - Define new helper functions.
    - Use all internal variables and functions (prefixed with `_` or public like `ui_prompt`).
@@ -909,7 +909,7 @@ All menu functions accept optional parameters that let you filter, reorder, or a
 - `_menu_main` – Main menu (Your Feed, Search, Channels, etc.)
 - `_menu_miscellaneous` – Misc menu (Explore Channels, Custom Commands, etc.)
 - `_menu_channel_actions` – Actions inside a channel (Videos, Playlists, Subscribe, etc.)
-- `_menu_playlist_actions` – Media action menu (Watch, Listen, Download, etc.)
+- `_menu_media_actions` – Media action menu (Watch, Listen, Download, etc.)
 
 Each of these functions supports the same four optional arguments:
 
@@ -985,8 +985,8 @@ convert_to_mp3() {
   notify-send "Converting..."
 }
 
-menu_playlist_actions() {
-  _menu_playlist_actions "" "Mix\\|Save Playlist" " 󰒄  Convert to MP3" convert_to_mp3
+menu_media_actions() {
+  _menu_media_actions "" "Mix\\|Save Playlist" " 󰒄  Convert to MP3" convert_to_mp3
 }
 ```
 

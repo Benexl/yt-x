@@ -4,7 +4,7 @@
 # This extension demonstrates how to add custom menus eg sites and any ui extensions that add new menu entries in an optimal way
 # This would also be the perfect place to specify menu sorts and filters
 # basically anything that involves this: _menu_main [sort] [filter_regex] [extra_actions] [handler_function]
-# available for the following menus: _menu_main, _menu_miscellaneous, _menu_channel_actions, _menu_playlist_actions
+# available for the following menus: _menu_main, _menu_miscellaneous, _menu_channel_actions, _menu_media_actions
 # ==============================================================================
 
 . "$CLI_EXTENSIONS_SITES_DIR/dailymotion.site"
@@ -60,6 +60,6 @@ menu_channel_actions() {
   _menu_channel_actions "" "" "" "_custom_channel_actions_menus"
 }
 
-menu_playlist_actions() {
-  _menu_playlist_actions "" "" "" "_custom_media_actions_menus"
+menu_media_actions() {
+  _menu_media_actions "" "" "" "_custom_media_actions_menus"
 }

@@ -2669,35 +2669,35 @@ _get_search_history_entry() {
 # ==============================================================================
 # Menus: playlist actions
 # ==============================================================================
-__menu_playlist_actions_watch() {
+__menu_media_actions_watch() {
   printf "${THEME_PLAYER_START}$TXT_PLAYER_START_WATCHING:${THEME_RESET} %s\n" "$STATE_CURRENT_VIDEO_TITLE"
 
   play "$(_cached_mix_path_or_url "$STATE_CURRENT_VIDEO_URL")" "watch"
   _update_recent
 }
 
-__menu_playlist_actions_watch_all() {
+__menu_media_actions_watch_all() {
   printf "${THEME_PLAYER_START}$TXT_PLAYER_START_WATCHING:${THEME_RESET} %s\n" "$STATE_CURRENT_PLAYLIST_TITLE"
 
   play "$(_cached_mix_path_or_url "$STATE_CURRENT_PLAYLIST_URL")" "watch"
   _update_recent
 }
 
-__menu_playlist_actions_listen() {
+__menu_media_actions_listen() {
   printf "${THEME_PLAYER_START}$TXT_PLAYER_START_LISTENING:${THEME_RESET} %s\n" "$STATE_CURRENT_VIDEO_TITLE"
 
   play "$(_cached_mix_path_or_url "$STATE_CURRENT_VIDEO_URL")" "listen"
   _update_recent
 }
 
-__menu_playlist_actions_listen_all() {
+__menu_media_actions_listen_all() {
   printf "${THEME_PLAYER_START}$TXT_PLAYER_START_LISTENING:${THEME_RESET} %s\n" "$STATE_CURRENT_PLAYLIST_TITLE"
 
   play "$(_cached_mix_path_or_url "$STATE_CURRENT_PLAYLIST_URL")" "listen"
   _update_recent
 }
 
-__menu_playlist_actions_mix() {
+__menu_media_actions_mix() {
   local video_id
   local url
 
@@ -2708,48 +2708,48 @@ __menu_playlist_actions_mix() {
   menu_playlist_explorer
 }
 
-__menu_playlist_actions_download() {
+__menu_media_actions_download() {
   download_video
   ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_VIDEO_TITLE"
 }
 
-__menu_playlist_actions_download_all() {
+__menu_media_actions_download_all() {
   download_playlist_video
   ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_PLAYLIST_TITLE"
 }
 
-__menu_playlist_actions_download_audio() {
+__menu_media_actions_download_audio() {
   download_audio
   ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_VIDEO_TITLE"
 }
 
-__menu_playlist_actions_download_all_audio() {
+__menu_media_actions_download_all_audio() {
   download_playlist_audio
   ui_notify "$TXT_DOWNLOAD_COMPLETED $STATE_CURRENT_PLAYLIST_TITLE"
 }
 
-__menu_playlist_actions_save() {
+__menu_media_actions_save() {
   # TODO: integerate with watch later maybe
   # though i doubt anyone wants make theirs any longer lol
   # For now a pseudo like feature is just as useful
   _update_saved_videos
 }
 
-__menu_playlist_actions_unsave() {
+__menu_media_actions_unsave() {
   _remove_saved_video
 }
 
-__menu_playlist_actions_save_playlist() {
+__menu_media_actions_save_playlist() {
   # TODO: integerate with yt playlists maybe
   # For now a pseudo like feature is just as useful
   _update_saved_playlists
 }
 
-__menu_playlist_actions_unsave_playlist() {
+__menu_media_actions_unsave_playlist() {
   _remove_saved_playlist
 }
 
-__menu_playlist_actions_shell() {
+__menu_media_actions_shell() {
   local init_text
   local user_shell
 
@@ -2816,11 +2816,11 @@ EOF
 
 }
 
-__menu_playlist_actions_open_in_browser() {
+__menu_media_actions_open_in_browser() {
   _util_open "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_OPEN_IN_BROWSER_ERROR"
 }
 
-__menu_playlist_actions_visit_channel() {
+__menu_media_actions_visit_channel() {
   local channel_url
   local channel_id
   local uploader_id
@@ -2890,12 +2890,12 @@ __menu_playlist_actions_visit_channel() {
   menu_channel_actions
 }
 
-__menu_playlist_actions_subscribe_to_channel() {
+__menu_media_actions_subscribe_to_channel() {
   # TODO: use youtube oembed and yt-dlp to enable channel subscriptions
   ui_notify_error "$TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE_UNSUPPORTED"
 }
 
-__menu_playlist_actions_toggle_enumerate_downloads() {
+__menu_media_actions_toggle_enumerate_downloads() {
   if $CONFIG_DOWNLOADS_ENUMERATE; then
     CONFIG_DOWNLOADS_ENUMERATE=false
   else
@@ -2904,7 +2904,7 @@ __menu_playlist_actions_toggle_enumerate_downloads() {
 }
 
 # shellcheck disable=SC2120
-_menu_playlist_actions() {
+_menu_media_actions() {
   local actions
   local media_action
   local sort
@@ -2963,24 +2963,24 @@ $extra_menu_options"
       )"
     fi
     case "$media_action" in
-    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_playlist_actions_watch ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL") __menu_playlist_actions_watch_all ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN") __menu_playlist_actions_listen ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL") __menu_playlist_actions_listen_all ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_MIX") __menu_playlist_actions_mix ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD") __menu_playlist_actions_download ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO") __menu_playlist_actions_download_audio ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL") __menu_playlist_actions_download_all ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO") __menu_playlist_actions_download_all_audio ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_SAVE") __menu_playlist_actions_save ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE") __menu_playlist_actions_unsave ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST") __menu_playlist_actions_save_playlist ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST") __menu_playlist_actions_unsave_playlist ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_VISIT_CHANNEL") __menu_playlist_actions_visit_channel ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE") __menu_playlist_actions_subscribe_to_channel ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_BROWSER") __menu_playlist_actions_open_in_browser ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM") __menu_playlist_actions_toggle_enumerate_downloads ;;
-    "$TXT_MENU_PLAYLIST_ACTIONS_SHELL") __menu_playlist_actions_shell ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH") __menu_media_actions_watch ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_WATCH_ALL") __menu_media_actions_watch_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN") __menu_media_actions_listen ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_LISTEN_ALL") __menu_media_actions_listen_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_MIX") __menu_media_actions_mix ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD") __menu_media_actions_download ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_AUDIO") __menu_media_actions_download_audio ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL") __menu_media_actions_download_all ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_DOWNLOAD_ALL_AUDIO") __menu_media_actions_download_all_audio ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_SAVE") __menu_media_actions_save ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE") __menu_media_actions_unsave ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_SAVE_PLAYLIST") __menu_media_actions_save_playlist ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_UNSAVE_PLAYLIST") __menu_media_actions_unsave_playlist ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_VISIT_CHANNEL") __menu_media_actions_visit_channel ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_SUBSCRIBE") __menu_media_actions_subscribe_to_channel ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_BROWSER") __menu_media_actions_open_in_browser ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_TOGGLE_ENUM") __menu_media_actions_toggle_enumerate_downloads ;;
+    "$TXT_MENU_PLAYLIST_ACTIONS_SHELL") __menu_media_actions_shell ;;
     "$TXT_MENU_BACK" | "") _state_pop && break ;;
     "$TXT_MENU_EXIT") _util_byebye ;;
     *)
@@ -2997,8 +2997,8 @@ $extra_menu_options"
   done
 }
 
-menu_playlist_actions() {
-  _menu_playlist_actions
+menu_media_actions() {
+  _menu_media_actions
 }
 
 # ==============================================================================
@@ -3031,7 +3031,7 @@ __menu_playlist_explorer() {
   STATE_CURRENT_VIDEO_TITLE="$(printf '%s' "$title" | sed -E 's/^[0-9]+ //g')"
   _state_push
 
-  menu_playlist_actions
+  menu_media_actions
 }
 
 _menu_playlist_explorer() {
@@ -4065,7 +4065,7 @@ __menu_main_saved_videos() {
         STATE_CURRENT_VIDEO_TITLE="$(printf '%s' "$selection" | sed -E 's/^[0-9]+ //g')"
 
         _state_push
-        menu_playlist_actions
+        menu_media_actions
         ;;
       esac
     done
@@ -4118,7 +4118,7 @@ __menu_main_recent() {
         STATE_CURRENT_VIDEO_TITLE="$(printf '%s' "$selection" | sed -E 's/^[0-9]+ //g')"
 
         _state_push
-        menu_playlist_actions
+        menu_media_actions
         ;;
       esac
     done

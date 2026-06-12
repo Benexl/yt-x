@@ -91,7 +91,7 @@ EOF
   done
 }
 
-_menu_playlist_actions() {
+_menu_media_actions() {
   local action
   local actions
   actions="\
@@ -148,7 +148,7 @@ _menu_search() {
     "$TXT_MENU_BACK" | "") break ;;
     *)
       printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
-      _menu_playlist_actions
+      _menu_media_actions
       ;;
     esac
   done
@@ -182,7 +182,7 @@ _menu_playlists() {
         "$TXT_MENU_BACK" | "") break ;;
         *)
           printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$playlist/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
-          _menu_playlist_actions
+          _menu_media_actions
           ;;
         esac
       done
@@ -219,7 +219,7 @@ _menu_channels() {
         "$TXT_MENU_BACK" | "") break ;;
         *)
           printf "%s" "$media_items" | awk -F '\n' "{print \"$CONFIG_DOWNLOAD_DIR/$channel/\" \$1}" >"$CLI_STATE_CURRRENT_MEDIA_FILE"
-          _menu_playlist_actions
+          _menu_media_actions
           ;;
         esac
       done
