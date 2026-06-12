@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+# shellcheck disable=SC1091
+# makes the dailymotion site be the main entry point
+
+. "$CLI_EXTENSIONS_SITES_DIR/dailymotion.site"
+
+_menu_main() {
+  _menu_dailymotion
+}
