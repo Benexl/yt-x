@@ -2950,7 +2950,7 @@ $extra_menu_options"
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -3217,7 +3217,7 @@ $extra_menu_options"
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -3670,7 +3670,7 @@ $extra_menu_options"
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
@@ -4173,7 +4173,7 @@ $extra_menu_options"
   fi
 
   if [ -n "$sort" ]; then
-    actions="$(_util_menu_sort "$actions" "$sort")"
+    actions="$(printf '%s' "$actions" | _util_menu_sort "$sort")"
   fi
 
   while true; do
