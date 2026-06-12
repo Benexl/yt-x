@@ -1009,7 +1009,7 @@ Check the [Extensions](#extensions) section for more details on loading and writ
 
 ### Method 1: Disable all icons (plain text fallback)
 
-The icons are stored in language variables like `TXT_ICON_MENU_MAIN_FEED`, `TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH`, etc.  
+The icons are stored in language variables like `TXT_ICON_MENU_MAIN_FEED`, `TXT_ICON_MENU_MEDIA_ACTIONS_WATCH`, etc.  
 Create an extension that overrides these variables with empty strings or simple ASCII symbols.
 
 **Example: `~/.config/yt-x/extensions/ui/no-icons.ui`**
@@ -1017,12 +1017,12 @@ Create an extension that overrides these variables with empty strings or simple 
 ```sh
 TXT_ICON_MENU_MAIN_FEED=""
 TXT_ICON_MENU_MAIN_SEARCH=""
-TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH=""
+TXT_ICON_MENU_MEDIA_ACTIONS_WATCH=""
 
 # Or replace them with simple ASCII prefixes
 TXT_ICON_MENU_MAIN_FEED="[F]"
 TXT_ICON_MENU_MAIN_SEARCH="[S]"
-TXT_ICON_MENU_PLAYLIST_ACTIONS_WATCH="[W]"
+TXT_ICON_MENU_MEDIA_ACTIONS_WATCH="[W]"
 # ... add more as needed
 ```
 
