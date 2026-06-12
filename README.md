@@ -648,6 +648,7 @@ The following extensions are maintained and included in the repository.
 
 <details>
 <summary><code>downloads</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
+  
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/040b6f98-c228-4de8-962d-52c216f23d4b" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/8fe44b99-48bc-43d9-8e56-8c0f5f7fb887" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/3d76b9a4-9870-44fd-bf44-7abb0fdaca24" />
@@ -663,7 +664,34 @@ Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNL
 - Play, play all, listen, listen all – supports the same media actions as online content.
 
 **Load with:**  
-`yt-x -x cmd/downloads`
+`yt-x -x cmds/downloads`
+
+</details>
+
+<details>
+<summary><code>dailymotion</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
+
+Replaces the default `yt-x` main menu entirely, making Dailymotion the primary entry point. 
+*(Requires the `dailymotion.site` extension to be available in your sites directory)*.
+
+**Load with:**  
+`yt-x -x cmds/dailymotion`
+
+</details>
+
+---
+
+#### UI Extensions (`ui/`)
+
+<details>
+<summary><code>custom-menus.ui</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
+
+Demonstrates the optimal way to inject custom menu entries (such as integrating the Dailymotion site directly into the main menu) without overwriting the core script. 
+
+It serves as a perfect template for specifying menu sorts, filters, and binding external handlers across `_menu_main`, `_menu_miscellaneous`, `_menu_channel_actions`, and `_menu_playlist_actions`.
+
+**Load with:**  
+`yt-x -x ui/custom-menus.ui`
 
 </details>
 
@@ -686,6 +714,7 @@ Overrides the default English strings.
 <summary><code>es.lang</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
 Spanish translation for all UI texts, prompts, and messages.
+DISCLAIMER: i don't know spanish (used ai, to create at least one example), incase you want to take up maintance of this extension just open an issue
 
 **Load with:**  
 `yt-x -x langs/es.lang`
@@ -719,6 +748,7 @@ Uses the same playlist explorer and media actions as YouTube.
 
 <details>
 <summary><code>catppuccin-mocha.theme</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
+  
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/afb71bb3-1dda-427e-b3fc-a78b4cfd6f64" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/fd14e96f-2937-4b7e-aea4-271dc36f9b4a" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/aafb0702-f32d-427b-8fc0-4d63f2df6ab6" />
@@ -731,7 +761,7 @@ Includes custom `fzf` options (border, colors, preview window) and ANSI escape c
 
 **Requirements:** True‑color terminal support (`COLORTERM=truecolor`).  
 **Load with:**  
-`yt-x -x themes/catppuccin-mocha.theme`
+`yt-x -x themes/catppuchin-mocha.theme`
 
 </details>
 
@@ -744,15 +774,16 @@ Includes custom `fzf` options (border, colors, preview window) and ANSI escape c
 ```bash
 yt-x -x sites/dailymotion.site
 yt-x -x langs/es.lang
-yt-x -x themes/catppuccin-mocha.theme
-yt-x -x cmd/downloads              # replaces main menu with a local media browser
+yt-x -x themes/catppuchin-mocha.theme
+yt-x -x cmds/downloads             # replaces main menu with a local media browser
+yt-x -x ui/custom-menus.ui         # injects custom menu entries seamlessly
 ```
 
 **Permanent**  
 Add to `~/.config/yt-x/config`:
 
 ```bash
-CONFIG_AUTOLOADED_EXTENSIONS="themes/catppuccin-mocha.theme,langs/es.lang"
+CONFIG_AUTOLOADED_EXTENSIONS="themes/catppuchin-mocha.theme,langs/es.lang,ui/custom-menus.ui"
 ```
 
 ### Creating Your Own Extension
