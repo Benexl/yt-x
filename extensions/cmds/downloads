@@ -260,8 +260,7 @@ ${THEME_FZF_ICON_COLOR_ERROR}󰈆${THEME_RESET}  ${TXT_MENU_EXIT}"
 
 menu_main() {
   if [ ! -d "$CONFIG_DOWNLOAD_DIR" ]; then
-    ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
-    _util_byebye
+    ui_notify_critical "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
   fi
   _state_init
   _menu_main
