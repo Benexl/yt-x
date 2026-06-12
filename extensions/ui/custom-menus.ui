@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# shellcheck disable=SC1091
 # ==============================================================================
 # This extension demonstrates how to add custom menus eg sites and any ui extensions that add new menu entries in an optimal way
 # This would also be the perfect place to specify menu sorts and filters
