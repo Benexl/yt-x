@@ -1048,8 +1048,7 @@ _util_generate_hash() {
 }
 
 _util_menu_sort() {
-  local sort
-  awk -v sort="$sort" '
+  awk -v sort="$1" '
     BEGIN {
       split(sort,sort_array,",")
     }
