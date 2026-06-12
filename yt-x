@@ -2941,7 +2941,8 @@ _menu_playlist_actions() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_PLAYLIST_ACTIONS_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -3207,7 +3208,8 @@ _menu_channel_actions() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_CHANNEL_ACTIONS_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -3659,7 +3661,8 @@ _menu_miscellaneous() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_MISC_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
@@ -4161,7 +4164,8 @@ _menu_main() {
  ${THEME_FZF_ICON_COLOR_ERROR}${TXT_ICON_MENU_MAIN_EXIT}${THEME_RESET}  ${TXT_MENU_EXIT}"
 
   if [ -n "$extra_menu_options" ] && [ -n "$extra_menu_options_handler" ]; then
-    actions="$(printf '%s\n%s' "$actions" "$extra_menu_options")"
+    actions="$actions
+$extra_menu_options"
   fi
 
   if [ -n "$menu_options_filter" ]; then
