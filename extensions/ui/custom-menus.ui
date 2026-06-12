@@ -1,0 +1,64 @@
+#!/usr/bin/env sh
+# ==============================================================================
+# This extension demonstrates how to add custom menus eg sites and any ui extensions that add new menu entries in an optimal way
+# This would also be the perfect place to specify menu sorts and filters
+# basically anything that involves this: _menu_main [sort] [filter_regex] [extra_actions] [handler_function]
+# available for the following menus: _menu_main, _menu_miscellaneous, _menu_channel_actions, _menu_playlist_actions
+# ==============================================================================
+
+. "$CLI_EXTENSIONS_SITES_DIR/dailymotion.site"
+
+TXT_MENU_DAILYMOTION_ICON=" 󱖲"
+TXT_MENU_DAILYMOTION="Dailymotion"
+_custom_main_menus() {
+  case "$1" in
+  "$TXT_MENU_DAILYMOTION")
+    _menu_dailymotion
+    ;;
+  *)
+    return 1
+    ;;
+  esac
+}
+
+_custom_misc_menus() {
+  case "$1" in
+  *)
+    return 1
+    ;;
+  esac
+}
+
+_custom_channel_actions_menus() {
+  case "$1" in
+  *)
+    return 1
+    ;;
+  esac
+}
+
+_custom_media_actions_menus() {
+  case "$1" in
+  *)
+    return 1
+    ;;
+  esac
+}
+
+menu_main() {
+  extra_actions="${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_DAILYMOTION_ICON}${THEME_RESET}  $TXT_MENU_DAILYMOTION"
+  _state_init
+  _menu_main "1,2,3,4,5,6,7,8,9,10,11,12,16,13,14,15" "" "$extra_actions" "_custom_main_menus"
+}
+
+menu_miscellaneous() {
+  _menu_miscellaneous "" "" "" "_custom_misc_menus"
+}
+
+menu_channel_actions() {
+  _menu_channel_actions "" "" "" "_custom_channel_actions_menus"
+}
+
+menu_playlist_actions() {
+  _menu_playlist_actions "" "" "" "_custom_media_actions_menus"
+}
