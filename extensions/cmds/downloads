@@ -263,5 +263,6 @@ menu_main() {
     ui_notify_warning "Downloads directory not found: $CONFIG_DOWNLOAD_DIR"
     _util_byebye
   fi
+  _state_init
   _menu_main
 }
