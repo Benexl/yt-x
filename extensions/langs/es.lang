@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # shellcheck disable=SC2034
 # ==============================================================================
 # yt-x Spanish Language Extension (es.lang)
