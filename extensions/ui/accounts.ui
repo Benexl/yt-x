@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+# example usage
+CONFIG_BROWSER_ACCOUNTS="firefox - default=firefox,firefox - work=firefox:work"
+
+_menu_accounts() {
+  account="$(printf "%s" "$CONFIG_BROWSER_ACCOUNTS" | awk -v FS='=' -v RS=, '{print $1}' | ui_launcher "Select account")"
+  account="$(printf "%s" "$CONFIG_BROWSER_ACCOUNTS" | awk -v FS='=' -v RS=, -v account="$account" '$1 == account {print $2}')"
+
+  export CONFIG_BROWSER="$account"
+}

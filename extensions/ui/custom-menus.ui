@@ -17,6 +17,9 @@ TXT_MENU_SITES_PROMPT="Select site"
 TXT_MENU_SITES_DAILYMOTION_ICON="󱖲"
 TXT_MENU_SITES_DAILYMOTION="Dailymotion"
 
+TXT_MENU_ACCOUNTS="Accounts"
+TXT_MENU_ACCOUNTS_ICON=" 󰀉"
+
 # ==============================================================================
 # Menus
 # ==============================================================================
@@ -58,6 +61,12 @@ _custom_main_menus() {
 
 _custom_misc_menus() {
   case "$1" in
+  "$TXT_MENU_ACCOUNTS")
+    if ! command _menu_accounts 2>/dev/null; then
+      . "$CLI_EXTENSIONS_UI_DIR/accounts.ui"
+    fi
+    _menu_accounts
+    ;;
   *)
     return 1
     ;;
@@ -88,7 +97,10 @@ ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_SITES_ICON}${THEME_RESET}  $TXT_MENU_S
 }
 
 menu_miscellaneous() {
-  _menu_miscellaneous "" "" "" "_custom_misc_menus"
+  extra_actions="\
+${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_MENU_ACCOUNTS_ICON}${THEME_RESET}  $TXT_MENU_ACCOUNTS"
+  _state_init
+  _menu_miscellaneous "1,2,3,4,17,5,6,7,8,9,10,11,12,13,14,15,16" "" "$extra_actions" "_custom_misc_menus"
 }
 
 menu_channel_actions() {
