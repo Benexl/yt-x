@@ -1050,6 +1050,10 @@ Image previews require a few components to work together:
 3. Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`.
 4. Ensure your terminal emulator actually supports image rendering (sixel, kitty graphics protocol, or iTerm2 protocol). If it doesn't, stick with `chafa`, which falls back to excellent ASCII/block character rendering.
 
+On windows, fzf by default won't render images due to the `tcell` renderer that fzf uses when setting `--height=100%`.
+If you want to display images, set `--height` to 99% or lower in `CONFIG_FZF_OPTS`.
+For more details on this issue see [this comment](https://github.com/junegunn/fzf/issues/4065#issuecomment-2439815977).
+
 </details>
 
 <details>
