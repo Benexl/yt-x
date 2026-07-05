@@ -2806,7 +2806,7 @@ __menu_media_actions_shell() {
     _util_terminal_exec fish
   else
     local init_file
-    init_file="$(mktemp /tmp/yt_x_sh_init.XXXXXX)"
+    init_file="$(mktemp "${TMPDIR:-/tmp}/yt_x_sh_init.XXXXXX")"
 
     cat <<EOF >"$init_file"
 printf "%s" "$init_text"
