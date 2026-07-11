@@ -291,6 +291,11 @@ All this options can be paired with `--media-exit` and after the media cmd is ex
 - `--disown-player` : Detach the player process from the terminal _(allows you to keep browsing while watching)_.
 - `--no-disown-player` : Keep the player attached to the terminal session _(default)_.
 
+#### Android specific
+
+- `--mpv-activity-name` : Custom application activity name to launch when using mpv player
+- `--vlc-activity-name` : Custom application activity name to launch when using vlc player
+
 #### Direct Shortcuts (skip the main or miscellaneous menus)
 
 All this options can be paired with `--cmd-exit` so that the start of the menus changes to the shortcuts
@@ -579,13 +584,15 @@ yt-x --edit-config
 For configuring a player prefer its config file which you can also edit from why yt-x in the misc menu
 They exist purely for convinience and is more useful when passing from cmdline or env vars
 
-| Variable               | Default | Description                                                                |
-| :--------------------- | :------ | :------------------------------------------------------------------------- |
-| `CONFIG_PLAYER`        | `mpv`   | Preferred media player. Options: `mpv`, `vlc`, `tplay`.                    |
-| `CONFIG_DISOWN_PLAYER` | `false` | Set to `true` to run the player in the background without blocking the UI. |
-| `CONFIG_MPV_ARGS`      | `""`    | Custom arguments passed directly to `mpv`.                                 |
-| `CONFIG_VLC_ARGS`      | `""`    | Custom arguments passed directly to `vlc`.                                 |
-| `CONFIG_TPLAY_ARGS`    | `""`    | Custom arguments passed directly to `tplay`.                               |
+| Variable                                  | Default | Description                                                                |
+| :---------------------------------------- | :------ | :------------------------------------------------------------------------- |
+| `CONFIG_PLAYER`                           | `mpv`   | Preferred media player. Options: `mpv`, `vlc`, `tplay`.                    |
+| `CONFIG_DISOWN_PLAYER`                    | `false` | Set to `true` to run the player in the background without blocking the UI. |
+| `CONFIG_MPV_ARGS`                         | `""`    | Custom arguments passed directly to `mpv`.                                 |
+| `CONFIG_VLC_ARGS`                         | `""`    | Custom arguments passed directly to `vlc`.                                 |
+| `CONFIG_TPLAY_ARGS`                       | `""`    | Custom arguments passed directly to `tplay`.                               |
+| `CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME` | `""`    | Custom activity name to launch when using mpv player on Android            |
+| `CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME` | `""`    | Custom activity name to launch when using vlc player on Android            |
 
 #### yt-dlp
 
