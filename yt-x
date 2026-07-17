@@ -163,6 +163,8 @@ __load_default_config() {
   : "${CONFIG_MPV_ARGS:=}"
   : "${CONFIG_VLC_ARGS:=}"
   : "${CONFIG_TPLAY_ARGS:=}"
+  : "${CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME:=}"
+  : "${CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME:=}"
   : "${CONFIG_PER_PAGE:=30}"
   : "${CONFIG_BROWSER:=}"
   : "${CONFIG_CACHE_RETENTION_DAYS:=3}"
@@ -237,6 +239,9 @@ __load_env_config() {
   CONFIG_MPV_ARGS="${YT_X_MPV_ARGS:-$CONFIG_MPV_ARGS}"
   CONFIG_VLC_ARGS="${YT_X_VLC_ARGS:-$CONFIG_VLC_ARGS}"
   CONFIG_TPLAY_ARGS="${YT_X_TPLAY_ARGS:-$CONFIG_TPLAY_ARGS}"
+
+  CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME="${YT_X_PLAYER_MPV_ANDROID_ACTIVITY_NAME:-$CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME}"
+  CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME="${YT_X_PLAYER_VLC_ANDROID_ACTIVITY_NAME:-$CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME}"
 
   CONFIG_DOWNLOAD_DIR="${YT_X_DOWNLOAD_DIR:-$CONFIG_DOWNLOAD_DIR}"
   CONFIG_YT_DLP_OPTS="${YT_X_YT_DLP_OPTS:-$CONFIG_YT_DLP_OPTS}"
@@ -514,6 +519,8 @@ Options:
   --tplay-args                   Pass custom tplay args at runtime
   --disown-player                Detach the player process from the terminal
   --no-disown-player             Keep player attached (default)
+  --mpv-activity-name            Pass custom activity name on android for mpv
+  --vlc-activity-name            Pass custom activity name on android for vlc
   --rofi-theme-main <path>       Path to the rofi main theme file
   --rofi-theme-preview <path>    Path to the rofi preview theme file
   --rofi-theme-prompt <path>     Path to the rofi prompt theme file
@@ -862,6 +869,10 @@ CONFIG_PLAYER="$CONFIG_PLAYER"
 CONFIG_MPV_ARGS="$CONFIG_MPV_ARGS"
 CONFIG_VLC_ARGS="$CONFIG_VLC_ARGS"
 CONFIG_TPLAY_ARGS="$CONFIG_TPLAY_ARGS"
+
+# Name of the activity to launch on Android. Useful if you are using a fork with a different activity name
+CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME="$CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME"
+CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME="$CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME"
 
 # Whether to disown the player, process to prevent blocking the UI
 # options: true, false (Default: false)
@@ -2376,9 +2387,11 @@ __player_mpv() {
   local mode
   local opts
   local mpv_cmd
+  local activity_name
 
   mode="$2"
   opts="$CONFIG_MPV_ARGS"
+  activity_name="${CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME:-is.xyz.mpv/.MPVActivity}"
 
   case "$CLI_PLATFORM" in
   android)
@@ -2390,7 +2403,8 @@ __player_mpv() {
       url="$(__fetch_video_url "$1")"
       ;;
     esac
-    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 &
+
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n "$activity_name" >/dev/null 2>&1 &
     ;;
   *)
     url="$1"
@@ -2429,9 +2443,11 @@ __player_vlc() {
   local mode
   local opts
   local vlc_cmd
+  local activity_name
 
   mode="$2"
   opts="$CONFIG_VLC_ARGS"
+  activity_name="${CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME:-org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity}"
 
   case "$CLI_PLATFORM" in
   android)
@@ -2443,7 +2459,7 @@ __player_vlc() {
       url="$(__fetch_video_url "$1")"
       ;;
     esac
-    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n org.videolan.vlc/org.videolan.vlc.gui.video.VideoPlayerActivity -e "title" "$STATE_CURRENT_VIDEO_TITLE" >/dev/null 2>&1 &
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n "$activity_name" -e "title" "$STATE_CURRENT_VIDEO_TITLE" >/dev/null 2>&1 &
     ;;
   *)
     url="$1"
@@ -2477,9 +2493,11 @@ __player_tplay() {
   local mode
   local opts
   local tplay_cmd
+  local activity_name
 
   mode="$2"
   opts="$CONFIG_TPLAY_ARGS"
+  activity_name="${CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME:-is.xyz.mpv/.MPVActivity}"
 
   case "$CLI_PLATFORM" in
   android)
@@ -2491,7 +2509,7 @@ __player_tplay() {
       url="$(__fetch_video_url "$1")"
       ;;
     esac
-    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n is.xyz.mpv/.MPVActivity >/dev/null 2>&1 &
+    nohup am start --user 0 -a android.intent.action.VIEW -d "$url" -n "$activity_name" >/dev/null 2>&1 &
     ;;
   *)
     url="$1"
@@ -2806,7 +2824,7 @@ __menu_media_actions_shell() {
     _util_terminal_exec fish
   else
     local init_file
-    init_file="$(mktemp /tmp/yt_x_sh_init.XXXXXX)"
+    init_file="$(mktemp "${TMPDIR:-/tmp}/yt_x_sh_init.XXXXXX")"
 
     cat <<EOF >"$init_file"
 printf "%s" "$init_text"
@@ -4405,6 +4423,8 @@ complete -c $CLI_NAME -n "__fish_use_subcommand" -l player -s p -d "Media player
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l mpv-args -d "Pass custom mpv args at runtime"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l vlc-args -d "Pass custom vlc args at runtime"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l tplay-args -d "Pass custom tplay args at runtime"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l mpv-activity-name -d "Pass custom activity name on android for mpv"
+complete -c $CLI_NAME -n "__fish_use_subcommand" -l vlc-activity-name -d "Pass custom activity name on android for vlc"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l disown-player -d "Disown player"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l no-disown-player -d "Do not disown player"
 complete -c $CLI_NAME -n "__fish_use_subcommand" -l rofi-theme-main -d "Rofi main theme path" --require-parameter
@@ -4549,6 +4569,16 @@ _app_cmd_line_parser() {
     --tplay-args)
       [ -n "$2" ] || _app_usage 1
       CONFIG_TPLAY_ARGS="$2"
+      shift_count=2
+      ;;
+    --mpv-activity-name)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_PLAYER_MPV_ANDROID_ACTIVITY_NAME="$2"
+      shift_count=2
+      ;;
+    --vlc-activity-name)
+      [ -n "$2" ] || _app_usage 1
+      CONFIG_PLAYER_VLC_ANDROID_ACTIVITY_NAME="$2"
       shift_count=2
       ;;
     --disown-player) CONFIG_DISOWN_PLAYER=true ;;
