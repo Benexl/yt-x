@@ -3802,6 +3802,7 @@ _search_apply_filters() {
     colon_part="${term%%[ 	]*}"
     cand="${colon_part#:}"
     maybe_sp=$(_parse_search_filter "$cand" 2>/dev/null)
+    # shellcheck disable=SC2181
     if [ $? -eq 0 ]; then
       sp="$maybe_sp"
       if [ "$colon_part" = "$term" ]; then
@@ -3818,6 +3819,7 @@ _search_apply_filters() {
     suffix=$(printf '%s\n' "$term" | sed -n 's/.*[ 	]\{1,\}:\([^ 	]\{1,\}\)$/\1/p')
     if [ -n "$suffix" ]; then
       maybe_sp=$(_parse_search_filter "$suffix" 2>/dev/null)
+      # shellcheck disable=SC2181
       if [ $? -eq 0 ]; then
         sp="$maybe_sp"
         term=$(printf '%s\n' "$term" | sed 's/[ 	]\{1,\}:[^ 	]\{1,\}$//')
