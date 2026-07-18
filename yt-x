@@ -75,8 +75,6 @@ else
   readonly CLI_SUPPORTS_TRUE_COLOR=false
 fi
 
-export SHELL="sh"
-
 # ==============================================================================
 # SETUP PATHS
 # ==============================================================================
@@ -1045,6 +1043,8 @@ _util_generate_hash() {
     input=$(cat)
   fi
 
+  input=$(printf '%s' "$input" | tr -d '\r')
+
   if _dep_ch sha256sum; then
     printf "%s" "$input" | sha256sum | awk '{print $1}'
   elif _dep_ch shasum; then
@@ -1533,7 +1533,7 @@ fzf_preview() {
   elif command -v chafa >/dev/null 2>&1; then
     case "$CLI_PLATFORM" in
     android) chafa -s "$dim" "$file" ;;
-    windows) chafa -f sixel -s "$dim" "$file" ;;
+    windows) chafa -f sixels --colors=full --polite=on --animate=off -s "$dim" "$file" ;;
     *) chafa -s "$dim" "$file" ;;
     esac
     echo
@@ -1684,18 +1684,18 @@ fi
 
 draw_divider
 
-title="\$(printf $title | fold -s -w "\$FZF_PREVIEW_COLUMNS")"
+title="\$(printf '%s' $title | fold -s -w "\$FZF_PREVIEW_COLUMNS")"
 printf "${THEME_FZF_PREVIEW_TITLE}%s${THEME_FZF_PREVIEW_TITLE}\n" "\$title"
 
 draw_divider
 
 if ! [ $channel = "null" ];then
-channel="\$(printf $channel | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+channel="\$(printf '%s' $channel | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel${THEME_RESET}";
 fi
 
 if ! [ "$channel_follower_count" = "null" ];then
-channel_follower_count="\$(printf "$channel_follower_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+channel_follower_count="\$(printf '%s' "$channel_follower_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel_follower_count${THEME_RESET}";
 fi
 
@@ -1704,22 +1704,22 @@ draw_divider
 fi
 
 if ! [ "$duration" = "null" ];then
-duration="\$(printf "$duration" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+duration="\$(printf '%s' "$duration" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$duration${THEME_RESET}";
 fi
 
 if ! [ "$view_count" = "null" ];then
-view_count="\$(printf "$view_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+view_count="\$(printf '%s' "$view_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$view_count views${THEME_RESET}";
 fi
 
 if ! [ "$live_status" = "null" ];then
-live_status="\$(printf "$live_status" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+live_status="\$(printf '%s' "$live_status" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$live_status${THEME_RESET}";
 fi
 
 if ! [ "$timestamp" = "null" ];then
-timestamp="\$(printf "$timestamp" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+timestamp="\$(printf '%s' "$timestamp" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$timestamp${THEME_RESET}";
 fi
 if ! [ $channel = "null" ] || ! [ "$channel_follower_count" = "null" ] || ! [ "$duration" = "null" ] || ! [ "$view_count" = "null" ] || ! [ "$live_status" = "null" ] || ! [ "$timestamp" = "null" ];then
@@ -1756,6 +1756,11 @@ __preview_download_image() {
   images_to_download_file="$3"
 
   if ! [ -s "$output_path" ]; then
+    if [ "$CLI_PLATFORM" = "windows" ] && command -v cygpath >/dev/null 2>&1; then
+      # Windows' builtin curl binary cannot process MSYS-style path `/c/Users`.
+      # Convert to windows format before passing to curl.
+      output_path=$(cygpath -m "$output_path")
+    fi
     printf 'url=%s\n' "$url" >>"$images_to_download_file"
     printf 'output=%s\n' "$output_path" >>"$images_to_download_file"
   fi
@@ -1793,9 +1798,9 @@ _preview_fzf() {
   data_to_preview="$1"
 
   if [ "$CONFIG_ENABLE_PREVIEW" = "true" ]; then
-    _preview_fzf_generate_script "$data_to_preview" &
+    _preview_fzf_generate_script "$data_to_preview" </dev/null &
     if [ "$CONFIG_ENABLE_PREVIEW_IMAGES" = "true" ]; then
-      _preview_fzf_download_imgs "$data_to_preview" &
+      _preview_fzf_download_imgs "$data_to_preview" </dev/null &
     fi
   fi
 }
