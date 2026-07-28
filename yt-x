@@ -39,7 +39,7 @@ readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
 # ==============================================================================
 # SETUP
 # ==============================================================================
-# shellcheck disable=2155
+# shellcheck disable=SC2155
 readonly CLI_START_TIME="$(date +%s)"
 
 _dep_ch() {
@@ -330,10 +330,10 @@ __load_default_lang() {
   TXT_RECENT_FILE_NOT_FOUND="You don't have any recent videos. Try watching sth first : ). And an entry will be created at $CLI_RECENT_FILE"
 
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
-  # shellcheck disable=2034
+  # shellcheck disable=SC2034
   TXT_MENU_MAIN="Main Menu"
   TXT_MENU_MAIN_FEED="Your Feed"
-  # shellcheck disable=2034
+  # shellcheck disable=SC2034
   TXT_MENU_MAIN_TRENDING="Trending"
   TXT_MENU_MAIN_PLAYLISTS="Playlists"
   TXT_MENU_MAIN_SEARCH="Search"
