@@ -1,7 +1,25 @@
 #!/usr/bin/env sh
-# shellcheck disable=SC3043,SC2034,SC1090
+# shellcheck disable=SC1090,SC3043
+# ==============================================================================
 # yt-x - Browse media from the terminal or app launcher
 # MIT License - Copyright (c) 2024-2026 Benexl
+# ==============================================================================
+# File wide shellcheck ignores
+# ==============================================================================
+# SC1090 – Can't follow non-constant source. Use a directive to specify location
+# unhelpful in most cases
+# ==============================================================================
+# SC3043 – In POSIX sh, `local` is undefined.
+# we manually handle this by defining a fallback
+# ==============================================================================
+# Scoped shellcheck ignores
+# ==============================================================================
+# SC1091 – Not following: (error message here)
+# SC2086 – Double quote to prevent globbing and word splitting.
+# SC2120 – foo references arguments, but none are ever passed.
+# SC2141 – Did you mean `IFS=$'\t'` ?
+# SC2155 – Declare and assign separately to avoid masking return values.
+# ==============================================================================
 
 # ==============================================================================
 # META
