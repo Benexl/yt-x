@@ -16,6 +16,7 @@
 # ==============================================================================
 # SC1091 – Not following: (error message here)
 # SC2086 – Double quote to prevent globbing and word splitting.
+# SC2034 – foo appears unused. Verify it or export it.
 # SC2120 – foo references arguments, but none are ever passed.
 # SC2141 – Did you mean `IFS=$'\t'` ?
 # SC2155 – Declare and assign separately to avoid masking return values.
@@ -32,8 +33,8 @@ readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
 readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
-readonly CLI_RELEASE_TAG="$CLI_RELEASES_BASE/v$CLI_VERSION"
-readonly CLI_RELEASE_URL="$CLI_RELEASE_TAG/yt-x"
+# readonly CLI_RELEASE_TAG="$CLI_RELEASES_BASE/v$CLI_VERSION"
+# readonly CLI_RELEASE_URL="$CLI_RELEASE_TAG/yt-x"
 
 # ==============================================================================
 # SETUP
@@ -48,15 +49,8 @@ _dep_ch() {
 # ==============================================================================
 # SETUP ENVIRONMENT
 # ==============================================================================
-if [ -n "$BASH_VERSION" ]; then
-  readonly CLI_SHELL="bash"
-elif [ -n "$ZSH_VERSION" ]; then
-  readonly CLI_SHELL="zsh"
+if [ -n "$ZSH_VERSION" ]; then
   setopt shwordsplit
-elif [ -n "$KSH_VERSION" ]; then
-  readonly CLI_SHELL="ksh"
-else
-  readonly CLI_SHELL="sh"
 fi
 
 if ! _dep_ch local; then
@@ -121,7 +115,7 @@ readonly CLI_FZF_PREVIEW_SCRIPT="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 
 readonly CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
 readonly CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
-readonly CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
+# readonly CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
 readonly CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config"
 readonly CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
@@ -132,7 +126,7 @@ readonly CLI_CUSTOM_PLAYLISTS_FILE="$CLI_CONFIG_DIR/custom-playlists.json"
 readonly CLI_SUBSCRIPTIONS_FILE="$CLI_CONFIG_DIR/subscriptions.json"
 readonly CLI_CUSTOM_CMDS_FILE="$CLI_CONFIG_DIR/custom-cmds.json"
 readonly CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search-history.txt"
-readonly CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
+# readonly CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
 
 mkdir -p \
   "$CLI_EXTENSIONS_SITES_DIR" \
@@ -336,8 +330,10 @@ __load_default_lang() {
   TXT_RECENT_FILE_NOT_FOUND="You don't have any recent videos. Try watching sth first : ). And an entry will be created at $CLI_RECENT_FILE"
 
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
+  # shellcheck disable=2034
   TXT_MENU_MAIN="Main Menu"
   TXT_MENU_MAIN_FEED="Your Feed"
+  # shellcheck disable=2034
   TXT_MENU_MAIN_TRENDING="Trending"
   TXT_MENU_MAIN_PLAYLISTS="Playlists"
   TXT_MENU_MAIN_SEARCH="Search"
@@ -369,8 +365,6 @@ Recall history         –  !1, !2, … (newest = 1)"
   TXT_MENU_MAIN_CLIPS="Clips"
   TXT_MENU_MAIN_EDIT_CONFIG="Edit Config"
   TXT_MENU_MAIN_MISC="Miscellaneous"
-
-  TXT_MENU_PROMPT_SEARCH="Enter search query"
 
   TXT_MENU_MISC_PROMPT="Select an action"
 
@@ -779,10 +773,10 @@ __load_default_theme() {
     THEME_FZF_ICON_COLOR_PRIMARY="$(printf '\033[38;2;42;195;222m')"
 
     # Tokyo Night: Dark3 (#545c7e)
-    THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;84;92;126m')"
+    # THEME_FZF_ICON_COLOR_SECONDARY="$(printf '\033[38;2;84;92;126m')"
 
     # Tokyo Night: Orange (#ff9e64)
-    THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;255;158;100m')"
+    # THEME_FZF_ICON_COLOR_ACCENT="$(printf '\033[38;2;255;158;100m')"
 
     # Tokyo Night: Pink (#ff007c)
     THEME_FZF_ICON_COLOR_ERROR="$(printf '\033[38;2;255;0;124m')"
@@ -1293,7 +1287,7 @@ _ui_launcher_with_preview() {
     case "$CONFIG_LAUNCHER" in
     rofi) __ui_rofi_launcher_with_preview "$@" ;;
     fzf) __ui_fzf_launcher_with_preview "$@" ;;
-    gum) __ui_gum_launcher "$@" ;;
+    gum) printf '%s' "$TXT_LAUNCHER_PREVIEWS_UNSUPPORTED" ;;
     *) ui_notify_critical "$TXT_LAUNCHER_UNKNOWN: $CONFIG_LAUNCHER" ;;
     esac
   else
@@ -1583,7 +1577,6 @@ __preview_fzf_generate_script_for_item() {
   local duration
   local timestamp
   local preview_script_path
-  local script
   local img_url
 
   data_item="$1"
@@ -2619,7 +2612,6 @@ _update_saved_videos() {
 }
 
 _update_saved_playlists() {
-  local custom_playlist
   local custom_playlists
   local playlist_name
   local playlist_id
@@ -2682,7 +2674,7 @@ _remove_saved_video() {
 }
 
 _remove_saved_playlist() {
-  local custom_playlist
+  local custom_playlists
   local playlist_id
 
   custom_playlists="[]"
@@ -4568,6 +4560,7 @@ _app_cmd_line_parser() {
       ;;
     -xargs | --extension-arguments)
       shift
+      # shellcheck disable=SC2034
       readonly CLI_EXTENSION_CMDLINE_ARGS="$*"
       return
       ;;
