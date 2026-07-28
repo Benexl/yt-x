@@ -23,8 +23,8 @@ jobs:
         with:
           files: |
             yt-x
-            external-configs/mpv.conf
-            external-configs/yt-dlp.conf
+            configs/mpv.conf
+            configs/yt-dlp.conf
             extensions/langs/br.lang
             extensions/langs/es.lang
             extensions/themes/catppuchin-mocha.theme
