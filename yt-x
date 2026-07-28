@@ -96,6 +96,8 @@ XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 
 readonly CLI_CONFIG_DIR="$XDG_CONFIG_HOME/$CLI_APP_NAME"
 
+readonly CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config"
+
 readonly CLI_MY_DIR="$CLI_CONFIG_DIR/my"
 readonly CLI_MY_RECENTS_FILE="$CLI_MY_DIR/recents.json"
 readonly CLI_MY_VIDEOS_FILE="$CLI_MY_DIR/videos.json"
@@ -110,6 +112,9 @@ readonly CLI_EXTENSIONS_LANGS_DIR="$CLI_EXTENSIONS_DIR/langs"
 readonly CLI_EXTENSIONS_CMDS_DIR="$CLI_EXTENSIONS_DIR/cmds"
 readonly CLI_EXTENSIONS_UI_DIR="$CLI_EXTENSIONS_DIR/ui"
 
+readonly CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
+readonly CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
+
 readonly CLI_CACHE_DIR="$XDG_CACHE_HOME/$CLI_APP_NAME"
 
 readonly CLI_STATE_DIR="$CLI_CACHE_DIR/state"
@@ -118,15 +123,12 @@ readonly CLI_CURRENT_STATE_DIR="$CLI_STATE_DIR/${CLI_START_TIME}-$$"
 readonly CLI_PREVIEW_DIR="$CLI_CACHE_DIR/previews"
 readonly CLI_PREVIEW_IMGS_DIR="$CLI_PREVIEW_DIR/images"
 readonly CLI_PREVIEW_SCRIPTS_DIR="$CLI_PREVIEW_DIR/text"
-readonly CLI_FZF_PREVIEW_SCRIPT="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
+readonly CLI_PREVIEW_FZF_SCRIPT="$CLI_PREVIEW_SCRIPTS_DIR/fzf-preview.sh"
 
 readonly CLI_AUTO_GEN_PLAYLISTS="$CLI_CACHE_DIR/generated-playlists"
 readonly CLI_DOWNLOAD_ARCHIVE_DIR="$CLI_CACHE_DIR/archives"
 # readonly CLI_LOG_DIR="$CLI_CACHE_DIR/logs"
 
-readonly CLI_CONFIG_FILE="$CLI_CONFIG_DIR/config"
-readonly CLI_DEFAULT_THEME_FILE="$CLI_EXTENSIONS_THEMES_DIR/default.theme"
-readonly CLI_DEFAULT_LANG_FILE="$CLI_EXTENSIONS_LANGS_DIR/default.lang"
 readonly CLI_SEARCH_HISTORY_FILE="$CLI_CACHE_DIR/search-history.txt"
 # readonly CLI_LOG_FILE="$CLI_LOG_DIR/${CLI_NAME}.log"
 
@@ -1504,8 +1506,8 @@ ui_load() {
 # Previews
 # ==============================================================================
 __preview_fzf_create_shared_script() {
-  if ! [ -s "$CLI_FZF_PREVIEW_SCRIPT" ]; then
-    cat <<'EOF' >"$CLI_FZF_PREVIEW_SCRIPT"
+  if ! [ -s "$CLI_PREVIEW_FZF_SCRIPT" ]; then
+    cat <<'EOF' >"$CLI_PREVIEW_FZF_SCRIPT"
 #!/usr/bin/env sh
 # ==============================================================================
 # Shared script for fzf previews
@@ -1678,11 +1680,11 @@ __preview_fzf_generate_script_for_item() {
 # item's data through the variables defined at the beginning (title, image_path,
 # view_count, live_status, description, channel, duration, timestamp).
 # You can also use any utilities or functions defined in the shared script 
-# ($CLI_FZF_PREVIEW_SCRIPT) to render images or format text.
+# ($CLI_PREVIEW_FZF_SCRIPT) to render images or format text.
 # ==============================================================================
 
-if [ -s "$CLI_FZF_PREVIEW_SCRIPT" ];then
-  . "$CLI_FZF_PREVIEW_SCRIPT"
+if [ -s "$CLI_PREVIEW_FZF_SCRIPT" ];then
+  . "$CLI_PREVIEW_FZF_SCRIPT"
 else
   exit 1
 fi
@@ -4272,7 +4274,7 @@ _app_update_script() {
   [ -z "$update" ] && ui_notify_critical "$TXT_UPDATE_FETCH_FAILED"
 
   if printf "%s\n" "$update" >"$CLI_PATH"; then
-    rm "$CLI_FZF_PREVIEW_SCRIPT" >/dev/null 2>&1
+    rm "$CLI_PREVIEW_FZF_SCRIPT" >/dev/null 2>&1
     if ui_confirm "$TXT_UPDATE_SCRIPT_REEXECUTE"; then
       # shellcheck disable=SC2086
       exec "$CLI_PATH" $CLI_ARGS
