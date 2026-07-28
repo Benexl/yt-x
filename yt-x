@@ -327,12 +327,12 @@ __load_default_lang() {
 
   TXT_CONFIG_BROWSER_NOT_SET="Please set CONFIG_BROWSER to proceed"
 
-  TXT_CUSTOM_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_MY_CMDS_FILE or use the ui"
+  TXT_MY_CMDS_FILE_NOT_FOUND="You dont have any custom cmds. Create them here $CLI_MY_CMDS_FILE or use the ui"
+  TXT_MY_VIDEOS_FILE_NOT_FOUND="You dont have any saved videos. Start saving videos to generate this file or edit the file here $CLI_MY_VIDEOS_FILE"
+  TXT_MY_PLAYLISTS_FILE_NOT_FOUND="You dont have any custom playlists. Start saving playlists to generate this file or edit the file here $CLI_MY_PLAYLISTS_FILE"
+  TXT_MY_SUBS_FILE_NOT_FOUND="You don't have any channel subscriptions. Please use the miscellaneous menu to add subscriptions to $CLI_MY_SUBSCRIPTIONS_FILE"
+  TXT_MY_RECENTS_FILE_NOT_FOUND="You don't have any recent videos. Try watching sth first : ). And an entry will be created at $CLI_MY_RECENTS_FILE"
   TXT_SEARCH_HISTORY_FILE_NOT_FOUND="You dont have any search history. Start searching to generate search history or edit the file here $CLI_SEARCH_HISTORY_FILE"
-  TXT_SAVED_VIDEOS_FILE_NOT_FOUND="You dont have any saved videos. Start saving videos to generate this file or edit the file here $CLI_MY_VIDEOS_FILE"
-  TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND="You dont have any custom playlists. Start saving playlists to generate this file or edit the file here $CLI_MY_PLAYLISTS_FILE"
-  TXT_SUBS_FILE_NOT_FOUND="You don't have any channel subscriptions. Please use the miscellaneous menu to add subscriptions to $CLI_MY_SUBSCRIPTIONS_FILE"
-  TXT_RECENT_FILE_NOT_FOUND="You don't have any recent videos. Try watching sth first : ). And an entry will be created at $CLI_MY_RECENTS_FILE"
 
   TXT_MENU_MAIN_PROMPT_ACTION="Select an action"
   # shellcheck disable=SC2034
@@ -357,16 +357,16 @@ Recall history         –  !1, !2, … (newest = 1)"
   TXT_MENU_MAIN_CHANNELS="Channels"
   TXT_MENU_MAIN_CHANNELS_PROMPT="Select Channel"
 
-  TXT_MENU_MAIN_CUSTOM_PLAYLISTS="Custom Playlists"
-  TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT="Select Playlist"
+  TXT_MENU_MAIN_MY_PLAYLISTS="My Playlists"
+  TXT_MENU_MAIN_MY_PLAYLISTS_PROMPT="Select Playlist"
 
   TXT_MENU_MAIN_LIKED="Liked Videos"
 
-  TXT_MENU_MAIN_SAVED="Saved Videos"
-  TXT_MENU_MAIN_SAVED_PROMPT="Select video"
+  TXT_MENU_MAIN_MY_VIDEOS="My Videos"
+  TXT_MENU_MAIN_MY_VIDEOS_PROMPT="Select video"
 
   TXT_MENU_MAIN_HISTORY="Watch History"
-  TXT_MENU_MAIN_RECENT="Recent"
+  TXT_MENU_MAIN_MY_RECENTS="Recent"
   TXT_MENU_MAIN_CLIPS="Clips"
   TXT_MENU_MAIN_EDIT_CONFIG="Edit Config"
   TXT_MENU_MAIN_MISC="Miscellaneous"
@@ -3599,7 +3599,7 @@ __menu_miscellaneous_custom_commands() {
       esac
     done
   else
-    ui_notify_warning "$TXT_CUSTOM_CMDS_FILE_NOT_FOUND"
+    ui_notify_warning "$TXT_MY_CMDS_FILE_NOT_FOUND"
   fi
 }
 
@@ -4008,7 +4008,7 @@ __menu_main_channels_explorer() {
       esac
     done
   else
-    ui_notify_warning "$TXT_SUBS_FILE_NOT_FOUND"
+    ui_notify_warning "$TXT_MY_SUBS_FILE_NOT_FOUND"
   fi
 }
 
@@ -4024,7 +4024,7 @@ __menu_main_custom_playlists() {
       else
         playlist_title=$(
           printf "%s\n%s" "$(jq -r '.|reverse|.[].name' "$CLI_MY_PLAYLISTS_FILE")" "$TXT_MENU_BACK" |
-            ui_launcher "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT"
+            ui_launcher "$TXT_MENU_MAIN_MY_PLAYLISTS_PROMPT"
         )
       fi
 
@@ -4051,7 +4051,7 @@ __menu_main_custom_playlists() {
       fi
     done
   else
-    ui_notify_warning "$TXT_CUSTOM_PLAYLISTS_FILE_NOT_FOUND"
+    ui_notify_warning "$TXT_MY_PLAYLISTS_FILE_NOT_FOUND"
   fi
 }
 
@@ -4086,7 +4086,7 @@ __menu_main_saved_videos() {
         selection=$(
           printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
             preview "$saved_videos" |
-            ui_launcher_with_preview "$TXT_MENU_MAIN_SAVED_PROMPT"
+            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
         )
       fi
 
@@ -4113,7 +4113,7 @@ __menu_main_saved_videos() {
       _util_byebye
     fi
   else
-    ui_notify_warning "$TXT_SAVED_VIDEOS_FILE_NOT_FOUND"
+    ui_notify_warning "$TXT_MY_VIDEOS_FILE_NOT_FOUND"
   fi
 }
 
@@ -4140,7 +4140,7 @@ __menu_main_recent() {
       selection=$(
         printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
           preview "$saved_videos" |
-          ui_launcher_with_preview "$TXT_MENU_MAIN_SAVED_PROMPT"
+          ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
       )
 
       case "$selection" in
@@ -4163,7 +4163,7 @@ __menu_main_recent() {
       esac
     done
   else
-    ui_notify_warning "$TXT_RECENT_FILE_NOT_FOUND"
+    ui_notify_warning "$TXT_MY_RECENTS_FILE_NOT_FOUND"
   fi
 }
 
@@ -4192,9 +4192,9 @@ _menu_main() {
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_WATCH_LATER}${THEME_RESET}  ${TXT_MENU_MAIN_WATCH_LATER}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_PLAYLISTS}${THEME_RESET}  ${TXT_MENU_MAIN_PLAYLISTS}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_CHANNELS}${THEME_RESET}  ${TXT_MENU_MAIN_CHANNELS}
- ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_CUSTOM_PLAYLISTS}${THEME_RESET}  ${TXT_MENU_MAIN_CUSTOM_PLAYLISTS}
- ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_SAVED}${THEME_RESET}  ${TXT_MENU_MAIN_SAVED}
- ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_RECENT}${THEME_RESET}  ${TXT_MENU_MAIN_RECENT}
+ ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_CUSTOM_PLAYLISTS}${THEME_RESET}  ${TXT_MENU_MAIN_MY_PLAYLISTS}
+ ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_SAVED}${THEME_RESET}  ${TXT_MENU_MAIN_MY_VIDEOS}
+ ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_RECENT}${THEME_RESET}  ${TXT_MENU_MAIN_MY_RECENTS}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_LIKED}${THEME_RESET}  ${TXT_MENU_MAIN_LIKED}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_HISTORY}${THEME_RESET}  ${TXT_MENU_MAIN_HISTORY}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MAIN_CLIPS}${THEME_RESET}  ${TXT_MENU_MAIN_CLIPS}
@@ -4230,9 +4230,9 @@ $extra_menu_options"
     "$TXT_MENU_MAIN_WATCH_LATER") __menu_main_watch_later ;;
     "$TXT_MENU_MAIN_PLAYLISTS") __menu_main_playlists ;;
     "$TXT_MENU_MAIN_CHANNELS") __menu_main_channels_explorer ;;
-    "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS") __menu_main_custom_playlists ;;
-    "$TXT_MENU_MAIN_SAVED") __menu_main_saved_videos ;;
-    "$TXT_MENU_MAIN_RECENT") __menu_main_recent ;;
+    "$TXT_MENU_MAIN_MY_PLAYLISTS") __menu_main_custom_playlists ;;
+    "$TXT_MENU_MAIN_MY_VIDEOS") __menu_main_saved_videos ;;
+    "$TXT_MENU_MAIN_MY_RECENTS") __menu_main_recent ;;
     "$TXT_MENU_MAIN_LIKED") __menu_main_liked_videos ;;
     "$TXT_MENU_MAIN_HISTORY") __menu_main_watch_history ;;
     "$TXT_MENU_MAIN_CLIPS") __menu_main_clips ;;
@@ -4646,9 +4646,9 @@ _app_cmd_line_parser() {
     --subscriptions-feed) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SUBS_FEED" ;;
     --watch-later) CMD_MAIN_ACTION="$TXT_MENU_MAIN_WATCH_LATER" ;;
     --playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_PLAYLISTS" ;;
-    --custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS" ;;
-    --saved) CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED" ;;
-    --recent) CMD_MAIN_ACTION="$TXT_MENU_MAIN_RECENT" ;;
+    --custom-playlists) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MY_PLAYLISTS" ;;
+    --saved) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MY_VIDEOS" ;;
+    --recent) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MY_RECENTS" ;;
     --liked) CMD_MAIN_ACTION="$TXT_MENU_MAIN_LIKED" ;;
     --watch-history) CMD_MAIN_ACTION="$TXT_MENU_MAIN_HISTORY" ;;
     --clips) CMD_MAIN_ACTION="$TXT_MENU_MAIN_CLIPS" ;;
@@ -4661,9 +4661,9 @@ _app_cmd_line_parser() {
     --edit-yt-dlp-config) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_YTDLP_CONFIG" ;;
     --edit-custom-cmds) CMD_MAIN_ACTION="$TXT_MENU_MAIN_MISC" && CMD_MISC_ACTION="$TXT_MENU_MISC_EDIT_CUSTOM_CMDS" ;;
     -cp | --custom-playlist)
-      CMD_MAIN_ACTION="$TXT_MENU_MAIN_CUSTOM_PLAYLISTS"
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MY_PLAYLISTS"
       if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_CUSTOM_PLAYLISTS_PROMPT")"
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_MY_PLAYLISTS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
@@ -4671,9 +4671,9 @@ _app_cmd_line_parser() {
       fi
       ;;
     -sv | --saved-video)
-      CMD_MAIN_ACTION="$TXT_MENU_MAIN_SAVED"
+      CMD_MAIN_ACTION="$TXT_MENU_MAIN_MY_VIDEOS"
       if [ -z "$2" ]; then
-        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_SAVED_PROMPT")"
+        CMD_INPUT="$(ui_prompt "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT")"
         [ -n "$CMD_INPUT" ] || _app_usage 1
       else
         CMD_INPUT="$2"
