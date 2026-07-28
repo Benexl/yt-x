@@ -138,8 +138,8 @@ mkdir -p \
   "$CLI_PREVIEW_IMGS_DIR" \
   "$CLI_PREVIEW_SCRIPTS_DIR" \
   "$CLI_AUTO_GEN_PLAYLISTS" \
-  "$CLI_DOWNLOAD_ARCHIVE_DIR" \
-  "$CLI_LOG_DIR"
+  "$CLI_DOWNLOAD_ARCHIVE_DIR"
+# "$CLI_LOG_DIR"
 
 # ==============================================================================
 # Declarations for lsp
@@ -4381,9 +4381,9 @@ _app_cache_clean_up() {
     find "$CLI_AUTO_GEN_PLAYLISTS" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
   fi
 
-  if [ -d "$CLI_LOG_DIR" ]; then
-    find "$CLI_LOG_DIR" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
-  fi
+  # if [ -d "$CLI_LOG_DIR" ]; then
+  #   find "$CLI_LOG_DIR" -type f -mtime "+$retention_days" -exec rm {} + 2>/dev/null
+  # fi
 }
 
 _app_runtime_clean_up() {
