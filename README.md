@@ -14,12 +14,6 @@
 
 </div>
 
-<p align="center">
-  <a href="https://discord.gg/6Y3STzYpSx">
-    <img src="https://invidget.switchblade.xyz/6Y3STzYpSx" alt="Discord Server Invite">
-  </a>
-</p>
-
 [yt-x demo](https://github.com/user-attachments/assets/862bcdc2-fe38-4367-8cce-a4c8dba3be61)
 
 <details>
