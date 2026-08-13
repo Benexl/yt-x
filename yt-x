@@ -4273,17 +4273,19 @@ _app_update_script() {
   update="$1"
   [ -z "$update" ] && ui_notify_critical "$TXT_UPDATE_FETCH_FAILED"
 
-  if printf "%s\n" "$update" >"$CLI_PATH"; then
-    rm "$CLI_PREVIEW_FZF_SCRIPT" >/dev/null 2>&1
-    if ui_confirm "$TXT_UPDATE_SCRIPT_REEXECUTE"; then
-      # shellcheck disable=SC2086
-      exec "$CLI_PATH" $CLI_ARGS
-    else
-      exit 0
+  if printf "%s\n" "$update" >"$CLI_PATH.tmp"; then
+    if mv "$CLI_PATH.tmp" "$CLI_PATH"; then
+      rm "$CLI_PATH.tmp"
+      if ui_confirm "$TXT_UPDATE_SCRIPT_REEXECUTE"; then
+        # shellcheck disable=SC2086
+        exec "$CLI_PATH" $CLI_ARGS
+      else
+        exit 0
+      fi
     fi
-  else
-    ui_notify_critical "$TXT_UPDATE_FAILED"
   fi
+  rm "$CLI_PATH.tmp"
+  ui_notify_critical "$TXT_UPDATE_FAILED"
 }
 
 _app_update_check() {
