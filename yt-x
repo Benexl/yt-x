@@ -978,8 +978,6 @@ _load_config() {
 _util_terminal_exec() {
   local term
   local old_ifs
-  local cmd
-  cmd="$*"
   old_ifs="$IFS"
 
   if ! $CLI_IS_TERMINAL; then
@@ -987,20 +985,32 @@ _util_terminal_exec() {
       term="$CONFIG_TERMINAL_EXEC"
     elif _dep_ch kitty; then
       term="kitty --exec"
+    elif _dep_ch ghostty; then
+      term="ghostty -e"
     elif _dep_ch alacritty; then
       term="alacritty --command"
+    elif _dep_ch gnome-terminal; then
+      term="gnome-terminal --"
+    elif _dep_ch ptyxis; then
+      term="ptyxis --"
+    elif _dep_ch konsole; then
+      term="konsole -e"
+    elif _dep_ch foot; then
+      term="foot"
+    elif _dep_ch wezterm; then
+      term="wezterm start"
     else
       ui_notify_error "$TXT_NO_TERMINAL_EXEC"
       return 1
     fi
     IFS=" "
     # shellcheck disable=SC2086
-    $term $cmd
+    $term "$@"
     IFS="$old_ifs"
     return
   fi
   IFS=" "
-  $cmd
+  "$@"
   IFS="$old_ifs"
 }
 
