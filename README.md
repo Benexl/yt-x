@@ -8,7 +8,7 @@
 [![GitHub License](https://img.shields.io/github/license/Benexl/yt-x?style=flat-square)](https://github.com/Benexl/yt-x/blob/master/LICENSE)
 [![GitHub file size in bytes](https://img.shields.io/github/size/Benexl/yt-x/yt-x?style=flat-square)]()
 ![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/Benexl/yt-x/yt-x?displayAssetName=false&style=flat-square&color=%2397ca00)
-[![Discord](https://img.shields.io/discord/1250887070906323096?label=Discord&logo=discord)](https://discord.gg/6Y3STzYpSx)
+[![Discord](https://img.shields.io/discord/1537436466479759422?label=Discord&logo=discord)](https://discord.gg/6Y3STzYpSx)
 [![GitHub Release](https://img.shields.io/github/v/release/Benexl/yt-x?style=flat-square)](https://github.com/Benexl/yt-x/releases)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Benexl/yt-x?style=flat-square)]()
 
