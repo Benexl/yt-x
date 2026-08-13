@@ -233,8 +233,9 @@ __load_default_config() {
   -i
   --exact
   --tabstop=1
-  --preview-window=border-rounded,left,35%,wrap
-  --wrap"}"
+  --preview-window=border-rounded,left,35%,wrap-word
+  --wrap-sign=''
+  --wrap-word"}"
 }
 
 __load_env_config() {
@@ -1700,18 +1701,18 @@ fi
 
 draw_divider
 
-title="\$(printf '%s' $title | fold -s -w "\$FZF_PREVIEW_COLUMNS")"
+title=$title
 printf "${THEME_FZF_PREVIEW_TITLE}%s${THEME_FZF_PREVIEW_TITLE}\n" "\$title"
 
 draw_divider
 
 if ! [ $channel = "null" ];then
-channel="\$(printf '%s' $channel | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+channel=$channel
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel${THEME_RESET}";
 fi
 
 if ! [ "$channel_follower_count" = "null" ];then
-channel_follower_count="\$(printf '%s' "$channel_follower_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+channel_follower_count="$channel_follower_count"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_CHANNEL_FOLLOWERS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$channel_follower_count${THEME_RESET}";
 fi
 
@@ -1720,22 +1721,22 @@ draw_divider
 fi
 
 if ! [ "$duration" = "null" ];then
-duration="\$(printf '%s' "$duration" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+duration="$duration"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_DURATION}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$duration${THEME_RESET}";
 fi
 
 if ! [ "$view_count" = "null" ];then
-view_count="\$(printf '%s' "$view_count" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+view_count="$view_count"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_VIEW_COUNT}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$view_count views${THEME_RESET}";
 fi
 
 if ! [ "$live_status" = "null" ];then
-live_status="\$(printf '%s' "$live_status" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+live_status="$live_status"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_LIVE_STATUS}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$live_status${THEME_RESET}";
 fi
 
 if ! [ "$timestamp" = "null" ];then
-timestamp="\$(printf '%s' "$timestamp" | fold -s -w \$FZF_PREVIEW_COLUMNS)"
+timestamp="$timestamp"
 printf "${THEME_FZF_PREVIEW_KEY}${THEME_BOLD}${TXT_FZF_PREVIEW_TIMESTAMP}: ${THEME_RESET}%s\n" "${THEME_FZF_PREVIEW_VALUE}\$timestamp${THEME_RESET}";
 fi
 if ! [ $channel = "null" ] || ! [ "$channel_follower_count" = "null" ] || ! [ "$duration" = "null" ] || ! [ "$view_count" = "null" ] || ! [ "$live_status" = "null" ] || ! [ "$timestamp" = "null" ];then
@@ -1743,7 +1744,7 @@ draw_divider
 fi
 
 if ! [ $description = "null" ];then
-  printf "%s\n" $description|fold -s -w "\$FZF_PREVIEW_COLUMNS"
+  printf "%s\n" $description
 fi
 EOF
 }
