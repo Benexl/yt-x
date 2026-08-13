@@ -481,7 +481,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_UPDATE_FAILED="Can't update for some reason!"
   TXT_UPDATE_FETCH_FAILED="Something went wrong fetching the update, can't proceed with the update"
   TXT_UPDATE_FOUND="An update has been found would you like to see the changes before deciding whether to update?"
-  TXT_DEP_MISSING_DIFF="Could not find diff in path please install it to view update diffs"
+  TXT_DEP_MISSING_DIFF="Could not find kitten diff or diff in path please install it to view update diffs"
   TXT_UPDATE_CONFIRM="Would you like to proceed with the update?"
   TXT_UPDATE_NOT_FOUND="No updates found"
 
@@ -4298,7 +4298,9 @@ _app_update_check() {
     update="$(curl -sL "${CLI_RELEASES_BASE}/v${latest_version}/$CLI_NAME")"
     [ -z "$update" ] && return 1
 
-    if _dep_ch diff; then
+    if $CLI_IS_TERMINAL && _dep_ch kitten && kitten diff --help >/dev/null 2>&1; then
+      ui_confirm "$TXT_UPDATE_FOUND" && printf "%s\n" "$update" | kitten diff "$CLI_PATH" /dev/stdin
+    elif _dep_ch diff; then
       update_diff="$(printf "%s\n" "$update" | diff -u "$CLI_PATH" -)"
       ui_confirm "$TXT_UPDATE_FOUND" && printf '%s\n' "$update_diff" | ui_pager
     else
