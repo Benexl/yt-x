@@ -33,6 +33,7 @@ readonly CLI_AUTHOR="Benexl"
 readonly CLI_REPO_URL="https://github.com/Benexl/yt-x"
 readonly CLI_VERSION_URL="https://raw.githubusercontent.com/Benexl/yt-x/refs/heads/master/version.txt"
 readonly CLI_RELEASES_BASE="https://github.com/Benexl/yt-x/releases/download"
+readonly CLI_DISCORD_URL="https://discord.gg/6Y3STzYpSx"
 # readonly CLI_RELEASE_TAG="$CLI_RELEASES_BASE/v$CLI_VERSION"
 # readonly CLI_RELEASE_URL="$CLI_RELEASE_TAG/yt-x"
 
@@ -654,8 +655,8 @@ Examples:
   $CLI_NAME --cmd-exit channels -n 'freeCodeCamp.org' # useful for setting aliases eg a shortcut to always go to freecodecamp channel 'freecodecamp'
   $CLI_NAME --launcher rofi --cmd-exit channels -n 'freeCodeCamp.org' # or as an app eg  'freecodecamp-app'
 
-For more details visit the FAQ:
-  https://github.com/Benexl/yt-x#frequently-asked-questions-faq"
+Incase of any questions join the discord server $CLI_DISCORD_URL
+or read the readme and especially the FAQ section at $CLI_REPO_URL"
 
   TXT_APP_USAGE_CHANNELS="\
 Browse YouTube channels or search within them directly from the command line.
@@ -953,6 +954,10 @@ CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 # Number of days to keep cached preview images, playlists, and logs
 # Default: 3
 CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
+
+# ==============================================================================
+# Join the community at $CLI_DISCORD_URL
+# and don't forget to star the repo $CLI_REPO_URL :)
 # ==============================================================================
 # 楽しんでね
 # ==============================================================================
