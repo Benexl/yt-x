@@ -1085,8 +1085,8 @@ _util_menu_sort() {
       input_array[NR]=$0
     }
     END {
-    for(o in sort_array)
-      print input_array[sort_array[o]]
+      for(i=1; i<=length(sort_array); i++)
+        print input_array[sort_array[i]]
     }'
 }
 
