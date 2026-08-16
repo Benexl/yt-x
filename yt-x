@@ -18,7 +18,6 @@
 # SC2086 – Double quote to prevent globbing and word splitting.
 # SC2034 – foo appears unused. Verify it or export it.
 # SC2120 – foo references arguments, but none are ever passed.
-# SC2141 – Did you mean `IFS=$'\t'` ?
 # SC2155 – Declare and assign separately to avoid masking return values.
 # ==============================================================================
 
