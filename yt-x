@@ -4183,17 +4183,15 @@ __menu_main_recent() {
 }
 
 __menu_main_edit_config() {
+  local active_launcher
+  active_launcher="$CONFIG_LAUNCHER"
+
   _util_file_edit "$CLI_CONFIG_FILE"
   _load_config
 
-  # NOTE:
-  # this helps preserve the cmdline options pass which is important if you ran
-  # the script with rofi for example and your default launcher is fzf however,
-  # since there is no good way to pass the args without leaving it unquoted it
-  # will fail where you pass arguments with spaces, may need to change how we
-  # parse cmdline args plus a repass is inefficient.
-  # shellcheck disable=SC2086
-  _app_cmd_line_parser $CLI_ARGS
+  # Keep the launcher for the current session (e.g. rofi), even if the edited
+  # config changes CONFIG_LAUNCHER; the new value will apply on the next start.
+  CONFIG_LAUNCHER="$active_launcher"
 }
 
 # shellcheck disable=SC2120
