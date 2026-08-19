@@ -4183,15 +4183,15 @@ __menu_main_recent() {
 }
 
 __menu_main_edit_config() {
-  local active_launcher
-  active_launcher="$CONFIG_LAUNCHER"
+  local current_launcher
+  current_launcher="$CONFIG_LAUNCHER"
 
   _util_file_edit "$CLI_CONFIG_FILE"
   _load_config
 
   # Keep the launcher for the current session (e.g. rofi), even if the edited
   # config changes CONFIG_LAUNCHER; the new value will apply on the next start.
-  CONFIG_LAUNCHER="$active_launcher"
+  CONFIG_LAUNCHER="$current_launcher"
 }
 
 # shellcheck disable=SC2120
