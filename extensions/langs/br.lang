@@ -149,6 +149,7 @@ TXT_MENU_CHANNEL_ACTIONS_SHORTS="Shorts"
 TXT_MENU_CHANNEL_ACTIONS_STREAMS="Transmissões"
 TXT_MENU_CHANNEL_ACTIONS_PODCASTS="Podcasts"
 TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE="Inscrever-se"
+TXT_MENU_CHANNEL_ACTIONS_OPEN_IN_BROWSER="Abrir no Navegador"
 TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM="Gostaria de importar suas inscrições do YouTube primeiro? Você não poderá fazer isso novamente a menos que apague $CLI_SUBSCRIPTIONS_FILE"
 
 TXT_MENU_PLAYLISTS_EXPLORER_PROMPT="Selecionar Playlist"
