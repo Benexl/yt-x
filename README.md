@@ -19,10 +19,6 @@
 <details>
 <summary><b>View Demos & Previews</b></summary>
 
-**Full Demo:**
-
-[yt-x-full-github-demo.webm](https://github.com/user-attachments/assets/06e388c4-4399-4358-a6cc-68045db48177)
-
 **Riced/Customized Previews:**
 
 <img width="1895" height="1036" alt="image" src="https://github.com/user-attachments/assets/c7eef0b5-9acb-4b2c-8dd0-76d0ae54913e" />
@@ -651,7 +647,7 @@ The following extensions are maintained and included in the repository.
 
 <details>
 <summary><code>downloads</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
-  
+
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/040b6f98-c228-4de8-962d-52c216f23d4b" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/8fe44b99-48bc-43d9-8e56-8c0f5f7fb887" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/3d76b9a4-9870-44fd-bf44-7abb0fdaca24" />
@@ -674,8 +670,8 @@ Lets you explore and play videos/audio files already downloaded to `CONFIG_DOWNL
 <details>
 <summary><code>dailymotion</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
-Replaces the default `yt-x` main menu entirely, making Dailymotion the primary entry point. 
-*(Requires the `dailymotion.site` extension to be available in your sites directory)*.
+Replaces the default `yt-x` main menu entirely, making Dailymotion the primary entry point.
+_(Requires the `dailymotion.site` extension to be available in your sites directory)_.
 
 **Load with:**  
 `yt-x -x cmds/dailymotion`
@@ -689,7 +685,7 @@ Replaces the default `yt-x` main menu entirely, making Dailymotion the primary e
 <details>
 <summary><code>custom-menus.ui</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
-Demonstrates the optimal way to inject custom menu entries (such as integrating the Dailymotion site directly into the main menu) without overwriting the core script. 
+Demonstrates the optimal way to inject custom menu entries (such as integrating the Dailymotion site directly into the main menu) without overwriting the core script.
 
 It serves as a perfect template for specifying menu sorts, filters, and binding external handlers across `_menu_main`, `_menu_miscellaneous`, `_menu_channel_actions`, and `_menu_media_actions`.
 
@@ -751,7 +747,7 @@ Uses the same playlist explorer and media actions as YouTube.
 
 <details>
 <summary><code>catppuccin-mocha.theme</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
-  
+
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/afb71bb3-1dda-427e-b3fc-a78b4cfd6f64" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/fd14e96f-2937-4b7e-aea4-271dc36f9b4a" />
 <img width="1918" height="1078" alt="image" src="https://github.com/user-attachments/assets/aafb0702-f32d-427b-8fc0-4d63f2df6ab6" />
@@ -829,11 +825,11 @@ For example:
 <summary><b>Preview channel, view count, live status, channel follower not show is it normal?</b></summary>
 <br>
 
-Well yes lol. 
+Well yes lol.
 
 Though I found out this can be remedied by providing a po token.
 
-Read here to learn how to configure it: https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide
+Read here to learn how to configure it: <https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide>
 
 </details>
 
