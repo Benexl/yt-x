@@ -441,6 +441,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_CHANNEL_ACTIONS_PODCASTS="Podcasts"
   TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE="Subscribe"
   TXT_MENU_CHANNEL_ACTIONS_OPEN_IN_BROWSER="Open in Browser"
+  TXT_MENU_CHANNEL_ACTIONS_COPY_VIDEO_URL="Copy Video URL"
   TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM="Would you like to import your youtube subscriptions first? You wont be able to do so again unless you delete $CLI_MY_SUBSCRIPTIONS_FILE"
 
   TXT_MENU_PLAYLISTS_EXPLORER_PROMPT="Select Playlist"
@@ -464,6 +465,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO="Download (Audio Only)"
   TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO="Download All (Audio Only)"
   TXT_MENU_MEDIA_ACTIONS_BROWSER="Open in Browser"
+  TXT_MENU_MEDIA_ACTIONS_COPY="Copy Video URL"
   TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST="Open in Browser (Playlist)"
   TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_MEDIA_ACTIONS_SHELL="Shell"
@@ -497,6 +499,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_MEDIA_ACTIONS_SHELL_VARIABLES="variables:"
 
   TXT_MENU_MEDIA_ACTIONS_OPEN_IN_BROWSER_ERROR="Could not find a supported URL opener (open, xdg-open, wslview, or cmd.exe)"
+  TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR="Could not find a valid system clipboard handler (wl-clipboard or xclip)"
   TXT_MENU_MEDIA_ACTIONS_SUBSCRIBE_UNSUPPORTED="contribute to the project by adding this feature"
 
   TXT_MENU_MAIN_RECENT_SEARCHES="Recent searches:"
@@ -721,6 +724,7 @@ Example:
   TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO="󱑤"
   TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO="󰦗"
   TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER=""
+  TXT_ICON_MENU_MEDIA_ACTIONS_COPY=""
   TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST=""
   TXT_ICON_MENU_MEDIA_ACTIONS_TOGGLE_ENUM=""
   TXT_ICON_MENU_MEDIA_ACTIONS_SHELL=""
@@ -1055,6 +1059,29 @@ _util_open() {
   else
     return 1
   fi
+}
+
+_util_copy() {
+  # accept input via arguments and if there are none read from stdin
+  local input
+  if [ $# -gt 0 ]; then
+    input="$*"
+  else
+    input=$(cat)
+  fi
+
+  # check for wl-clipboard
+  if command -v wl-copy >/dev/null 2>&1; then
+    printf '%s' "$input" | wl-copy && return 0
+  fi
+
+  # fallback to xclip
+  if command -v xclip >/dev/null 2>&1; then
+    printf '%s' "$input" | xclip -selection clipboard && return 0
+  fi
+
+  # exit if neither worked
+  return 1
 }
 
 _util_file_edit() {
@@ -2881,6 +2908,10 @@ __menu_media_actions_open_in_browser_playlist() {
   _util_open "$STATE_CURRENT_PLAYLIST_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_OPEN_IN_BROWSER_ERROR"
 }
 
+__menu_media_actions_copy_video_url() {
+    _util_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
+}
+
 __menu_media_actions_visit_channel() {
   local channel_url
   local channel_id
@@ -2995,6 +3026,7 @@ _menu_media_actions() {
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_BROWSER}
+ ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_COPY}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_COPY}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_TOGGLE_ENUM}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_SHELL}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_SHELL}
@@ -3041,6 +3073,7 @@ $extra_menu_options"
     "$TXT_MENU_MEDIA_ACTIONS_VISIT_CHANNEL") __menu_media_actions_visit_channel ;;
     "$TXT_MENU_MEDIA_ACTIONS_SUBSCRIBE") __menu_media_actions_subscribe_to_channel ;;
     "$TXT_MENU_MEDIA_ACTIONS_BROWSER") __menu_media_actions_open_in_browser ;;
+    "$TXT_MENU_MEDIA_ACTIONS_COPY") __menu_media_actions_copy_video_url ;;
     "$TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST") __menu_media_actions_open_in_browser_playlist ;;
     "$TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM") __menu_media_actions_toggle_enumerate_downloads ;;
     "$TXT_MENU_MEDIA_ACTIONS_SHELL") __menu_media_actions_shell ;;
