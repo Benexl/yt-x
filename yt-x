@@ -172,6 +172,7 @@ __load_default_config() {
   : "${CONFIG_CHAFA_ARGS:=}"
   : "${CONFIG_ICAT_ARGS:=}"
   : "${CONFIG_IMGCAT_ARGS:=}"
+  : "${CONFIG_VIU_ARGS:=}"
   : "${CONFIG_YT_DLP_OPTS:=}"
   : "${CONFIG_PLAYER:=mpv}"
   : "${CONFIG_DISOWN_PLAYER:=false}"
@@ -249,6 +250,7 @@ __load_env_config() {
   CONFIG_CHAFA_ARGS="${YT_X_CHAFA_ARGS:-$CONFIG_CHAFA_ARGS}"
   CONFIG_ICAT_ARGS="${YT_X_ICAT_ARGS:-$CONFIG_ICAT_ARGS}"
   CONFIG_IMGCAT_ARGS="${YT_X_IMGCAT_ARGS:-$CONFIG_IMGCAT_ARGS}"
+  CONFIG_VIU_ARGS="${YT_X_VIU_ARGS:-$CONFIG_VIU_ARGS}"
 
   CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
   CONFIG_DISOWN_PLAYER="${YT_X_DISOWN_PLAYER:-$CONFIG_DISOWN_PLAYER}"
@@ -324,7 +326,8 @@ __load_default_lang() {
 
   TXT_LOADING="Loading..."
 
-  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa"
+  TXT_PREVIEW_CMD_NOT_FOUND="the configured image renderer is not installed or not in PATH"
+  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa or viu"
 
   TXT_CONFIG_BROWSER_NOT_SET="Please set CONFIG_BROWSER to proceed"
 
@@ -870,13 +873,14 @@ CONFIG_ENABLE_PREVIEW="$CONFIG_ENABLE_PREVIEW"
 CONFIG_ENABLE_PREVIEW_IMAGES="$CONFIG_ENABLE_PREVIEW_IMAGES"
 
 # The tool used to render previews in the terminal
-# Options: chafa, icat, imgcat (Default: chafa)
+# Options: chafa, icat, imgcat, viu (Default: chafa)
 CONFIG_IMAGE_RENDERER="$CONFIG_IMAGE_RENDERER"
 
 # Extra arguments for specific image renderers
 CONFIG_CHAFA_ARGS="$CONFIG_CHAFA_ARGS"
 CONFIG_ICAT_ARGS="$CONFIG_ICAT_ARGS"
 CONFIG_IMGCAT_ARGS="$CONFIG_IMGCAT_ARGS"
+CONFIG_VIU_ARGS="$CONFIG_VIU_ARGS"
 
 # custom opts for yt-dlp
 CONFIG_YT_DLP_OPTS="$CONFIG_YT_DLP_OPTS"
@@ -1266,9 +1270,15 @@ __ui_fzf_launcher_with_preview() {
 
   preview_script="\
 TXT_PREVIEW_INSTALL_VIEWER='$TXT_PREVIEW_INSTALL_VIEWER'
+TXT_PREVIEW_CMD_NOT_FOUND='$TXT_PREVIEW_CMD_NOT_FOUND'
 CONFIG_IMAGE_RENDERER='$CONFIG_IMAGE_RENDERER'
+CONFIG_CHAFA_ARGS='$CONFIG_CHAFA_ARGS'
+CONFIG_ICAT_ARGS='$CONFIG_ICAT_ARGS'
+CONFIG_IMGCAT_ARGS='$CONFIG_IMGCAT_ARGS'
+CONFIG_VIU_ARGS='$CONFIG_VIU_ARGS'
 CLI_PLATFORM='$CLI_PLATFORM'
 THEME_FZF_PREVIEW_DIVIDER='$THEME_FZF_PREVIEW_DIVIDER'
+THEME_RESET='$THEME_RESET'
 preview_script_path='{1}'
 [ -s \"\$preview_script_path\" ] && . \"\$preview_script_path\"\
 "

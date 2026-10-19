@@ -397,7 +397,7 @@ Almost all CLI options can be permanently set in `~/.config/yt-x/config` or over
 - `YT_X_PLAYER` (e.g., `mpv`)
 - `YT_X_ENABLE_PREVIEW` (`true` or `false`)
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
-- `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`)
+- `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, `viu`)
 - `YT_X_BROWSER` (e.g., `firefox`, `brave` )
 
 ---
@@ -566,10 +566,11 @@ yt-x --edit-config
 | :----------------------------- | :------ | :------------------------------------------------------------------------------ |
 | `CONFIG_ENABLE_PREVIEW`        | `false` | Enable or disable the preview window (metadata & descriptions).                 |
 | `CONFIG_ENABLE_PREVIEW_IMAGES` | `false` | whether to render thumbnails in the preview window.                             |
-| `CONFIG_IMAGE_RENDERER`        | `chafa` | Tool used to render images in the terminal. Options: `chafa`, `icat`, `imgcat`. |
+| `CONFIG_IMAGE_RENDERER`        | `chafa` | Tool used to render images in the terminal. Options: `chafa`, `icat`, `imgcat`, `viu`. |
 | `CONFIG_CHAFA_ARGS`            | `""`    | Pass custom arguments to `chafa` (e.g., `--polite on`).                         |
 | `CONFIG_ICAT_ARGS`             | `""`    | Pass custom arguments to `icat` / `kitty +kitten icat`.                         |
 | `CONFIG_IMGCAT_ARGS`           | `""`    | Pass custom arguments to `imgcat`.                                              |
+| `CONFIG_VIU_ARGS`              | `""`    | Pass custom arguments to `viu`.                                                 |
 
 #### Playback & Media Handling
 
@@ -1057,8 +1058,8 @@ I think they are cool lol
 Image previews require a few components to work together:
 
 1. Ensure you have enabled them in your config: `CONFIG_ENABLE_PREVIEW=true` and `CONFIG_ENABLE_PREVIEW_IMAGES=true`.
-2. Ensure you have a supported image renderer installed (e.g., `chafa`, `icat`, or `imgcat`).
-3. Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`.
+2. Ensure you have a supported image renderer installed (e.g., `chafa`, `icat`, `imgcat`, or `viu`).
+3. Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`. Any tool-specific flags can be passed through `CONFIG_CHAFA_ARGS`, `CONFIG_ICAT_ARGS`, `CONFIG_IMGCAT_ARGS`, or `CONFIG_VIU_ARGS`.
 4. Ensure your terminal emulator actually supports image rendering (sixel, kitty graphics protocol, or iTerm2 protocol). If it doesn't, stick with `chafa`, which falls back to excellent ASCII/block character rendering.
 
 On windows, fzf by default won't render images due to the `tcell` renderer that fzf uses when setting `--height=100%`.
