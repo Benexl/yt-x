@@ -1532,55 +1532,50 @@ __preview_fzf_create_shared_script() {
 # Shared script for fzf previews
 # ==============================================================================
 
+_fail_or_run() {
+  if command -v "$1" >/dev/null 2>&1; then
+    "$@"
+  else
+    printf '%s' "$TXT_PREVIEW_CMD_NOT_FOUND"
+  fi
+}
+
 draw_divider() {
   ll=1
-  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;ll=$(( ll + 1 ));done;
+  while [ $ll -le $FZF_PREVIEW_COLUMNS ]; do
+    printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}"
+    ll=$((ll + 1))
+  done
   echo
 }
 
 fzf_preview() {
   file=$1
 
-  dim=${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}
+  dim="${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}"
   if [ "$dim" = "x" ]; then
     dim=$(stty size </dev/tty | awk "{print \$2 \"x\" \$1}")
   fi
-  if ! [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$KITTY_WINDOW_ID" ] && [ "$((FZF_PREVIEW_TOP + FZF_PREVIEW_LINES))" -eq "$(stty size </dev/tty | awk "{print \$1}")" ]; then
-    dim=${FZF_PREVIEW_COLUMNS}x$((FZF_PREVIEW_LINES - 1))
-  fi
 
-  if [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$GHOSTTY_BIN_DIR" ]; then
-    if command -v kitten >/dev/null 2>&1; then
-      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    elif command -v icat >/dev/null 2>&1; then
-      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    else
-      kitty icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    fi
-
-  elif [ -n "$GHOSTTY_BIN_DIR" ]; then
-    if command -v kitten >/dev/null 2>&1; then
-      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    elif command -v icat >/dev/null 2>&1; then
-      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    else
-      chafa -s "$dim" "$file"
-    fi
-  elif command -v chafa >/dev/null 2>&1; then
-    case "$CLI_PLATFORM" in
-    android) chafa -s "$dim" "$file" ;;
-    windows) chafa -f sixels --colors=full --polite=on --animate=off -s "$dim" "$file" ;;
-    *) chafa -s "$dim" "$file" ;;
-    esac
-    echo
-
-  elif command -v imgcat >/dev/null; then
-    imgcat -W "${dim%%x*}" -H "${dim##*x}" "$file"
-
-  else
+  case "$CONFIG_IMAGE_RENDERER" in
+  icat)
+    _fail_or_run kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no $CONFIG_ICAT_ARGS --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    ;;
+  chafa)
+    _fail_or_run chafa $CONFIG_CHAFA_ARGS -s "$dim" "$file"
+    ;;
+  viu)
+    _fail_or_run viu $CONFIG_VIU_ARGS -w "${dim%%x*}" -h "${dim##*x}" "$file"
+    ;;
+  imgcat)
+    _fail_or_run imgcat $CONFIG_IMGCAT_ARGS -W "${dim%%x*}" -H "${dim##*x}" "$file"
+    ;;
+  *)
     printf "%s" "$TXT_PREVIEW_INSTALL_VIEWER"
-  fi
+    ;;
+  esac
 }
+
 EOF
   else
     return
