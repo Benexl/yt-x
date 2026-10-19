@@ -1070,17 +1070,42 @@ _util_clipboard_copy() {
     input=$(cat)
   fi
 
-  # check for wl-clipboard
-  if _dep_ch wl-copy; then
-    printf '%s' "$input" | wl-copy && return 0
-  fi
+  case "$CLI_PLATFORM" in
+    mac)
+      if _dep_ch pbcopy; then
+        printf '%s' "$input" | pbcopy && return 0
+      fi
+      ;;
+    windows)
+      # clip.exe is built into windows but win32yank is common in neovim/wsl setups
+      # TODO: check this, please. i don't use windows so i have no clue if this is proper
+      if _dep_ch clip.exe; then
+        printf '%s' "$input" | clip.exe && return 0
+      elif _dep_ch win32yank.exe; then
+        printf '%s' "$input" | win32yank.exe -i --clipboard && return 0
+      fi
+      ;;
+    android)
+      # termux provides termux-clipboard-set via termux-api
+      # TODO: check this too. this *should* work but i'm not entirely positive
+      if _dep_ch termux-clipboard-set; then
+        printf '%s' "$input" | termux-clipboard-set && return 0
+      fi
+      ;;
+    linux|*)
+      # check for wl-clipboard
+      if _dep_ch wl-copy; then
+        printf '%s' "$input" | wl-copy && return 0
+      fi
 
-  # fallback to xclip
-  if _dep_ch xclip; then
-    printf '%s' "$input" | xclip -selection clipboard && return 0
-  fi
+      # check for xclip
+      if _dep_ch xclip; then
+        printf '%s' "$input" | xclip -selection clipboard && return 0
+      fi
+      ;;
+  esac
 
-  # exit if neither worked
+  # exit if nothing worked or platform copy tool failed
   return 1
 }
 
