@@ -1061,7 +1061,7 @@ _util_open() {
   fi
 }
 
-_util_copy() {
+_util_clipboard_copy() {
   # accept input via arguments and if there are none read from stdin
   local input
   if [ $# -gt 0 ]; then
@@ -2909,7 +2909,7 @@ __menu_media_actions_open_in_browser_playlist() {
 }
 
 __menu_media_actions_copy_video_url() {
-    _util_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
+    _util_clipboard_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
 }
 
 __menu_media_actions_visit_channel() {
