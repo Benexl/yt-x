@@ -441,7 +441,6 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_CHANNEL_ACTIONS_PODCASTS="Podcasts"
   TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE="Subscribe"
   TXT_MENU_CHANNEL_ACTIONS_OPEN_IN_BROWSER="Open in Browser"
-  TXT_MENU_CHANNEL_ACTIONS_COPY_VIDEO_URL="Copy Video URL"
   TXT_MENU_CHANNEL_ACTIONS_SUBSCRIBE_CONFIRM="Would you like to import your youtube subscriptions first? You wont be able to do so again unless you delete $CLI_MY_SUBSCRIPTIONS_FILE"
 
   TXT_MENU_PLAYLISTS_EXPLORER_PROMPT="Select Playlist"
