@@ -1069,6 +1069,27 @@ For more details on this issue see [this comment](https://github.com/junegunn/fz
 </details>
 
 <details>
+<summary><b>How do I customize the image renderer or pass extra flags?</b></summary>
+<br>
+
+Pick the renderer with `CONFIG_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, or `viu`) and pass any tool-specific flags through its matching `CONFIG_<RENDERER>_ARGS` variable:
+
+```sh
+CONFIG_IMAGE_RENDERER="chafa"
+CONFIG_CHAFA_ARGS="--polite on --symbols block"
+
+# or, for kitty / ghostty
+# CONFIG_IMAGE_RENDERER="icat"
+# CONFIG_ICAT_ARGS="--scale-up"
+```
+
+The same flags can be set per-run with the `YT_X_*` environment variables (`YT_X_IMAGE_RENDERER`, `YT_X_CHAFA_ARGS`, `YT_X_ICAT_ARGS`, `YT_X_IMGCAT_ARGS`, `YT_X_VIU_ARGS`).
+
+If you want a renderer or layout that isn't built in, `yt-x` intentionally keeps the preview logic minimal and leaves that to you: the shared renderer is a plain shell script at `~/.cache/yt-x/previews/text/fzf-preview.sh`, and every item's preview is generated alongside it. Add your own command or a new `CONFIG_IMAGE_RENDERER` case there. Because it's only (re)generated when missing, your edits stick around until you delete the file to restore the built-in version.
+
+</details>
+
+<details>
 <summary><b>How do I fix "Cannot decrypt v11 cookies", Flatpak, or unsupported browser errors?</b></summary>
 <br>
 
