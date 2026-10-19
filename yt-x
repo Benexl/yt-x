@@ -1071,12 +1071,12 @@ _util_clipboard_copy() {
   fi
 
   # check for wl-clipboard
-  if command -v wl-copy >/dev/null 2>&1; then
+  if _dep_ch wl-copy; then
     printf '%s' "$input" | wl-copy && return 0
   fi
 
   # fallback to xclip
-  if command -v xclip >/dev/null 2>&1; then
+  if _dep_ch xclip; then
     printf '%s' "$input" | xclip -selection clipboard && return 0
   fi
 
