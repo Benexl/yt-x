@@ -1085,7 +1085,7 @@ CONFIG_CHAFA_ARGS="--polite on --symbols block"
 
 The same flags can be set per-run with the `YT_X_*` environment variables (`YT_X_IMAGE_RENDERER`, `YT_X_CHAFA_ARGS`, `YT_X_ICAT_ARGS`, `YT_X_IMGCAT_ARGS`, `YT_X_VIU_ARGS`).
 
-If you want a renderer or layout that isn't built in, `yt-x` intentionally keeps the preview logic minimal and leaves that to you: the shared renderer is a plain shell script at `~/.cache/yt-x/previews/text/fzf-preview.sh`, and every item's preview is generated alongside it. Add your own command or a new `CONFIG_IMAGE_RENDERER` case there. Because it's only (re)generated when missing, your edits stick around until you delete the file to restore the built-in version.
+Need a renderer or layout that isn't built in? Don't hand-edit the generated cache. Either open a PR so it can become a first-class renderer, or write an [extension](#extensions) that overrides the preview functions (e.g. `__preview_fzf_create_shared_script`) and load it via `CONFIG_AUTOLOADED_EXTENSIONS`.
 
 </details>
 
