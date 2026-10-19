@@ -1083,6 +1083,14 @@ CONFIG_CHAFA_ARGS="--polite on --symbols block"
 # CONFIG_ICAT_ARGS="--scale-up"
 ```
 
+Platform-specific behaviour that used to be baked in is now just flags too. For example, on Windows `chafa` needs to be told to emit sixels explicitly:
+
+```sh
+# Windows (Git Bash / MSYS2)
+CONFIG_IMAGE_RENDERER="chafa"
+CONFIG_CHAFA_ARGS="-f sixels --colors=full --polite=on --animate=off"
+```
+
 The same flags can be set per-run with the `YT_X_*` environment variables (`YT_X_IMAGE_RENDERER`, `YT_X_CHAFA_ARGS`, `YT_X_ICAT_ARGS`, `YT_X_IMGCAT_ARGS`, `YT_X_VIU_ARGS`).
 
 Need a renderer or layout that isn't built in? Don't hand-edit the generated cache. Either open a PR so it can become a first-class renderer, or write an [extension](#extensions) that overrides the preview functions (e.g. `__preview_fzf_create_shared_script`) and load it via `CONFIG_AUTOLOADED_EXTENSIONS`.
