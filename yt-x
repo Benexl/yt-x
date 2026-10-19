@@ -172,6 +172,7 @@ __load_default_config() {
   : "${CONFIG_CHAFA_ARGS:=}"
   : "${CONFIG_ICAT_ARGS:=}"
   : "${CONFIG_IMGCAT_ARGS:=}"
+  : "${CONFIG_VIU_ARGS:=}"
   : "${CONFIG_YT_DLP_OPTS:=}"
   : "${CONFIG_PLAYER:=mpv}"
   : "${CONFIG_DISOWN_PLAYER:=false}"
@@ -249,6 +250,7 @@ __load_env_config() {
   CONFIG_CHAFA_ARGS="${YT_X_CHAFA_ARGS:-$CONFIG_CHAFA_ARGS}"
   CONFIG_ICAT_ARGS="${YT_X_ICAT_ARGS:-$CONFIG_ICAT_ARGS}"
   CONFIG_IMGCAT_ARGS="${YT_X_IMGCAT_ARGS:-$CONFIG_IMGCAT_ARGS}"
+  CONFIG_VIU_ARGS="${YT_X_VIU_ARGS:-$CONFIG_VIU_ARGS}"
 
   CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
   CONFIG_DISOWN_PLAYER="${YT_X_DISOWN_PLAYER:-$CONFIG_DISOWN_PLAYER}"
@@ -324,7 +326,8 @@ __load_default_lang() {
 
   TXT_LOADING="Loading..."
 
-  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa"
+  TXT_PREVIEW_CMD_NOT_FOUND="the configured image renderer is not installed or not in PATH"
+  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa or viu"
 
   TXT_CONFIG_BROWSER_NOT_SET="Please set CONFIG_BROWSER to proceed"
 
@@ -870,13 +873,14 @@ CONFIG_ENABLE_PREVIEW="$CONFIG_ENABLE_PREVIEW"
 CONFIG_ENABLE_PREVIEW_IMAGES="$CONFIG_ENABLE_PREVIEW_IMAGES"
 
 # The tool used to render previews in the terminal
-# Options: chafa, icat, imgcat (Default: chafa)
+# Options: chafa, icat, imgcat, viu (Default: chafa)
 CONFIG_IMAGE_RENDERER="$CONFIG_IMAGE_RENDERER"
 
 # Extra arguments for specific image renderers
 CONFIG_CHAFA_ARGS="$CONFIG_CHAFA_ARGS"
 CONFIG_ICAT_ARGS="$CONFIG_ICAT_ARGS"
 CONFIG_IMGCAT_ARGS="$CONFIG_IMGCAT_ARGS"
+CONFIG_VIU_ARGS="$CONFIG_VIU_ARGS"
 
 # custom opts for yt-dlp
 CONFIG_YT_DLP_OPTS="$CONFIG_YT_DLP_OPTS"
@@ -1266,9 +1270,15 @@ __ui_fzf_launcher_with_preview() {
 
   preview_script="\
 TXT_PREVIEW_INSTALL_VIEWER='$TXT_PREVIEW_INSTALL_VIEWER'
+TXT_PREVIEW_CMD_NOT_FOUND='$TXT_PREVIEW_CMD_NOT_FOUND'
 CONFIG_IMAGE_RENDERER='$CONFIG_IMAGE_RENDERER'
+CONFIG_CHAFA_ARGS='$CONFIG_CHAFA_ARGS'
+CONFIG_ICAT_ARGS='$CONFIG_ICAT_ARGS'
+CONFIG_IMGCAT_ARGS='$CONFIG_IMGCAT_ARGS'
+CONFIG_VIU_ARGS='$CONFIG_VIU_ARGS'
 CLI_PLATFORM='$CLI_PLATFORM'
 THEME_FZF_PREVIEW_DIVIDER='$THEME_FZF_PREVIEW_DIVIDER'
+THEME_RESET='$THEME_RESET'
 preview_script_path='{1}'
 [ -s \"\$preview_script_path\" ] && . \"\$preview_script_path\"\
 "
@@ -1532,58 +1542,50 @@ __preview_fzf_create_shared_script() {
 # Shared script for fzf previews
 # ==============================================================================
 
+_fail_or_run() {
+  if command -v "$1" >/dev/null 2>&1; then
+    "$@"
+  else
+    printf '%s\n' "$TXT_PREVIEW_CMD_NOT_FOUND"
+  fi
+}
+
 draw_divider() {
   ll=1
-  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;ll=$(( ll + 1 ));done;
+  while [ $ll -le $FZF_PREVIEW_COLUMNS ]; do
+    printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}"
+    ll=$((ll + 1))
+  done
   echo
 }
 
 fzf_preview() {
   file=$1
 
-  dim=${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}
+  dim="${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}"
   if [ "$dim" = "x" ]; then
     dim=$(stty size </dev/tty | awk "{print \$2 \"x\" \$1}")
   fi
-  if ! [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$KITTY_WINDOW_ID" ] && [ "$((FZF_PREVIEW_TOP + FZF_PREVIEW_LINES))" -eq "$(stty size </dev/tty | awk "{print \$1}")" ]; then
-    dim=${FZF_PREVIEW_COLUMNS}x$((FZF_PREVIEW_LINES - 1))
-  fi
 
-  if [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$GHOSTTY_BIN_DIR" ]; then
-    if command -v kitten >/dev/null 2>&1; then
-      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    elif command -v icat >/dev/null 2>&1; then
-      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    else
-      kitty icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    fi
-
-  elif [ -n "$GHOSTTY_BIN_DIR" ]; then
-    if command -v kitten >/dev/null 2>&1; then
-      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    elif command -v icat >/dev/null 2>&1; then
-      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    else
-      chafa -s "$dim" "$file"
-    fi
-  elif command -v chafa >/dev/null 2>&1; then
-    case "$CLI_PLATFORM" in
-    android) chafa -s "$dim" "$file" ;;
-    windows) chafa -f sixels --colors=full --polite=on --animate=off -s "$dim" "$file" ;;
-    *) chafa -s "$dim" "$file" ;;
-    esac
-    echo
-
-  elif command -v imgcat >/dev/null; then
-    imgcat -W "${dim%%x*}" -H "${dim##*x}" "$file"
-
-  else
-    printf "%s" "$TXT_PREVIEW_INSTALL_VIEWER"
-  fi
+  case "$CONFIG_IMAGE_RENDERER" in
+  icat)
+    _fail_or_run kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no $CONFIG_ICAT_ARGS --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    ;;
+  chafa)
+    _fail_or_run chafa $CONFIG_CHAFA_ARGS -s "$dim" "$file"
+    ;;
+  viu)
+    _fail_or_run viu $CONFIG_VIU_ARGS -w "${dim%%x*}" -h "${dim##*x}" "$file"
+    ;;
+  imgcat)
+    _fail_or_run imgcat $CONFIG_IMGCAT_ARGS -W "${dim%%x*}" -H "${dim##*x}" "$file"
+    ;;
+  *)
+    printf '%s\n' "$TXT_PREVIEW_INSTALL_VIEWER"
+    ;;
+  esac
 }
 EOF
-  else
-    return
   fi
 }
 

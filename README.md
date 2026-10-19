@@ -397,7 +397,7 @@ Almost all CLI options can be permanently set in `~/.config/yt-x/config` or over
 - `YT_X_PLAYER` (e.g., `mpv`)
 - `YT_X_ENABLE_PREVIEW` (`true` or `false`)
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
-- `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`)
+- `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, `viu`)
 - `YT_X_BROWSER` (e.g., `firefox`, `brave` )
 
 ---
@@ -566,10 +566,11 @@ yt-x --edit-config
 | :----------------------------- | :------ | :------------------------------------------------------------------------------ |
 | `CONFIG_ENABLE_PREVIEW`        | `false` | Enable or disable the preview window (metadata & descriptions).                 |
 | `CONFIG_ENABLE_PREVIEW_IMAGES` | `false` | whether to render thumbnails in the preview window.                             |
-| `CONFIG_IMAGE_RENDERER`        | `chafa` | Tool used to render images in the terminal. Options: `chafa`, `icat`, `imgcat`. |
+| `CONFIG_IMAGE_RENDERER`        | `chafa` | Tool used to render images in the terminal. Options: `chafa`, `icat`, `imgcat`, `viu`. |
 | `CONFIG_CHAFA_ARGS`            | `""`    | Pass custom arguments to `chafa` (e.g., `--polite on`).                         |
 | `CONFIG_ICAT_ARGS`             | `""`    | Pass custom arguments to `icat` / `kitty +kitten icat`.                         |
 | `CONFIG_IMGCAT_ARGS`           | `""`    | Pass custom arguments to `imgcat`.                                              |
+| `CONFIG_VIU_ARGS`              | `""`    | Pass custom arguments to `viu`.                                                 |
 
 #### Playback & Media Handling
 
@@ -1057,13 +1058,42 @@ I think they are cool lol
 Image previews require a few components to work together:
 
 1. Ensure you have enabled them in your config: `CONFIG_ENABLE_PREVIEW=true` and `CONFIG_ENABLE_PREVIEW_IMAGES=true`.
-2. Ensure you have a supported image renderer installed (e.g., `chafa`, `icat`, or `imgcat`).
-3. Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`.
+2. Ensure you have a supported image renderer installed (e.g., `chafa`, `icat`, `imgcat`, or `viu`).
+3. Set the correct renderer in your config: `CONFIG_IMAGE_RENDERER="chafa"`. Any tool-specific flags can be passed through `CONFIG_CHAFA_ARGS`, `CONFIG_ICAT_ARGS`, `CONFIG_IMGCAT_ARGS`, or `CONFIG_VIU_ARGS`.
 4. Ensure your terminal emulator actually supports image rendering (sixel, kitty graphics protocol, or iTerm2 protocol). If it doesn't, stick with `chafa`, which falls back to excellent ASCII/block character rendering.
 
 On windows, fzf by default won't render images due to the `tcell` renderer that fzf uses when setting `--height=100%`.
 If you want to display images, set `--height` to 99% or lower in `CONFIG_FZF_OPTS`.
 For more details on this issue see [this comment](https://github.com/junegunn/fzf/issues/4065#issuecomment-2439815977).
+
+</details>
+
+<details>
+<summary><b>How do I customize the image renderer or pass extra flags?</b></summary>
+<br>
+
+Pick the renderer with `CONFIG_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, or `viu`) and pass any tool-specific flags through its matching `CONFIG_<RENDERER>_ARGS` variable:
+
+```sh
+CONFIG_IMAGE_RENDERER="chafa"
+CONFIG_CHAFA_ARGS="--polite on --symbols block"
+
+# or, for kitty / ghostty
+# CONFIG_IMAGE_RENDERER="icat"
+# CONFIG_ICAT_ARGS="--scale-up"
+```
+
+Platform-specific behaviour that used to be baked in is now just flags too. For example, on Windows `chafa` needs to be told to emit sixels explicitly:
+
+```sh
+# Windows (Git Bash / MSYS2)
+CONFIG_IMAGE_RENDERER="chafa"
+CONFIG_CHAFA_ARGS="-f sixels --colors=full --polite=on --animate=off"
+```
+
+The same flags can be set per-run with the `YT_X_*` environment variables (`YT_X_IMAGE_RENDERER`, `YT_X_CHAFA_ARGS`, `YT_X_ICAT_ARGS`, `YT_X_IMGCAT_ARGS`, `YT_X_VIU_ARGS`).
+
+Need a renderer or layout that isn't built in? Don't hand-edit the generated cache. Either open a PR so it can become a first-class renderer, or write an [extension](#extensions) that overrides the preview functions (e.g. `__preview_fzf_create_shared_script`) and load it via `CONFIG_AUTOLOADED_EXTENSIONS`.
 
 </details>
 
