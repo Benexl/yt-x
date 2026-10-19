@@ -499,7 +499,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_MEDIA_ACTIONS_SHELL_VARIABLES="variables:"
 
   TXT_MENU_MEDIA_ACTIONS_OPEN_IN_BROWSER_ERROR="Could not find a supported URL opener (open, xdg-open, wslview, or cmd.exe)"
-  TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR="Could not find a valid system clipboard handler (wl-clipboard or xclip)"
+  TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR="Could not find a valid system clipboard handler (mac: pbcopy, android: termux-clipboard-set, linux: wl-clipboard or xclip)"
   TXT_MENU_MEDIA_ACTIONS_SUBSCRIBE_UNSUPPORTED="contribute to the project by adding this feature"
 
   TXT_MENU_MAIN_RECENT_SEARCHES="Recent searches:"
@@ -509,6 +509,7 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_DESKTOP_ENTRY_COMMENT="Browse Youtube from the terminal plus other sites yt-dlp supports"
   TXT_LAUNCHER_LABEL_ROFI="rofi"
   TXT_LAUNCHER_LABEL_FZF="fzf"
+  TXT_WARNING_NOT_IMPLEMENTED="This feature has not yet been implemented, please open a pr :)"
 
   TXT_APP_USAGE="\
 A script written to browse YouTube and other yt‑dlp supported sites from the terminal.
@@ -1062,8 +1063,8 @@ _util_open() {
 }
 
 _util_clipboard_copy() {
-  # accept input via arguments and if there are none read from stdin
   local input
+
   if [ $# -gt 0 ]; then
     input="$*"
   else
@@ -1071,42 +1072,34 @@ _util_clipboard_copy() {
   fi
 
   case "$CLI_PLATFORM" in
-    mac)
-      if _dep_ch pbcopy; then
-        printf '%s' "$input" | pbcopy && return 0
-      fi
-      ;;
-    windows)
-      # clip.exe is built into windows but win32yank is common in neovim/wsl setups
-      # TODO: check this, please. i don't use windows so i have no clue if this is proper
-      if _dep_ch clip.exe; then
-        printf '%s' "$input" | clip.exe && return 0
-      elif _dep_ch win32yank.exe; then
-        printf '%s' "$input" | win32yank.exe -i --clipboard && return 0
-      fi
-      ;;
-    android)
-      # termux provides termux-clipboard-set via termux-api
-      # TODO: check this too. this *should* work but i'm not entirely positive
-      if _dep_ch termux-clipboard-set; then
-        printf '%s' "$input" | termux-clipboard-set && return 0
-      fi
-      ;;
-    linux|*)
-      # check for wl-clipboard
-      if _dep_ch wl-copy; then
-        printf '%s' "$input" | wl-copy && return 0
-      fi
-
-      # check for xclip
-      if _dep_ch xclip; then
-        printf '%s' "$input" | xclip -selection clipboard && return 0
-      fi
-      ;;
+  mac)
+    if _dep_ch pbcopy; then
+      printf '%s' "$input" | pbcopy
+    else
+      return 1
+    fi
+    ;;
+  android)
+    if _dep_ch termux-clipboard-set; then
+      printf '%s' "$input" | termux-clipboard-set
+    else
+      return 1
+    fi
+    ;;
+  linux)
+    if _dep_ch wl-copy; then
+      printf '%s' "$input" | wl-copy
+    elif _dep_ch xclip; then
+      printf '%s' "$input" | xclip -selection clipboard
+    else
+      return 1
+    fi
+    ;;
+  *)
+    printf '%s\n' "$TXT_WARNING_NOT_IMPLEMENTED"
+    return 1
+    ;;
   esac
-
-  # exit if nothing worked or platform copy tool failed
-  return 1
 }
 
 _util_file_edit() {
@@ -2934,7 +2927,7 @@ __menu_media_actions_open_in_browser_playlist() {
 }
 
 __menu_media_actions_copy_video_url() {
-    _util_clipboard_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
+  _util_clipboard_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
 }
 
 __menu_media_actions_visit_channel() {
