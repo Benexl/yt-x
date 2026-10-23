@@ -1098,6 +1098,13 @@ _util_clipboard_copy() {
       return 1
     fi
     ;;
+  windows)
+    if _dep_ch clip.exe; then
+      printf '%s' "$input" | clip.exe
+    else
+      return 1
+    fi
+    ;;
   *)
     printf '%s\n' "$TXT_WARNING_NOT_IMPLEMENTED"
     return 1
