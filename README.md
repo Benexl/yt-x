@@ -317,7 +317,7 @@ so going back will exit the cli
 #### Rofi
 
 Note there are rofi themes in repo which you can use i customized them to make the experience just cool
-At least thats what i think you be the judge lol
+At least that's what i think you be the judge lol
 
 - `--rofi-theme-main <path>`
 - `--rofi-theme-preview <path>`
@@ -504,7 +504,7 @@ yt-x --download --media-exit -ss "linux meme"
 yt-x --launcher rofi --no-disown-player --play --media-exit -s ":today world news"
 ```
 
-**create convinience aliases**
+**create convenience aliases**
 
 ```fish
 function play
@@ -577,7 +577,7 @@ yt-x --edit-config
 #### Playback & Media Handling
 
 For configuring a player prefer its config file which you can also edit from why yt-x in the misc menu
-They exist purely for convinience and is more useful when passing from cmdline or env vars
+They exist purely for convenience and is more useful when passing from cmdline or env vars
 
 | Variable                                  | Default | Description                                                                |
 | :---------------------------------------- | :------ | :------------------------------------------------------------------------- |
@@ -716,7 +716,7 @@ Overrides the default English strings.
 <summary><code>es.lang</code> by <a href="https://github.com/Benexl">Benexl</a></summary>
 
 Spanish translation for all UI texts, prompts, and messages.
-DISCLAIMER: i don't know spanish (used ai, to create at least one example), incase you want to take up maintance of this extension just open an issue
+DISCLAIMER: i don't know spanish (used ai, to create at least one example), incase you want to take up maintenance of this extension just open an issue
 
 **Load with:**  
 `yt-x -x langs/es.lang`
@@ -1311,7 +1311,7 @@ See the config file for all available variables (e.g., `YT_X_PLAYER`, `YT_X_BROW
 <summary><b>How can i get mpv to look like the one in the demos (just look nicer)?</b></summary>
 <br>
 
-I personaly use [uosc](https://github.com/tomasklaen/uosc) which in my opinion its by far the best ui for
+I personally use [uosc](https://github.com/tomasklaen/uosc) which in my opinion its by far the best ui for
 mpv. They have even implemented rendering yt's heatmap in the timeline.
 You can even also install [thumbfast](https://github.com/po5/thumbfast) which will add timeline previews.
 
