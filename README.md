@@ -697,6 +697,17 @@ It serves as a perfect template for specifying menu sorts, filters, and binding 
 
 </details>
 
+<details>
+<summary><code>archive-filter.ext</code> by <a href="https://github.com/fidodido48">fidodido48</a></summary>
+
+Hides seen/watched videos from the picker/results page by matching each result against a yt-dlp archive file (extractor/ID pairs, read-only), never reading or writing yt-x's own watch history.
+
+The remaining results shift up so pages stay contiguous and there are no gaps in pagination.
+
+Install and full docs: https://github.com/fidodido48/ytx-archive-filter
+
+</details>
+
 ---
 
 #### Language Extensions (`langs/`)
