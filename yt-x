@@ -184,6 +184,7 @@ __load_default_config() {
   : "${CONFIG_PER_PAGE:=30}"
   : "${CONFIG_BROWSER:=}"
   : "${CONFIG_CACHE_RETENTION_DAYS:=3}"
+  : "${CONFIG_CACHE_FZF_RESULTS:=true}"
   : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
   : "${CONFIG_NOTIFICATION_DURATION:=5}"
   : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
@@ -273,6 +274,7 @@ __load_env_config() {
 
   CONFIG_DOWNLOADS_ENUMERATE="${YT_X_ENUMERATE_DOWNLOADS:-$CONFIG_DOWNLOADS_ENUMERATE}"
   CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
+  CONFIG_CACHE_FZF_RESULTS="${YT_X_CACHE_FZF_RESULTS:-$CONFIG_CACHE_FZF_RESULTS}"
   CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
 
@@ -966,6 +968,13 @@ CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 # Default: 3
 CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 
+# Cache derived result lists (My Feed, My Playlists, channels, subscriptions, My Videos, Recent).
+# 'true': reuses the derived fzf input and redraws it instantly (default, recommended!);
+# 'false': keep rebuilding it on every redraw (only use if really need to!).
+# The cache is invalidated whenever the underlying JSON changes (Next/Previous, a new fetch)
+# One-run override (highest priority): export YT_X_CACHE_FZF_RESULTS=true or false before launching yt-x.
+CONFIG_CACHE_FZF_RESULTS="true"
+
 # ==============================================================================
 # Join the community at $CLI_DISCORD_URL
 # and don't forget to star the repo $CLI_REPO_URL :)
@@ -1643,7 +1652,6 @@ EOF
 __preview_fzf_generate_script_for_item() {
   local data_item
   local title
-  local raw_title
   local id
   local image_path
   local view_count
@@ -1657,6 +1665,9 @@ __preview_fzf_generate_script_for_item() {
   local img_url
 
   data_item="$1"
+
+  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s" "$data_item" | jq -j '.title // ""' | _util_generate_hash).sh"
+  [ "$CONFIG_CACHE_FZF_RESULTS" = "true" ] && [ -s "$preview_script_path" ] && [ -f "$CLI_PREVIEW_SCRIPTS_DIR/.epoch" ] && find "$preview_script_path" -newer "$CLI_PREVIEW_SCRIPTS_DIR/.epoch" | grep -q . && return 0
 
   eval "$(printf "%s" "$data_item" | jq -r '
     def format_number:
@@ -1722,7 +1733,6 @@ __preview_fzf_generate_script_for_item() {
     [
       "id=" + (.id // "" | @sh),
       "title=" + (.title // "" | sub("^[0-9]+ "; "") | @sh | @sh),
-      "raw_title=" + (.title // "" | @sh),
       "img_url=" + (.thumbnails[-1].url // "" | @sh),
       "view_count=" + (.view_count | if . == null then "null" else (format_number | @sh) end),
       "live_status=" + (if .live_status == "is_live" then ("Online" | @sh) elif .live_status == "was_live" then ("Offline" | @sh) else "null" end),
@@ -1733,8 +1743,6 @@ __preview_fzf_generate_script_for_item() {
       "timestamp=" + (format_timestamp | if . == null then "null" else @sh end)
     ] | join("\n")
 ')"
-
-  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s" "$raw_title" | _util_generate_hash).sh"
 
   case "$img_url" in
   //*) img_url="https:$img_url" ;;
@@ -2072,6 +2080,7 @@ __fetch_yt_dlp() {
   shift
   shift
   custom_opts="$*"
+  : >"$CLI_PREVIEW_SCRIPTS_DIR/.epoch"
 
   # shellcheck disable=SC2086
   ui_load yt-dlp "$url" \
@@ -3161,6 +3170,11 @@ _menu_playlist_explorer() {
   local titles
   local choice
   local base_state
+  local derived_state
+  local cached_titles
+  local cached_fzf_state
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3170,16 +3184,42 @@ $TXT_MENU_PREVIOUS
 $TXT_MENU_BACK
 $TXT_MENU_EXIT"
 
+  derived_state=""
+  cached_fzf_state=""
+
   while true; do
-    titles=$(printf '%s\n' "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+    if [ "$CONFIG_CACHE_FZF_RESULTS" = "true" ] && [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$derived_state" ]; then
+      titles="$cached_titles"
+    else
+      titles=$(printf '%s\n' "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+      if [ "$CONFIG_CACHE_FZF_RESULTS" = "true" ]; then
+        cached_titles="$titles"
+        derived_state="$STATE_CURRENT_PLAYLIST_RESULTS"
+      fi
+    fi
 
     if [ "$CMD_PLAYLIST_RESULTS_SKIP" = "true" ]; then
       choice="$(printf '%s' "$titles" | head -n 1)"
       unset -v CMD_PLAYLIST_RESULTS_SKIP
-    else
+    elif [ "$CONFIG_CACHE_FZF_RESULTS" != "true" ]; then
       choice="$(
         printf "%s\n%s" "$titles" "$other_choices" |
           preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
+      )"
+    else
+      if [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$cached_fzf_state" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$titles" "$other_choices" |
+            preview "$STATE_CURRENT_PLAYLIST_RESULTS"
+        )"
+        cached_fzf_input="$fzf_input"
+        cached_fzf_state="$STATE_CURRENT_PLAYLIST_RESULTS"
+      fi
+      choice="$(
+        printf '%s\n' "$fzf_input" |
           ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
       )"
     fi
@@ -3236,6 +3276,9 @@ _menu_playlists_explorer() {
   local titles
   local choice
   local base_state
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3247,11 +3290,28 @@ $TXT_MENU_EXIT"
 
   while true; do
     titles=$(printf '%s' "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.entries[].title' -r)
-    choice="$(
-      printf "%s\n%s" "$titles" "$other_choices" |
-        preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
-    )"
+    if [ "$CONFIG_CACHE_FZF_RESULTS" = true ]; then
+      if [ "$STATE_CURRENT_PLAYLISTS_RESULTS" = "$cached_data" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$titles" "$other_choices" |
+            preview "$STATE_CURRENT_PLAYLISTS_RESULTS"
+        )"
+        cached_data="$STATE_CURRENT_PLAYLISTS_RESULTS"
+        cached_fzf_input="$fzf_input"
+      fi
+      choice="$(
+        printf '%s\n' "$fzf_input" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
+      )"
+    else
+      choice="$(
+        printf "%s\n%s" "$titles" "$other_choices" |
+          preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
+      )"
+    fi
 
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlists_explorer_next ;;
@@ -3487,6 +3547,9 @@ _menu_channels_explorer() {
   local titles
   local choice
   local base_state
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3498,11 +3561,28 @@ $TXT_MENU_EXIT"
 
   while true; do
     channels=$(printf '%s' "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].title' -r)
-    choice="$(
-      printf "%s\n%s" "$channels" "$other_choices" |
-        preview "$STATE_CURRENT_CHANNEL_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
-    )"
+    if [ "$CONFIG_CACHE_FZF_RESULTS" = true ]; then
+      if [ "$STATE_CURRENT_CHANNEL_RESULTS" = "$cached_data" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$channels" "$other_choices" |
+            preview "$STATE_CURRENT_CHANNEL_RESULTS"
+        )"
+        cached_data="$STATE_CURRENT_CHANNEL_RESULTS"
+        cached_fzf_input="$fzf_input"
+      fi
+      choice="$(
+        printf '%s\n' "$fzf_input" |
+          ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
+      )"
+    else
+      choice="$(
+        printf "%s\n%s" "$channels" "$other_choices" |
+          preview "$STATE_CURRENT_CHANNEL_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
+      )"
+    fi
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_channels_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_channels_explorer_previous ;;
@@ -4062,6 +4142,9 @@ __menu_main_channels_explorer() {
   local channel
   local channels
   local url
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_SUBSCRIPTIONS_FILE" ]; then
     channels="$(cat "$CLI_MY_SUBSCRIPTIONS_FILE")"
@@ -4072,11 +4155,28 @@ __menu_main_channels_explorer() {
           unset -v CMD_CHANNEL
         fi
       else
-        channel=$(
-          printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-            preview "$channels" |
-            ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
-        )
+        if [ "$CONFIG_CACHE_FZF_RESULTS" = true ]; then
+          if [ "$channels" = "$cached_data" ]; then
+            fzf_input="$cached_fzf_input"
+          else
+            fzf_input="$(
+              printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+                preview "$channels"
+            )"
+            cached_data="$channels"
+            cached_fzf_input="$fzf_input"
+          fi
+          channel=$(
+            printf '%s\n' "$fzf_input" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+          )
+        else
+          channel=$(
+            printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$channels" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+          )
+        fi
       fi
 
       case "$channel" in
@@ -4149,6 +4249,9 @@ __menu_main_saved_videos() {
   local video
   local saved_videos
   local selection
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_VIDEOS_FILE" ]; then
     if [ -n "$CMD_INPUT" ]; then
@@ -4173,11 +4276,28 @@ __menu_main_saved_videos() {
         selection="$CMD_INPUT"
         unset -v CMD_INPUT
       else
-        selection=$(
-          printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-            preview "$saved_videos" |
-            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
-        )
+        if [ "$CONFIG_CACHE_FZF_RESULTS" = true ]; then
+          if [ "$saved_videos" = "$cached_data" ]; then
+            fzf_input="$cached_fzf_input"
+          else
+            fzf_input="$(
+              printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+                preview "$saved_videos"
+            )"
+            cached_data="$saved_videos"
+            cached_fzf_input="$fzf_input"
+          fi
+          selection=$(
+            printf '%s\n' "$fzf_input" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+          )
+        else
+          selection=$(
+            printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$saved_videos" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+          )
+        fi
       fi
 
       case "$selection" in
@@ -4211,6 +4331,9 @@ __menu_main_recent() {
   local video
   local saved_videos
   local selection
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_RECENTS_FILE" ]; then
     saved_videos="$(
@@ -4227,11 +4350,28 @@ __menu_main_recent() {
     )"
 
     while true; do
-      selection=$(
-        printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-          preview "$saved_videos" |
-          ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
-      )
+      if [ "$CONFIG_CACHE_FZF_RESULTS" = true ]; then
+        if [ "$saved_videos" = "$cached_data" ]; then
+          fzf_input="$cached_fzf_input"
+        else
+          fzf_input="$(
+            printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$saved_videos"
+          )"
+          cached_data="$saved_videos"
+          cached_fzf_input="$fzf_input"
+        fi
+        selection=$(
+          printf '%s\n' "$fzf_input" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+        )
+      else
+        selection=$(
+          printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+            preview "$saved_videos" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+        )
+      fi
 
       case "$selection" in
       "$TXT_MENU_BACK" | "") break ;;

@@ -61,6 +61,7 @@
 - [Configuration](#configuration)
   - [Configuration File Location](#configuration-file-location)
   - [Configuration Variables](#configuration-variables)
+  - [Fzf Results Cache](#fzf-results-cache)
 - [Extensions](#extensions)
   - [Official Extensions](#official-extensions)
 - [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
@@ -401,6 +402,7 @@ Almost all CLI options can be permanently set in `~/.config/yt-x/config` or over
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
 - `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, `viu`)
 - `YT_X_BROWSER` (e.g., `firefox`, `brave` )
+- `YT_X_CACHE_FZF_RESULTS` (`true` or `false`, overrides `CONFIG_CACHE_FZF_RESULTS` for one run)
 
 ---
 
@@ -610,6 +612,7 @@ They exist purely for convenience and is more useful when passing from cmdline o
 | `CONFIG_ENABLE_SEARCH_HISTORY` | `true`  | Save local search history to track and quickly recall past queries.                    |
 | `CONFIG_NO_OF_RECENT`          | `10`    | The number of recent "Watch History" items to retain locally.                          |
 | `CONFIG_CACHE_RETENTION_DAYS`  | `3`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
+| `CONFIG_CACHE_FZF_RESULTS`     | `true`  | Reuse derived result lists (feed, playlists, channels, subscriptions, My Videos, Recent) across fzf redraws instead of rebuilding them on each pass (fzf launcher only; rofi and gum are unaffected). |
 
 #### Fzf, gum and Rofi
 
@@ -636,6 +639,36 @@ Check the repo for pre-configured rofi themes
 | :----------------------------- | :------ | :-------------------------------------------------------------------------- |
 | `CONFIG_AUTOLOADED_EXTENSIONS` | `""`    | Comma-separated list of extension scripts to load automatically on startup. |
 | `CONFIG_CHECK_FOR_UPDATES`     | `true`  | Periodically check the GitHub repository for updates and prompt to install. |
+
+### Fzf results cache
+
+SPEEDS UP GOING BACK TO THE RESULTS PAGE AND REDUCES CPU USAGE BY TURNING OFF ICON ANIMATION AND LIST RE-COMPUTE.
+
+`CONFIG_CACHE_FZF_RESULTS` controls whether every derived fzf result list (My Feed, My Playlists, channel results, subscriptions, My Videos and Recent) reuses its assembled fzf input when you return to the list. Default: `true`, so those lists redraw instantly instead of waiting for jq and preview generation again. Setting it to `false` keeps the upstream behavior of rebuilding each row on every pass and adds no delay before fzf opens; use it only if you need the results rebuilt every time. Each cache is discarded automatically when its underlying JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown. The one-run override `YT_X_CACHE_FZF_RESULTS` (also `true` or `false`) always wins over the config value.
+This cache is specific to the `fzf` launcher; the `rofi` and `gum` launchers are unchanged.
+
+**Activate**
+
+Open `yt-x --edit-config` (or edit `~/.config/yt-x/config`, respecting `$XDG_CONFIG_HOME`) and make sure this block is present:
+
+```bash
+# Cache derived result lists (My Feed, My Playlists, channels, subscriptions, My Videos, Recent).
+# 'true': reuses the derived fzf input and redraws it instantly (default, recommended!);
+# 'false': keep rebuilding it on every redraw (only use if really need to!).
+# The cache is invalidated whenever the underlying JSON changes (Next/Previous, a new fetch)
+# One-run override (highest priority): export YT_X_CACHE_FZF_RESULTS=true or false before launching yt-x.
+CONFIG_CACHE_FZF_RESULTS="true"
+```
+
+To try it for one run without editing the config file, launch `YT_X_CACHE_FZF_RESULTS=true yt-x`; the environment variable always overrides the config value. Leave the line unset to keep the default behavior, or set it to `false` to opt out.
+
+**Verify**
+
+Open any result list (My Feed, My Playlists, a channel, subscriptions, My Videos or Recent), enter an item, go Back to the list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time and its rows stream in progressively, exactly as in upstream. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
+
+**Troubleshooting**
+
+If a third-party extension changes result labels without changing the playlist JSON, set the option back to `false`; the cache key is `$STATE_CURRENT_PLAYLIST_RESULTS`, so changes not reflected there are deliberately not re-derived. Preview image caching is a separate mechanism (`CONFIG_CACHE_RETENTION_DAYS`) and is not controlled by this option. If the new binary is installed but the option is ignored, check that your config line is not duplicated with a later `false` value and that no exported `YT_X_CACHE_FZF_RESULTS=false` remains in your shell.
 
 ## Extensions
 
@@ -912,14 +945,16 @@ Something like this
 </details>
 
 <details>
-<summary><b>How do i filter out deleted or private videos?</b></summary>
+<summary><b>How do i filter out seen/deleted or private videos?</b></summary>
 <br>
 
-Add something like this to yt-dlp config
+To hide deleted or private videos, add something like this to your yt-dlp config:
 
 ```conf
 --reject-title "\[Deleted video\]|\[Private video\]"
 ```
+
+To hide videos you have already seen or downloaded, use the archive-filter.ext extension listed in the Extensions section.
 
 </details>
 
