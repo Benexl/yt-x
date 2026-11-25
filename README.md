@@ -61,6 +61,7 @@
 - [Configuration](#configuration)
   - [Configuration File Location](#configuration-file-location)
   - [Configuration Variables](#configuration-variables)
+  - [Playlist Results Cache](#playlist-results-cache)
 - [Extensions](#extensions)
   - [Official Extensions](#official-extensions)
 - [Frequently Asked Questions (FAQ)](#frequently-asked-questions-faq)
@@ -401,6 +402,7 @@ Almost all CLI options can be permanently set in `~/.config/yt-x/config` or over
 - `YT_X_ENABLE_PREVIEW_IMAGES` (`true` or `false`)
 - `YT_X_IMAGE_RENDERER` (`chafa`, `icat`, `imgcat`, `viu`)
 - `YT_X_BROWSER` (e.g., `firefox`, `brave` )
+- `YT_X_CACHE_PLAYLIST_RESULTS` (`true` or `false`, overrides `CONFIG_CACHE_PLAYLIST_RESULTS` for one run)
 
 ---
 
@@ -610,6 +612,7 @@ They exist purely for convenience and is more useful when passing from cmdline o
 | `CONFIG_ENABLE_SEARCH_HISTORY` | `true`  | Save local search history to track and quickly recall past queries.                    |
 | `CONFIG_NO_OF_RECENT`          | `10`    | The number of recent "Watch History" items to retain locally.                          |
 | `CONFIG_CACHE_RETENTION_DAYS`  | `3`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
+| `CONFIG_CACHE_PLAYLIST_RESULTS` | `false` | Reuse the derived playlist results page across fzf redraws instead of rebuilding it on each pass. |
 
 #### Fzf, gum and Rofi
 
@@ -636,6 +639,34 @@ Check the repo for pre-configured rofi themes
 | :----------------------------- | :------ | :-------------------------------------------------------------------------- |
 | `CONFIG_AUTOLOADED_EXTENSIONS` | `""`    | Comma-separated list of extension scripts to load automatically on startup. |
 | `CONFIG_CHECK_FOR_UPDATES`     | `true`  | Periodically check the GitHub repository for updates and prompt to install. |
+
+### Playlist results cache
+
+`CONFIG_CACHE_PLAYLIST_RESULTS` controls whether the derived playlist-results page (video titles plus the fully assembled fzf input) is reused while you move through a playlist and return to the results list. Default: `false`, which keeps the upstream behavior of rebuilding the page on every pass. Setting it to `true` makes the same page redraw instantly instead of waiting for jq and preview generation again; the cache is discarded automatically when the underlying playlist JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown.
+
+**Install / upgrade**
+
+1. Install yt-x normally (see [Installation](#installation)) or replace your existing `~/.local/bin/yt-x` with a build that contains this option; no extra files, extensions, or directories are required.
+2. Confirm the option is present: `grep -Fq CONFIG_CACHE_PLAYLIST_RESULTS ~/.local/bin/yt-x`.
+3. Make sure to restart any running yt-x instances so they pick up the new binary.
+
+**Activate**
+
+Open `yt-x --edit-config` (or edit `~/.config/yt-x/config`, respecting `$XDG_CONFIG_HOME`) and add this line:
+
+```bash
+CONFIG_CACHE_PLAYLIST_RESULTS="true"
+```
+
+To try it for one run without editing the config file, launch `YT_X_CACHE_PLAYLIST_RESULTS=true yt-x`; the environment variable overrides the config value. Leave the line unset or set it to `false` to keep the default behavior.
+
+**Verify**
+
+Open a playlist, enter a video, go Back to the results list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
+
+**Troubleshooting**
+
+If a third-party extension changes result labels without changing the playlist JSON, set the option back to `false`; the cache key is `$STATE_CURRENT_PLAYLIST_RESULTS`, so changes not reflected there are deliberately not re-derived. Preview image caching is a separate mechanism (`CONFIG_CACHE_RETENTION_DAYS`) and is not controlled by this option. If the new binary is installed but the option is ignored, check that your config line is not duplicated with a later `false` value and that no exported `YT_X_CACHE_PLAYLIST_RESULTS=false` remains in your shell.
 
 ## Extensions
 

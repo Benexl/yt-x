@@ -184,6 +184,7 @@ __load_default_config() {
   : "${CONFIG_PER_PAGE:=30}"
   : "${CONFIG_BROWSER:=}"
   : "${CONFIG_CACHE_RETENTION_DAYS:=3}"
+  : "${CONFIG_CACHE_PLAYLIST_RESULTS:=false}"
   : "${CONFIG_EDITOR:=${EDITOR:-vi}}"
   : "${CONFIG_NOTIFICATION_DURATION:=5}"
   : "${CONFIG_DOWNLOAD_DIR:=$HOME/Videos/$CLI_NAME}"
@@ -273,6 +274,7 @@ __load_env_config() {
 
   CONFIG_DOWNLOADS_ENUMERATE="${YT_X_ENUMERATE_DOWNLOADS:-$CONFIG_DOWNLOADS_ENUMERATE}"
   CONFIG_CHECK_FOR_UPDATES="${YT_X_CHECK_FOR_UPDATES:-$CONFIG_CHECK_FOR_UPDATES}"
+  CONFIG_CACHE_PLAYLIST_RESULTS="${YT_X_CACHE_PLAYLIST_RESULTS:-$CONFIG_CACHE_PLAYLIST_RESULTS}"
   CONFIG_NO_OF_RECENT="${YT_X_NO_OF_RECENT:-$CONFIG_NO_OF_RECENT}"
   CONFIG_ENABLE_SEARCH_HISTORY="${YT_X_ENABLE_SEARCH_HISTORY:-$CONFIG_ENABLE_SEARCH_HISTORY}"
 
@@ -965,6 +967,10 @@ CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 # Number of days to keep cached preview images, playlists, and logs
 # Default: 3
 CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
+
+# Reuse the derived playlist results page instead of rebuilding it on each redraw
+# Options: true, false (Default: false)
+CONFIG_CACHE_PLAYLIST_RESULTS="$CONFIG_CACHE_PLAYLIST_RESULTS"
 
 # ==============================================================================
 # Join the community at $CLI_DISCORD_URL
@@ -3161,6 +3167,11 @@ _menu_playlist_explorer() {
   local titles
   local choice
   local base_state
+  local derived_state
+  local cached_titles
+  local cached_fzf_state
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3170,16 +3181,38 @@ $TXT_MENU_PREVIOUS
 $TXT_MENU_BACK
 $TXT_MENU_EXIT"
 
+  derived_state=""
+  cached_fzf_state=""
+
   while true; do
-    titles=$(printf '%s\n' "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+    if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ] && [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$derived_state" ]; then
+      titles="$cached_titles"
+    else
+      titles=$(printf '%s\n' "$STATE_CURRENT_PLAYLIST_RESULTS" | jq '.entries[].title' -r)
+      if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ]; then
+        cached_titles="$titles"
+        derived_state="$STATE_CURRENT_PLAYLIST_RESULTS"
+      fi
+    fi
 
     if [ "$CMD_PLAYLIST_RESULTS_SKIP" = "true" ]; then
       choice="$(printf '%s' "$titles" | head -n 1)"
       unset -v CMD_PLAYLIST_RESULTS_SKIP
     else
+      if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ] && [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$cached_fzf_state" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$titles" "$other_choices" |
+            preview "$STATE_CURRENT_PLAYLIST_RESULTS"
+        )"
+        if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ]; then
+          cached_fzf_input="$fzf_input"
+          cached_fzf_state="$STATE_CURRENT_PLAYLIST_RESULTS"
+        fi
+      fi
       choice="$(
-        printf "%s\n%s" "$titles" "$other_choices" |
-          preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
+        printf '%s\n' "$fzf_input" |
           ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
       )"
     fi
