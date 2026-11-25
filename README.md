@@ -656,8 +656,9 @@ Open `yt-x --edit-config` (or edit `~/.config/yt-x/config`, respecting `$XDG_CON
 
 ```bash
 # Cache derived result lists: true = instant redraw, false = rebuild each pass (default).
+# One-run override: export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
+# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS below.
 CONFIG_CACHE_PLAYLIST_RESULTS="true"
-# Optional one-run override (takes precedence): export YT_X_CACHE_PLAYLIST_RESULTS=false
 ```
 
 To try it for one run without editing the config file, launch `YT_X_CACHE_PLAYLIST_RESULTS=true yt-x`; the environment variable overrides the config value. Leave the line unset or set it to `false` to keep the default behavior.

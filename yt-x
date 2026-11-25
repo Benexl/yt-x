@@ -963,10 +963,10 @@ CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 # Cache derived result lists (My Feed, My Playlists, channels, subscriptions,
 # My Videos, Recent): true reuses the derived fzf input and redraws it instantly;
 # false keeps the upstream behaviour of rebuilding it on every redraw (Default: false).
-# The cache is invalidated whenever the underlying JSON changes (Next/Previous, a new fetch).
-CONFIG_CACHE_PLAYLIST_RESULTS="$CONFIG_CACHE_PLAYLIST_RESULTS"
+# The cache is invalidated whenever the underlying JSON changes (Next/Previous or a new fetch).
 # One-run override: export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
-# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS above.
+# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS below.
+CONFIG_CACHE_PLAYLIST_RESULTS="$CONFIG_CACHE_PLAYLIST_RESULTS"
 
 # ==============================================================================
 # Join the community at $CLI_DISCORD_URL
