@@ -172,7 +172,6 @@ __load_default_config() {
   : "${CONFIG_CHAFA_ARGS:=}"
   : "${CONFIG_ICAT_ARGS:=}"
   : "${CONFIG_IMGCAT_ARGS:=}"
-  : "${CONFIG_VIU_ARGS:=}"
   : "${CONFIG_YT_DLP_OPTS:=}"
   : "${CONFIG_PLAYER:=mpv}"
   : "${CONFIG_DISOWN_PLAYER:=false}"
@@ -251,7 +250,6 @@ __load_env_config() {
   CONFIG_CHAFA_ARGS="${YT_X_CHAFA_ARGS:-$CONFIG_CHAFA_ARGS}"
   CONFIG_ICAT_ARGS="${YT_X_ICAT_ARGS:-$CONFIG_ICAT_ARGS}"
   CONFIG_IMGCAT_ARGS="${YT_X_IMGCAT_ARGS:-$CONFIG_IMGCAT_ARGS}"
-  CONFIG_VIU_ARGS="${YT_X_VIU_ARGS:-$CONFIG_VIU_ARGS}"
 
   CONFIG_PLAYER="${YT_X_PLAYER:-$CONFIG_PLAYER}"
   CONFIG_DISOWN_PLAYER="${YT_X_DISOWN_PLAYER:-$CONFIG_DISOWN_PLAYER}"
@@ -328,8 +326,7 @@ __load_default_lang() {
 
   TXT_LOADING="Loading..."
 
-  TXT_PREVIEW_CMD_NOT_FOUND="the configured image renderer is not installed or not in PATH"
-  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa or viu"
+  TXT_PREVIEW_INSTALL_VIEWER="please install a terminal image viewer\neither icat for kitty terminal and wezterm or imgcat or chafa"
 
   TXT_CONFIG_BROWSER_NOT_SET="Please set CONFIG_BROWSER to proceed"
 
@@ -469,7 +466,6 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO="Download (Audio Only)"
   TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO="Download All (Audio Only)"
   TXT_MENU_MEDIA_ACTIONS_BROWSER="Open in Browser"
-  TXT_MENU_MEDIA_ACTIONS_COPY="Copy Video URL"
   TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST="Open in Browser (Playlist)"
   TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM="Toggle Enumerate Downloads"
   TXT_MENU_MEDIA_ACTIONS_SHELL="Shell"
@@ -503,7 +499,6 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_MENU_MEDIA_ACTIONS_SHELL_VARIABLES="variables:"
 
   TXT_MENU_MEDIA_ACTIONS_OPEN_IN_BROWSER_ERROR="Could not find a supported URL opener (open, xdg-open, wslview, or cmd.exe)"
-  TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR="Could not find a valid system clipboard handler (mac: pbcopy, android: termux-clipboard-set, linux: wl-clipboard or xclip)"
   TXT_MENU_MEDIA_ACTIONS_SUBSCRIBE_UNSUPPORTED="contribute to the project by adding this feature"
 
   TXT_MENU_MAIN_RECENT_SEARCHES="Recent searches:"
@@ -513,7 +508,6 @@ NOTE: There are base options which are given to yt-dlp but can be overriden
   TXT_DESKTOP_ENTRY_COMMENT="Browse Youtube from the terminal plus other sites yt-dlp supports"
   TXT_LAUNCHER_LABEL_ROFI="rofi"
   TXT_LAUNCHER_LABEL_FZF="fzf"
-  TXT_WARNING_NOT_IMPLEMENTED="This feature has not yet been implemented, please open a pr :)"
 
   TXT_APP_USAGE="\
 A script written to browse YouTube and other yt‑dlp supported sites from the terminal.
@@ -729,7 +723,6 @@ Example:
   TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO="󱑤"
   TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO="󰦗"
   TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER=""
-  TXT_ICON_MENU_MEDIA_ACTIONS_COPY=""
   TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST=""
   TXT_ICON_MENU_MEDIA_ACTIONS_TOGGLE_ENUM=""
   TXT_ICON_MENU_MEDIA_ACTIONS_SHELL=""
@@ -879,14 +872,13 @@ CONFIG_ENABLE_PREVIEW="$CONFIG_ENABLE_PREVIEW"
 CONFIG_ENABLE_PREVIEW_IMAGES="$CONFIG_ENABLE_PREVIEW_IMAGES"
 
 # The tool used to render previews in the terminal
-# Options: chafa, icat, imgcat, viu (Default: chafa)
+# Options: chafa, icat, imgcat (Default: chafa)
 CONFIG_IMAGE_RENDERER="$CONFIG_IMAGE_RENDERER"
 
 # Extra arguments for specific image renderers
 CONFIG_CHAFA_ARGS="$CONFIG_CHAFA_ARGS"
 CONFIG_ICAT_ARGS="$CONFIG_ICAT_ARGS"
 CONFIG_IMGCAT_ARGS="$CONFIG_IMGCAT_ARGS"
-CONFIG_VIU_ARGS="$CONFIG_VIU_ARGS"
 
 # custom opts for yt-dlp
 CONFIG_YT_DLP_OPTS="$CONFIG_YT_DLP_OPTS"
@@ -968,9 +960,13 @@ CONFIG_ROFI_THEME_PAGER="$CONFIG_ROFI_THEME_PAGER"
 # Default: 3
 CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 
-# Reuse the derived playlist results page instead of rebuilding it on each redraw
-# Options: true, false (Default: false)
+# Cache derived result lists (My Feed, My Playlists, channels, subscriptions,
+# My Videos, Recent): true reuses the derived fzf input and redraws it instantly;
+# false keeps the upstream behaviour of rebuilding it on every redraw (Default: false).
+# The cache is invalidated whenever the underlying JSON changes (Next/Previous, a new fetch).
 CONFIG_CACHE_PLAYLIST_RESULTS="$CONFIG_CACHE_PLAYLIST_RESULTS"
+# One-run override: export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
+# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS above.
 
 # ==============================================================================
 # Join the community at $CLI_DISCORD_URL
@@ -1069,53 +1065,6 @@ _util_open() {
   else
     return 1
   fi
-}
-
-_util_clipboard_copy() {
-  local input
-
-  if [ $# -gt 0 ]; then
-    input="$*"
-  else
-    input=$(cat)
-  fi
-
-  case "$CLI_PLATFORM" in
-  mac)
-    if _dep_ch pbcopy; then
-      printf '%s' "$input" | pbcopy
-    else
-      return 1
-    fi
-    ;;
-  android)
-    if _dep_ch termux-clipboard-set; then
-      printf '%s' "$input" | termux-clipboard-set
-    else
-      return 1
-    fi
-    ;;
-  linux)
-    if _dep_ch wl-copy; then
-      printf '%s' "$input" | wl-copy
-    elif _dep_ch xclip; then
-      printf '%s' "$input" | xclip -selection clipboard
-    else
-      return 1
-    fi
-    ;;
-  windows)
-    if _dep_ch clip.exe; then
-      printf '%s' "$input" | clip.exe
-    else
-      return 1
-    fi
-    ;;
-  *)
-    printf '%s\n' "$TXT_WARNING_NOT_IMPLEMENTED"
-    return 1
-    ;;
-  esac
 }
 
 _util_file_edit() {
@@ -1327,15 +1276,9 @@ __ui_fzf_launcher_with_preview() {
 
   preview_script="\
 TXT_PREVIEW_INSTALL_VIEWER='$TXT_PREVIEW_INSTALL_VIEWER'
-TXT_PREVIEW_CMD_NOT_FOUND='$TXT_PREVIEW_CMD_NOT_FOUND'
 CONFIG_IMAGE_RENDERER='$CONFIG_IMAGE_RENDERER'
-CONFIG_CHAFA_ARGS='$CONFIG_CHAFA_ARGS'
-CONFIG_ICAT_ARGS='$CONFIG_ICAT_ARGS'
-CONFIG_IMGCAT_ARGS='$CONFIG_IMGCAT_ARGS'
-CONFIG_VIU_ARGS='$CONFIG_VIU_ARGS'
 CLI_PLATFORM='$CLI_PLATFORM'
 THEME_FZF_PREVIEW_DIVIDER='$THEME_FZF_PREVIEW_DIVIDER'
-THEME_RESET='$THEME_RESET'
 preview_script_path='{1}'
 [ -s \"\$preview_script_path\" ] && . \"\$preview_script_path\"\
 "
@@ -1599,50 +1542,58 @@ __preview_fzf_create_shared_script() {
 # Shared script for fzf previews
 # ==============================================================================
 
-_fail_or_run() {
-  if command -v "$1" >/dev/null 2>&1; then
-    "$@"
-  else
-    printf '%s\n' "$TXT_PREVIEW_CMD_NOT_FOUND"
-  fi
-}
-
 draw_divider() {
   ll=1
-  while [ $ll -le $FZF_PREVIEW_COLUMNS ]; do
-    printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}"
-    ll=$((ll + 1))
-  done
+  while [ $ll -le $FZF_PREVIEW_COLUMNS ];do printf "${THEME_FZF_PREVIEW_DIVIDER}─${THEME_RESET}" ;ll=$(( ll + 1 ));done;
   echo
 }
 
 fzf_preview() {
   file=$1
 
-  dim="${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}"
+  dim=${FZF_PREVIEW_COLUMNS}x${FZF_PREVIEW_LINES}
   if [ "$dim" = "x" ]; then
     dim=$(stty size </dev/tty | awk "{print \$2 \"x\" \$1}")
   fi
+  if ! [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$KITTY_WINDOW_ID" ] && [ "$((FZF_PREVIEW_TOP + FZF_PREVIEW_LINES))" -eq "$(stty size </dev/tty | awk "{print \$1}")" ]; then
+    dim=${FZF_PREVIEW_COLUMNS}x$((FZF_PREVIEW_LINES - 1))
+  fi
 
-  case "$CONFIG_IMAGE_RENDERER" in
-  icat)
-    _fail_or_run kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no $CONFIG_ICAT_ARGS --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
-    ;;
-  chafa)
-    _fail_or_run chafa $CONFIG_CHAFA_ARGS -s "$dim" "$file"
-    ;;
-  viu)
-    _fail_or_run viu $CONFIG_VIU_ARGS -w "${dim%%x*}" -h "${dim##*x}" "$file"
-    ;;
-  imgcat)
-    _fail_or_run imgcat $CONFIG_IMGCAT_ARGS -W "${dim%%x*}" -H "${dim##*x}" "$file"
-    ;;
-  *)
-    printf '%s\n' "$TXT_PREVIEW_INSTALL_VIEWER"
-    ;;
-  esac
+  if [ "$CONFIG_IMAGE_RENDERER" = "icat" ] && [ -z "$GHOSTTY_BIN_DIR" ]; then
+    if command -v kitten >/dev/null 2>&1; then
+      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    elif command -v icat >/dev/null 2>&1; then
+      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    else
+      kitty icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    fi
+
+  elif [ -n "$GHOSTTY_BIN_DIR" ]; then
+    if command -v kitten >/dev/null 2>&1; then
+      kitten icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    elif command -v icat >/dev/null 2>&1; then
+      icat --clear --transfer-mode=memory --unicode-placeholder --stdin=no --place="$dim@0x0" "$file" | sed "\$d" | sed "$(printf "\$s/\$/\033[m/")"
+    else
+      chafa -s "$dim" "$file"
+    fi
+  elif command -v chafa >/dev/null 2>&1; then
+    case "$CLI_PLATFORM" in
+    android) chafa -s "$dim" "$file" ;;
+    windows) chafa -f sixels --colors=full --polite=on --animate=off -s "$dim" "$file" ;;
+    *) chafa -s "$dim" "$file" ;;
+    esac
+    echo
+
+  elif command -v imgcat >/dev/null; then
+    imgcat -W "${dim%%x*}" -H "${dim##*x}" "$file"
+
+  else
+    printf "%s" "$TXT_PREVIEW_INSTALL_VIEWER"
+  fi
 }
 EOF
+  else
+    return
   fi
 }
 
@@ -1663,6 +1614,9 @@ __preview_fzf_generate_script_for_item() {
   local img_url
 
   data_item="$1"
+
+  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s" "$data_item" | jq -j '.title // ""' | _util_generate_hash).sh"
+  [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ] && [ -s "$preview_script_path" ] && [ "$preview_script_path" -nt "$CLI_PREVIEW_SCRIPTS_DIR/.epoch" ] && return 0
 
   eval "$(printf "%s" "$data_item" | jq -r '
     def format_number:
@@ -1739,8 +1693,6 @@ __preview_fzf_generate_script_for_item() {
       "timestamp=" + (format_timestamp | if . == null then "null" else @sh end)
     ] | join("\n")
 ')"
-
-  preview_script_path="$CLI_PREVIEW_SCRIPTS_DIR/$(printf "%s" "$raw_title" | _util_generate_hash).sh"
 
   case "$img_url" in
   //*) img_url="https:$img_url" ;;
@@ -2078,6 +2030,7 @@ __fetch_yt_dlp() {
   shift
   shift
   custom_opts="$*"
+  : >"$CLI_PREVIEW_SCRIPTS_DIR/.epoch"
 
   # shellcheck disable=SC2086
   ui_load yt-dlp "$url" \
@@ -2940,10 +2893,6 @@ __menu_media_actions_open_in_browser_playlist() {
   _util_open "$STATE_CURRENT_PLAYLIST_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_OPEN_IN_BROWSER_ERROR"
 }
 
-__menu_media_actions_copy_video_url() {
-  _util_clipboard_copy "$STATE_CURRENT_VIDEO_URL" || ui_notify_error "$TXT_MENU_MEDIA_ACTIONS_COPY_VIDEO_URL_ERROR"
-}
-
 __menu_media_actions_visit_channel() {
   local channel_url
   local channel_id
@@ -3058,7 +3007,6 @@ _menu_media_actions() {
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_AUDIO}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_DOWNLOAD_ALL_AUDIO}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_BROWSER}
- ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_COPY}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_COPY}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_TOGGLE_ENUM}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM}
  ${THEME_FZF_ICON_COLOR_PRIMARY}${TXT_ICON_MENU_MEDIA_ACTIONS_SHELL}${THEME_RESET}  ${TXT_MENU_MEDIA_ACTIONS_SHELL}
@@ -3105,7 +3053,6 @@ $extra_menu_options"
     "$TXT_MENU_MEDIA_ACTIONS_VISIT_CHANNEL") __menu_media_actions_visit_channel ;;
     "$TXT_MENU_MEDIA_ACTIONS_SUBSCRIBE") __menu_media_actions_subscribe_to_channel ;;
     "$TXT_MENU_MEDIA_ACTIONS_BROWSER") __menu_media_actions_open_in_browser ;;
-    "$TXT_MENU_MEDIA_ACTIONS_COPY") __menu_media_actions_copy_video_url ;;
     "$TXT_MENU_MEDIA_ACTIONS_BROWSER_PLAYLIST") __menu_media_actions_open_in_browser_playlist ;;
     "$TXT_MENU_MEDIA_ACTIONS_TOGGLE_ENUM") __menu_media_actions_toggle_enumerate_downloads ;;
     "$TXT_MENU_MEDIA_ACTIONS_SHELL") __menu_media_actions_shell ;;
@@ -3273,6 +3220,9 @@ _menu_playlists_explorer() {
   local titles
   local choice
   local base_state
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3284,11 +3234,28 @@ $TXT_MENU_EXIT"
 
   while true; do
     titles=$(printf '%s' "$STATE_CURRENT_PLAYLISTS_RESULTS" | jq '.entries[].title' -r)
-    choice="$(
-      printf "%s\n%s" "$titles" "$other_choices" |
-        preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
-    )"
+    if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = true ]; then
+      if [ "$STATE_CURRENT_PLAYLISTS_RESULTS" = "$cached_data" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$titles" "$other_choices" |
+            preview "$STATE_CURRENT_PLAYLISTS_RESULTS"
+        )"
+        cached_data="$STATE_CURRENT_PLAYLISTS_RESULTS"
+        cached_fzf_input="$fzf_input"
+      fi
+      choice="$(
+        printf '%s\n' "$fzf_input" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
+      )"
+    else
+      choice="$(
+        printf "%s\n%s" "$titles" "$other_choices" |
+          preview "$STATE_CURRENT_PLAYLISTS_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLISTS_EXPLORER_PROMPT"
+      )"
+    fi
 
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_playlists_explorer_next ;;
@@ -3524,6 +3491,9 @@ _menu_channels_explorer() {
   local titles
   local choice
   local base_state
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   base_state="$STATE_CURRENT"
 
@@ -3535,11 +3505,28 @@ $TXT_MENU_EXIT"
 
   while true; do
     channels=$(printf '%s' "$STATE_CURRENT_CHANNEL_RESULTS" | jq '.entries[].title' -r)
-    choice="$(
-      printf "%s\n%s" "$channels" "$other_choices" |
-        preview "$STATE_CURRENT_CHANNEL_RESULTS" |
-        ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
-    )"
+    if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = true ]; then
+      if [ "$STATE_CURRENT_CHANNEL_RESULTS" = "$cached_data" ]; then
+        fzf_input="$cached_fzf_input"
+      else
+        fzf_input="$(
+          printf "%s\n%s" "$channels" "$other_choices" |
+            preview "$STATE_CURRENT_CHANNEL_RESULTS"
+        )"
+        cached_data="$STATE_CURRENT_CHANNEL_RESULTS"
+        cached_fzf_input="$fzf_input"
+      fi
+      choice="$(
+        printf '%s\n' "$fzf_input" |
+          ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
+      )"
+    else
+      choice="$(
+        printf "%s\n%s" "$channels" "$other_choices" |
+          preview "$STATE_CURRENT_CHANNEL_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_CHANNELS_EXPLORER_PROMPT"
+      )"
+    fi
     case "$choice" in
     "$TXT_MENU_NEXT") __menu_channels_explorer_next ;;
     "$TXT_MENU_PREVIOUS") __menu_channels_explorer_previous ;;
@@ -4099,6 +4086,9 @@ __menu_main_channels_explorer() {
   local channel
   local channels
   local url
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_SUBSCRIPTIONS_FILE" ]; then
     channels="$(cat "$CLI_MY_SUBSCRIPTIONS_FILE")"
@@ -4109,11 +4099,28 @@ __menu_main_channels_explorer() {
           unset -v CMD_CHANNEL
         fi
       else
-        channel=$(
-          printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-            preview "$channels" |
-            ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
-        )
+        if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = true ]; then
+          if [ "$channels" = "$cached_data" ]; then
+            fzf_input="$cached_fzf_input"
+          else
+            fzf_input="$(
+              printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+                preview "$channels"
+            )"
+            cached_data="$channels"
+            cached_fzf_input="$fzf_input"
+          fi
+          channel=$(
+            printf '%s\n' "$fzf_input" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+          )
+        else
+          channel=$(
+            printf "%s\n%s\n" "$(printf '%s' "$channels" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$channels" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_CHANNELS_PROMPT"
+          )
+        fi
       fi
 
       case "$channel" in
@@ -4186,6 +4193,9 @@ __menu_main_saved_videos() {
   local video
   local saved_videos
   local selection
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_VIDEOS_FILE" ]; then
     if [ -n "$CMD_INPUT" ]; then
@@ -4210,11 +4220,28 @@ __menu_main_saved_videos() {
         selection="$CMD_INPUT"
         unset -v CMD_INPUT
       else
-        selection=$(
-          printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-            preview "$saved_videos" |
-            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
-        )
+        if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = true ]; then
+          if [ "$saved_videos" = "$cached_data" ]; then
+            fzf_input="$cached_fzf_input"
+          else
+            fzf_input="$(
+              printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+                preview "$saved_videos"
+            )"
+            cached_data="$saved_videos"
+            cached_fzf_input="$fzf_input"
+          fi
+          selection=$(
+            printf '%s\n' "$fzf_input" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+          )
+        else
+          selection=$(
+            printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$saved_videos" |
+              ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+          )
+        fi
       fi
 
       case "$selection" in
@@ -4248,6 +4275,9 @@ __menu_main_recent() {
   local video
   local saved_videos
   local selection
+  local cached_data
+  local cached_fzf_input
+  local fzf_input
 
   if [ -s "$CLI_MY_RECENTS_FILE" ]; then
     saved_videos="$(
@@ -4264,11 +4294,28 @@ __menu_main_recent() {
     )"
 
     while true; do
-      selection=$(
-        printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
-          preview "$saved_videos" |
-          ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
-      )
+      if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = true ]; then
+        if [ "$saved_videos" = "$cached_data" ]; then
+          fzf_input="$cached_fzf_input"
+        else
+          fzf_input="$(
+            printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+              preview "$saved_videos"
+          )"
+          cached_data="$saved_videos"
+          cached_fzf_input="$fzf_input"
+        fi
+        selection=$(
+          printf '%s\n' "$fzf_input" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+        )
+      else
+        selection=$(
+          printf "%s\n%s" "$(printf '%s' "$saved_videos" | jq -r '.entries[].title')" "$TXT_MENU_BACK" |
+            preview "$saved_videos" |
+            ui_launcher_with_preview "$TXT_MENU_MAIN_MY_VIDEOS_PROMPT"
+        )
+      fi
 
       case "$selection" in
       "$TXT_MENU_BACK" | "") break ;;

@@ -612,7 +612,7 @@ They exist purely for convenience and is more useful when passing from cmdline o
 | `CONFIG_ENABLE_SEARCH_HISTORY` | `true`  | Save local search history to track and quickly recall past queries.                    |
 | `CONFIG_NO_OF_RECENT`          | `10`    | The number of recent "Watch History" items to retain locally.                          |
 | `CONFIG_CACHE_RETENTION_DAYS`  | `3`     | Auto-clean stale preview images, autogen playlists, and logs older than this duration. |
-| `CONFIG_CACHE_PLAYLIST_RESULTS` | `false` | Reuse the derived playlist results page across fzf redraws instead of rebuilding it on each pass. |
+| `CONFIG_CACHE_PLAYLIST_RESULTS` | `false` | Reuse derived result lists (feed, playlists, channels, subscriptions, My Videos, Recent) across fzf redraws instead of rebuilding them on each pass. |
 
 #### Fzf, gum and Rofi
 
@@ -642,7 +642,7 @@ Check the repo for pre-configured rofi themes
 
 ### Playlist results cache
 
-`CONFIG_CACHE_PLAYLIST_RESULTS` controls whether the derived playlist-results page (video titles plus the fully assembled fzf input) is reused while you move through a playlist and return to the results list. Default: `false`, which keeps the upstream behavior of rebuilding the page on every pass. Setting it to `true` makes the same page redraw instantly instead of waiting for jq and preview generation again; the cache is discarded automatically when the underlying playlist JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown.
+`CONFIG_CACHE_PLAYLIST_RESULTS` controls whether every derived fzf result list (My Feed, My Playlists, channel results, subscriptions, My Videos and Recent) reuses its assembled fzf input when you return to the list. Default: `false`, which keeps the upstream behavior of rebuilding each row on every pass and adds no delay before fzf opens. Setting it to `true` makes those lists redraw instantly instead of waiting for jq and preview generation again; each cache is discarded automatically when its underlying JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown. The one-run override `YT_X_CACHE_PLAYLIST_RESULTS` (also `true` or `false`) takes precedence over the config value.
 
 **Install / upgrade**
 
@@ -655,14 +655,16 @@ Check the repo for pre-configured rofi themes
 Open `yt-x --edit-config` (or edit `~/.config/yt-x/config`, respecting `$XDG_CONFIG_HOME`) and add this line:
 
 ```bash
+# Cache derived result lists: true = instant redraw, false = rebuild each pass (default).
 CONFIG_CACHE_PLAYLIST_RESULTS="true"
+# Optional one-run override (takes precedence): export YT_X_CACHE_PLAYLIST_RESULTS=false
 ```
 
 To try it for one run without editing the config file, launch `YT_X_CACHE_PLAYLIST_RESULTS=true yt-x`; the environment variable overrides the config value. Leave the line unset or set it to `false` to keep the default behavior.
 
 **Verify**
 
-Open a playlist, enter a video, go Back to the results list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time and its rows stream in progressively, exactly as in upstream. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
+Open any result list (My Feed, My Playlists, a channel, subscriptions, My Videos or Recent), enter an item, go Back to the list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time and its rows stream in progressively, exactly as in upstream. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
 
 **Troubleshooting**
 
