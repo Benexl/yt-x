@@ -662,7 +662,7 @@ To try it for one run without editing the config file, launch `YT_X_CACHE_PLAYLI
 
 **Verify**
 
-Open a playlist, enter a video, go Back to the results list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
+Open a playlist, enter a video, go Back to the results list, and compare: with `true` the list returns immediately on every redraw; with `false` the list is rebuilt each time and its rows stream in progressively, exactly as in upstream. `--playlist-skip` is unaffected and never builds preview input on the skip pass.
 
 **Troubleshooting**
 

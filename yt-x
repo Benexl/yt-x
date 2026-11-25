@@ -3198,18 +3198,22 @@ $TXT_MENU_EXIT"
     if [ "$CMD_PLAYLIST_RESULTS_SKIP" = "true" ]; then
       choice="$(printf '%s' "$titles" | head -n 1)"
       unset -v CMD_PLAYLIST_RESULTS_SKIP
+    elif [ "$CONFIG_CACHE_PLAYLIST_RESULTS" != "true" ]; then
+      choice="$(
+        printf "%s\n%s" "$titles" "$other_choices" |
+          preview "$STATE_CURRENT_PLAYLIST_RESULTS" |
+          ui_launcher_with_preview "$TXT_MENU_PLAYLIST_EXPLORER_PROMPT"
+      )"
     else
-      if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ] && [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$cached_fzf_state" ]; then
+      if [ "$STATE_CURRENT_PLAYLIST_RESULTS" = "$cached_fzf_state" ]; then
         fzf_input="$cached_fzf_input"
       else
         fzf_input="$(
           printf "%s\n%s" "$titles" "$other_choices" |
             preview "$STATE_CURRENT_PLAYLIST_RESULTS"
         )"
-        if [ "$CONFIG_CACHE_PLAYLIST_RESULTS" = "true" ]; then
-          cached_fzf_input="$fzf_input"
-          cached_fzf_state="$STATE_CURRENT_PLAYLIST_RESULTS"
-        fi
+        cached_fzf_input="$fzf_input"
+        cached_fzf_state="$STATE_CURRENT_PLAYLIST_RESULTS"
       fi
       choice="$(
         printf '%s\n' "$fzf_input" |
