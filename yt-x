@@ -964,8 +964,8 @@ CONFIG_CACHE_RETENTION_DAYS="$CONFIG_CACHE_RETENTION_DAYS"
 # My Videos, Recent): true reuses the derived fzf input and redraws it instantly;
 # false keeps the upstream behaviour of rebuilding it on every redraw (Default: false).
 # The cache is invalidated whenever the underlying JSON changes (Next/Previous or a new fetch).
-# One-run override: export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
-# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS below.
+# One-run override (highest priority): export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
+# The one-run environment override ALWAYS wins over CONFIG_CACHE_PLAYLIST_RESULTS in this file.
 CONFIG_CACHE_PLAYLIST_RESULTS="$CONFIG_CACHE_PLAYLIST_RESULTS"
 
 # ==============================================================================

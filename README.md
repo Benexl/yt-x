@@ -642,7 +642,7 @@ Check the repo for pre-configured rofi themes
 
 ### Playlist results cache
 
-`CONFIG_CACHE_PLAYLIST_RESULTS` controls whether every derived fzf result list (My Feed, My Playlists, channel results, subscriptions, My Videos and Recent) reuses its assembled fzf input when you return to the list. Default: `false`, which keeps the upstream behavior of rebuilding each row on every pass and adds no delay before fzf opens. Setting it to `true` makes those lists redraw instantly instead of waiting for jq and preview generation again; each cache is discarded automatically when its underlying JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown. The one-run override `YT_X_CACHE_PLAYLIST_RESULTS` (also `true` or `false`) takes precedence over the config value.
+`CONFIG_CACHE_PLAYLIST_RESULTS` controls whether every derived fzf result list (My Feed, My Playlists, channel results, subscriptions, My Videos and Recent) reuses its assembled fzf input when you return to the list. Default: `false`, which keeps the upstream behavior of rebuilding each row on every pass and adds no delay before fzf opens. Setting it to `true` makes those lists redraw instantly instead of waiting for jq and preview generation again; each cache is discarded automatically when its underlying JSON changes (Next/Previous, a new fetch, or a different playlist), so stale rows are not shown. The one-run override `YT_X_CACHE_PLAYLIST_RESULTS` (also `true` or `false`) always wins over the config value.
 
 **Install / upgrade**
 
@@ -656,8 +656,8 @@ Open `yt-x --edit-config` (or edit `~/.config/yt-x/config`, respecting `$XDG_CON
 
 ```bash
 # Cache derived result lists: true = instant redraw, false = rebuild each pass (default).
-# One-run override: export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
-# This environment variable takes precedence over CONFIG_CACHE_PLAYLIST_RESULTS below.
+# One-run override (highest priority): export YT_X_CACHE_PLAYLIST_RESULTS=true or false before launching yt-x.
+# The one-run environment override ALWAYS wins over CONFIG_CACHE_PLAYLIST_RESULTS in this file.
 CONFIG_CACHE_PLAYLIST_RESULTS="true"
 ```
 
